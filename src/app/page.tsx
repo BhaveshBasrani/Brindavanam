@@ -14,6 +14,7 @@ import { AuthModal } from '@/components/AuthModal';
 import { UserOrdersModal } from '@/components/UserOrdersModal';
 import { AdminDashboardModal } from '@/components/AdminDashboardModal';
 import { CoolLoadingScreen } from '@/components/CoolLoadingScreen';
+import { FloatingRecaptchaBadge } from '@/components/FloatingRecaptchaBadge';
 import { Footer } from '@/components/Footer';
 import { PRODUCTS } from '@/data/products';
 import { Product } from '@/types/store';
@@ -76,6 +77,9 @@ function HomePageContent() {
     <div className="min-h-screen flex flex-col bg-[#F7F6F2]">
       {/* Minimal Organic Loading Animation Screen */}
       <CoolLoadingScreen />
+
+      {/* Official Google reCAPTCHA Badge */}
+      <FloatingRecaptchaBadge />
 
       {/* Navigation */}
       <Navbar
