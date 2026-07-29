@@ -1,11 +1,16 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { X, CreditCard, ShieldCheck, CheckCircle2, Loader2, Truck, ArrowLeft, ArrowRight, MapPin, QrCode } from 'lucide-react';
+import { X, CreditCard, ShieldCheck, CheckCircle2, Loader2, Truck, ArrowLeft, ArrowRight, MapPin, QrCode, Plus, Bookmark, Trash2 } from 'lucide-react';
 import { CartItem, Order, ShippingAddress } from '@/types/store';
 import { SafeRecaptcha } from '@/components/SafeRecaptcha';
 import { saveOrderToGAS } from '@/lib/googleAppsScript';
 import { useAuth } from '@/context/AuthContext';
+
+interface SavedAddressItem extends ShippingAddress {
+  id: string;
+  label: string; // e.g. 'Home', 'Office', 'Farm House'
+}
 
 interface CheckoutModalProps {
   isOpen: boolean;
@@ -27,6 +32,10 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
   const { user } = useAuth();
   const [step, setStep] = useState<'address' | 'review' | 'processing' | 'success'>('address');
   
+  const [addressBook, setAddressBook] = useState<SavedAddressItem[]>([]);
+  const [selectedAddressId, setSelectedAddressId] = useState<string>('new');
+  const [addressLabel, setAddressLabel] = useState<string>('Home');
+
   const [address, setAddress] = useState<ShippingAddress>({
     fullName: '',
     email: '',
@@ -41,12 +50,27 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
   const [errorMessage, setErrorMessage] = useState<string>('');
   const [completedOrder, setCompletedOrder] = useState<Order | null>(null);
 
-  // Auto-fill saved address from localStorage or Auth profile so user NEVER types twice!
+  // Load Saved Address Book from localStorage on mount
   useEffect(() => {
     try {
-      const savedAddress = localStorage.getItem('brindavanam_saved_address');
-      if (savedAddress) {
-        const parsed = JSON.parse(savedAddress);
+      const savedBook = localStorage.getItem('brindavanam_address_book');
+      if (savedBook) {
+        const parsed: SavedAddressItem[] = JSON.parse(savedBook);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setAddressBook(parsed);
+          setSelectedAddressId(parsed[0].id);
+          setAddress({ ...parsed[0] });
+          return;
+        }
+      }
+
+      // Fallback single saved address
+      const singleAddress = localStorage.getItem('brindavanam_saved_address');
+      if (singleAddress) {
+        const parsed: ShippingAddress = JSON.parse(singleAddress);
+        const initialItem: SavedAddressItem = { ...parsed, id: 'addr-1', label: 'Primary Address' };
+        setAddressBook([initialItem]);
+        setSelectedAddressId('addr-1');
         setAddress(parsed);
       } else if (user) {
         setAddress((prev) => ({
@@ -56,7 +80,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
         }));
       }
     } catch (e) {
-      console.warn('Saved address load error:', e);
+      console.warn('Address book load error:', e);
     }
   }, [user, isOpen]);
 
@@ -69,6 +93,48 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
   const discountAmount = Math.round((rawSubtotal * discount) / 100);
   const totalAmount = Math.max(0, rawSubtotal - discountAmount);
 
+  const handleSelectSavedAddress = (item: SavedAddressItem) => {
+    setSelectedAddressId(item.id);
+    setAddress({
+      fullName: item.fullName,
+      email: item.email,
+      phone: item.phone,
+      addressLine1: item.addressLine1,
+      city: item.city,
+      state: item.state,
+      pincode: item.pincode,
+    });
+  };
+
+  const handleAddNewAddressTab = () => {
+    setSelectedAddressId('new');
+    setAddress({
+      fullName: user?.displayName || '',
+      email: user?.email || '',
+      phone: '',
+      addressLine1: '',
+      city: 'Hyderabad',
+      state: 'Telangana',
+      pincode: '',
+    });
+  };
+
+  const handleDeleteSavedAddress = (idToDelete: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    const updated = addressBook.filter((a) => a.id !== idToDelete);
+    setAddressBook(updated);
+    try {
+      localStorage.setItem('brindavanam_address_book', JSON.stringify(updated));
+    } catch {}
+    if (selectedAddressId === idToDelete) {
+      if (updated.length > 0) {
+        handleSelectSavedAddress(updated[0]);
+      } else {
+        handleAddNewAddressTab();
+      }
+    }
+  };
+
   const handleAddressSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!address.fullName || !address.email || !address.phone || !address.addressLine1 || !address.pincode) {
@@ -76,7 +142,23 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
       return;
     }
 
+    // Save to Multi-Address Book
     try {
+      const existingIdx = addressBook.findIndex((a) => a.id === selectedAddressId);
+      let updatedBook: SavedAddressItem[] = [];
+
+      if (existingIdx > -1) {
+        updatedBook = [...addressBook];
+        updatedBook[existingIdx] = { ...address, id: selectedAddressId, label: updatedBook[existingIdx].label };
+      } else {
+        const newId = `addr-${Date.now()}`;
+        const newItem: SavedAddressItem = { ...address, id: newId, label: addressLabel || 'Saved Address' };
+        updatedBook = [...addressBook, newItem];
+        setSelectedAddressId(newId);
+      }
+
+      setAddressBook(updatedBook);
+      localStorage.setItem('brindavanam_address_book', JSON.stringify(updatedBook));
       localStorage.setItem('brindavanam_saved_address', JSON.stringify(address));
     } catch (err) {
       console.warn('Save address error:', err);
@@ -118,7 +200,6 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
     }
   };
 
-  // Triggers Authentic Live Razorpay Interactive Modal (UPI, Cards, GPay, QR Code, NetBanking)
   const handleInitiatePayment = () => {
     if (!recaptchaToken) {
       setErrorMessage('Please verify the security captcha checkbox before proceeding.');
@@ -126,14 +207,13 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
     }
 
     setErrorMessage('');
-
     const razorpayKey = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || 'rzp_test_brindavanam1902';
     const win = window as any;
 
     if (typeof window !== 'undefined' && win.Razorpay) {
       const options = {
         key: razorpayKey,
-        amount: totalAmount * 100, // Amount in paise
+        amount: totalAmount * 100,
         currency: 'INR',
         name: 'Brindavanam Organic Farms',
         description: '100% Certified A2 Bilona & Wood-Pressed Lineup',
@@ -152,7 +232,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
         },
         modal: {
           ondismiss: function () {
-            setErrorMessage('Payment window closed. You can retry or choose another payment method.');
+            setErrorMessage('Payment window closed. You can retry anytime.');
           },
         },
       };
@@ -165,7 +245,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
         rzp.open();
         return;
       } catch (e) {
-        console.warn('Razorpay init error, falling back to instant verification:', e);
+        console.warn('Razorpay init error:', e);
       }
     }
 
@@ -181,17 +261,17 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto bg-black/70 backdrop-blur-xs flex items-center justify-center p-4">
-      <div className="bg-white max-w-2xl w-full rounded-3xl shadow-2xl overflow-hidden relative border border-stone-200 animate-in fade-in duration-200">
+      <div className="bg-white max-w-2xl w-full rounded-3xl shadow-2xl overflow-hidden relative border border-stone-200 animate-in fade-in duration-200 max-h-[92vh] flex flex-col">
         
         {/* Header */}
-        <div className="bg-[#3A5303] text-white p-6 flex justify-between items-center">
+        <div className="bg-[#3A5303] text-white p-5 flex justify-between items-center shrink-0">
           <div className="flex items-center space-x-3">
             <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-white font-bold">
               <Truck className="w-5 h-5 text-[#94C000]" />
             </div>
             <div>
               <h2 className="text-xl font-serif">Farm Dispatch Checkout</h2>
-              <p className="text-xs text-[#94C000] font-light">Razorpay Verified • UPI / QR / Cards</p>
+              <p className="text-xs text-[#94C000] font-light">Saved Address Book • Express Delivery</p>
             </div>
           </div>
 
@@ -205,7 +285,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
 
         {/* Steps Progress Bar */}
         {step !== 'success' && (
-          <div className="bg-[#F7F6F2] px-6 py-3 border-b border-stone-200 flex justify-between items-center text-xs font-semibold text-stone-600">
+          <div className="bg-[#F7F6F2] px-6 py-3 border-b border-stone-200 flex justify-between items-center text-xs font-semibold text-stone-600 shrink-0">
             <span className={step === 'address' ? 'text-[#3A5303] font-bold' : ''}>1. Delivery Address</span>
             <span>→</span>
             <span className={step === 'review' ? 'text-[#3A5303] font-bold' : ''}>2. Review & Security</span>
@@ -215,7 +295,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
         )}
 
         {/* Form Body */}
-        <div className="p-6">
+        <div className="p-6 overflow-y-auto flex-1">
           
           {errorMessage && (
             <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 text-xs rounded-xl font-medium">
@@ -223,20 +303,72 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
             </div>
           )}
 
-          {/* STEP 1: Address Entry */}
+          {/* STEP 1: Address Book & Address Entry */}
           {step === 'address' && (
             <form onSubmit={handleAddressSubmit} className="space-y-4">
-              <div className="flex justify-between items-center">
-                <h3 className="text-base font-serif font-semibold text-stone-900 flex items-center space-x-2">
-                  <MapPin className="w-4 h-4 text-[#3A5303]" />
-                  <span>Shipping Address Details</span>
-                </h3>
+              
+              {/* Address Book Pill Selector */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-bold text-stone-800 uppercase tracking-wider flex items-center space-x-1.5">
+                    <Bookmark className="w-4 h-4 text-[#3A5303]" />
+                    <span>Saved Address Book ({addressBook.length})</span>
+                  </label>
+                </div>
 
-                <span className="text-[10px] text-emerald-700 font-bold bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md">
-                  ✓ Saved Address Auto-Filled
-                </span>
+                <div className="flex items-center space-x-2 overflow-x-auto pb-1 scrollbar-none">
+                  {addressBook.map((item) => (
+                    <div
+                      key={item.id}
+                      onClick={() => handleSelectSavedAddress(item)}
+                      className={`px-3 py-2 rounded-xl text-xs font-bold border transition-all cursor-pointer flex items-center space-x-2 shrink-0 ${
+                        selectedAddressId === item.id
+                          ? 'bg-[#3A5303] text-white border-[#3A5303] shadow-md'
+                          : 'bg-stone-50 text-stone-700 border-stone-300 hover:bg-stone-100'
+                      }`}
+                    >
+                      <MapPin className="w-3.5 h-3.5" />
+                      <span>{item.label} ({item.city})</span>
+                      <button
+                        type="button"
+                        onClick={(e) => handleDeleteSavedAddress(item.id, e)}
+                        className="ml-1 text-white/70 hover:text-white"
+                        title="Delete Address"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    </div>
+                  ))}
+
+                  <button
+                    type="button"
+                    onClick={handleAddNewAddressTab}
+                    className={`px-3 py-2 rounded-xl text-xs font-bold border transition-all flex items-center space-x-1.5 shrink-0 ${
+                      selectedAddressId === 'new'
+                        ? 'bg-[#3A5303] text-white border-[#3A5303]'
+                        : 'bg-white text-[#3A5303] border-[#3A5303]/40 hover:bg-stone-50'
+                    }`}
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    <span>+ Add New Address</span>
+                  </button>
+                </div>
               </div>
 
+              {selectedAddressId === 'new' && (
+                <div>
+                  <label className="block text-[10px] font-bold text-stone-700 uppercase mb-1">Save Address As (e.g. Home / Farm / Office)</label>
+                  <input
+                    type="text"
+                    value={addressLabel}
+                    onChange={(e) => setAddressLabel(e.target.value)}
+                    className="w-full px-3 py-2 text-xs border border-stone-300 rounded-xl bg-stone-50 focus:bg-white focus:outline-none focus:border-[#3A5303]"
+                    placeholder="Home / Office / Parents House"
+                  />
+                </div>
+              )}
+
+              {/* Form Input Fields */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-[10px] font-bold text-stone-700 uppercase mb-1">Full Name *</label>
@@ -330,7 +462,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                   type="submit"
                   className="px-6 py-3 rounded-xl bg-[#3A5303] hover:bg-[#2b3e02] text-white font-semibold text-xs uppercase tracking-wider shadow-lg flex items-center space-x-2"
                 >
-                  <span>Continue to Security & Order Review</span>
+                  <span>Save Address & Continue</span>
                   <ArrowRight className="w-4 h-4" />
                 </button>
               </div>
@@ -363,8 +495,13 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
               </div>
 
               <div className="bg-[#F7F6F2] p-3.5 rounded-2xl border border-stone-200 text-xs space-y-1">
-                <span className="font-bold text-stone-800 block">Deliver To:</span>
-                <p>{address.fullName} • {address.phone}</p>
+                <div className="flex justify-between items-center">
+                  <span className="font-bold text-stone-800">Deliver To:</span>
+                  <button onClick={() => setStep('address')} className="text-[10px] text-[#3A5303] font-bold underline">
+                    Change Address
+                  </button>
+                </div>
+                <p className="font-bold">{address.fullName} • {address.phone}</p>
                 <p className="text-stone-500">{address.addressLine1}, {address.city} - {address.pincode}</p>
               </div>
 
