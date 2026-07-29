@@ -68,7 +68,7 @@ export const Navbar: React.FC<NavbarProps> = ({
         
         {/* Top Announcement Bar */}
         {!isScrolled && (
-          <div className="w-full bg-[#3A5303] text-stone-100 text-[10px] sm:text-[11px] font-bold tracking-wider uppercase py-2 px-3 pointer-events-auto shadow-xs">
+          <div className="w-full bg-[#3A5303] text-stone-100 text-[10px] sm:text-[11px] font-bold tracking-wider uppercase py-2 px-4 pointer-events-auto shadow-xs">
             <div className="max-w-7xl mx-auto flex justify-between items-center">
               <div className="flex items-center space-x-2 truncate">
                 <span className="w-2 h-2 rounded-full bg-[#94C000] animate-pulse shrink-0" />
@@ -84,14 +84,14 @@ export const Navbar: React.FC<NavbarProps> = ({
         )}
 
         {/* Floating Dynamic Island Bar - Freely floating over content */}
-        <div className="w-full flex justify-center px-2 sm:px-6 pointer-events-none">
+        <div className="w-full flex justify-center px-3 sm:px-6 pointer-events-none">
           <motion.div
             layout
             transition={{ type: 'spring', stiffness: 350, damping: 25 }}
-            className={`pointer-events-auto transition-all duration-300 flex items-center justify-between gap-2 sm:gap-4 select-none w-full ${
+            className={`pointer-events-auto transition-all duration-300 flex items-center justify-between gap-2 sm:gap-3 select-none w-full overflow-hidden ${
               isScrolled
-                ? 'mt-3 px-3.5 sm:px-5 py-2 sm:py-2.5 rounded-full border border-stone-300/80 bg-white/95 backdrop-blur-xl shadow-2xl max-w-5xl'
-                : 'mt-2.5 px-4 sm:px-6 py-2.5 sm:py-3.5 rounded-2xl border border-stone-200/80 bg-white/95 backdrop-blur-md max-w-7xl shadow-lg'
+                ? 'mt-3 px-4 sm:px-6 py-2 sm:py-2.5 rounded-full border border-stone-300/80 bg-white/95 backdrop-blur-xl shadow-2xl max-w-5xl'
+                : 'mt-2.5 px-4 sm:px-7 py-2.5 sm:py-3 rounded-2xl border border-stone-200/80 bg-white/95 backdrop-blur-md max-w-7xl shadow-lg'
             }`}
           >
             {/* Left: Mobile Menu & Logo */}
@@ -104,7 +104,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
               </button>
               
-              <Link href="/" className="flex items-center space-x-1.5 group">
+              <Link href="/" className="flex items-center space-x-1.5 group shrink-0">
                 <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-[#3A5303] text-white flex items-center justify-center font-bold shadow-xs shrink-0">
                   <Leaf className="w-4 h-4 sm:w-4.5 sm:h-4.5 text-[#94C000]" />
                 </div>
@@ -114,13 +114,13 @@ export const Navbar: React.FC<NavbarProps> = ({
               </Link>
             </div>
 
-            {/* Center: Desktop Navigation Links - STRICT SINGLE LINE ONLY */}
-            <nav className="hidden md:flex items-center space-x-1 bg-[#F7F6F2] px-2.5 py-1 rounded-full border border-stone-200/80 text-xs uppercase tracking-wider font-semibold whitespace-nowrap">
+            {/* Center: Desktop Navigation Links - STRICT SINGLE LINE & COMPACT */}
+            <nav className="hidden lg:flex items-center space-x-1 bg-[#F7F6F2] px-2 py-1 rounded-full border border-stone-200/80 text-[11px] uppercase tracking-wider font-semibold whitespace-nowrap shrink">
               {categories.map((cat) => (
                 <button
                   key={cat.id}
                   onClick={() => setSelectedCategory(cat.id)}
-                  className={`px-3.5 py-1.5 rounded-full transition-all whitespace-nowrap shrink-0 ${
+                  className={`px-3 py-1 rounded-full transition-all whitespace-nowrap shrink-0 ${
                     selectedCategory === cat.id
                       ? 'bg-[#3A5303] text-white font-bold shadow-xs'
                       : 'text-stone-600 hover:text-stone-900'
@@ -131,8 +131,8 @@ export const Navbar: React.FC<NavbarProps> = ({
               ))}
             </nav>
 
-            {/* Right: Actions & Profile */}
-            <div className="flex items-center space-x-1.5 sm:space-x-2.5 shrink-0">
+            {/* Right: Actions & Profile - GUARANTEED PADDING FOR CART BAG */}
+            <div className="flex items-center space-x-1.5 sm:space-x-2.5 shrink-0 pr-1">
               
               {/* Mobile Search Button */}
               <button
@@ -150,9 +150,9 @@ export const Navbar: React.FC<NavbarProps> = ({
                   placeholder="Search produce..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-28 lg:w-40 pl-8 pr-3 py-1.5 text-xs border-b border-stone-300 bg-transparent text-stone-800 focus:outline-none focus:border-[#3A5303] transition-all"
+                  className="w-24 lg:w-36 pl-7 pr-2 py-1 text-xs border-b border-stone-300 bg-transparent text-stone-800 focus:outline-none focus:border-[#3A5303] transition-all"
                 />
-                <Search className="w-3.5 h-3.5 text-stone-400 absolute left-2" />
+                <Search className="w-3.5 h-3.5 text-stone-400 absolute left-1.5" />
               </div>
 
               {/* User Profile Avatar / Sign In */}
@@ -174,7 +174,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                           {user.displayName.charAt(0).toUpperCase()}
                         </div>
                       )}
-                      <span className="hidden lg:inline text-xs font-bold text-stone-800">
+                      <span className="hidden xl:inline text-xs font-bold text-stone-800">
                         {user.displayName.split(' ')[0]}
                       </span>
                     </button>
@@ -237,7 +237,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                     {/* Desktop Text Sign In */}
                     <button
                       onClick={onOpenAuth}
-                      className="hidden sm:flex px-3.5 py-1.5 rounded-full border border-[#3A5303] text-[#3A5303] hover:bg-[#3A5303] hover:text-white text-xs font-bold uppercase tracking-wider items-center space-x-1 transition-all whitespace-nowrap"
+                      className="hidden sm:flex px-3 py-1.5 rounded-full border border-[#3A5303] text-[#3A5303] hover:bg-[#3A5303] hover:text-white text-xs font-bold uppercase tracking-wider items-center space-x-1 transition-all whitespace-nowrap"
                     >
                       <User className="w-3.5 h-3.5" />
                       <span>Sign In</span>
@@ -246,7 +246,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 )}
               </div>
 
-              {/* Cart Link Trigger */}
+              {/* Shopping Cart Link Trigger - ALWAYS SAFELY INSIDE WITH PADDING */}
               <Link
                 href="/cart"
                 className="relative p-2 sm:p-2.5 rounded-full bg-[#3A5303] text-white hover:bg-[#2b3e02] transition-transform active:scale-95 shadow-xs flex items-center justify-center shrink-0"
