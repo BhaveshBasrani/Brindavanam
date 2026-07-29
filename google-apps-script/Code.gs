@@ -4,17 +4,18 @@
  * ADMIN EMAIL: brindavanam1902@gmail.com
  * 
  * Features:
- * 1. Self-Initializing Database: Auto-creates 'Orders', 'Customer_CRM', & 'Analytics' sheets.
+ * 1. Self-Initializing Database: Auto-creates 'Orders', 'Customer_CRM', 'Promo_Codes' & 'Analytics' sheets.
  * 2. Auto-Formatting: Header styling (#3A5303), column widths, freezes, & data validations.
  * 3. Instant Order Recording with Unique Order IDs & Payment References.
- * 4. Resilient HTML Email Engine: Customer Order Receipts & Admin Alerts (brindavanam1902@gmail.com).
- * 5. Order Status Updates: Instant customer notification email when status changes to Shipped/Delivered.
- * 6. REST API Endpoint: Full CORS & JSON support for Next.js Admin Dashboard.
+ * 4. Promo Code Engine: Live promo code creation, active/disabled toggling, & instant lookup API.
+ * 5. Resilient HTML Email Engine: Customer Order Receipts & Admin Alerts (brindavanam1902@gmail.com).
+ * 6. Order Status Updates: Instant customer notification email when status changes to Shipped/Delivered.
+ * 7. REST API Endpoint: Full CORS & JSON support for Admin Dashboard.
  * 
  * 1-Click Setup:
  * 1. Open Google Sheets (https://sheets.new)
  * 2. Extensions -> Apps Script -> Paste this code -> Click Save.
- * 3. Run function 'setupDatabase' ONCE (or let it auto-initialize on first order).
+ * 3. Run function 'setupDatabase' ONCE (or let it auto-initialize on first request).
  * 4. Deploy -> New Deployment -> Web App -> Execute as: Me | Who has access: Anyone.
  * 5. Copy Web App URL into .env.local as NEXT_PUBLIC_GAS_WEB_APP_URL!
  */
@@ -28,6 +29,7 @@ function setupDatabase() {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   getOrCreateOrdersSheet(ss);
   getOrCreateCustomerSheet(ss);
+  getOrCreatePromosSheet(ss);
   getOrCreateAnalyticsSheet(ss);
   SpreadsheetApp.getUi().alert("✅ Brindavanam Database & Sheets Successfully Initialized!");
 }
@@ -73,6 +75,8 @@ function doPost(e) {
       return handleCreateOrder(ordersSheet, customerSheet, data);
     } else if (action === "update_status") {
       return handleUpdateOrderStatus(ordersSheet, data);
+    } else if (action === "save_promos") {
+      return handleSavePromos(ss, data);
     } else {
       return jsonResponse({ status: "error", message: "Invalid action parameter specified" });
     }
@@ -84,11 +88,25 @@ function doPost(e) {
 }
 
 /**
- * GET Endpoint Handler - Returns live orders for Admin Dashboard
+ * GET Endpoint Handler - Returns live orders or promo codes
  */
 function doGet(e) {
   try {
     var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var action = (e && e.parameter && e.parameter.action) ? e.parameter.action : "get_orders";
+
+    // Handle Promo Codes API GET Request
+    if (action === "get_promos") {
+      return handleGetPromos(ss);
+    }
+
+    // Handle User Orders GET Request
+    if (action === "get_user_orders") {
+      var userEmail = (e && e.parameter && e.parameter.email) ? e.parameter.email.toLowerCase() : "";
+      return handleGetUserOrders(ss, userEmail);
+    }
+
+    // Default: Get All Orders for Admin Dashboard
     var sheet = getOrCreateOrdersSheet(ss);
     var rows = sheet.getDataRange().getValues();
 
@@ -121,6 +139,91 @@ function doGet(e) {
   } catch (err) {
     return jsonResponse({ status: "error", message: err.toString() });
   }
+}
+
+/**
+ * Handle Promo Codes GET
+ */
+function handleGetPromos(ss) {
+  var promosSheet = getOrCreatePromosSheet(ss);
+  var rows = promosSheet.getDataRange().getValues();
+  if (rows.length <= 1) {
+    return jsonResponse({ status: "success", promos: [] });
+  }
+
+  var promos = [];
+  for (var i = 1; i < rows.length; i++) {
+    var r = rows[i];
+    if (!r[0]) continue;
+    promos.push({
+      code: r[0].toString(),
+      discountPercent: parseFloat(r[1]) || 10,
+      active: (r[2] === true || r[2].toString().toLowerCase() === 'true'),
+      description: r[3] ? r[3].toString() : ""
+    });
+  }
+
+  return jsonResponse({ status: "success", promos: promos });
+}
+
+/**
+ * Handle Save Promos POST
+ */
+function handleSavePromos(ss, data) {
+  var promosSheet = getOrCreatePromosSheet(ss);
+  var promosList = data.promos || [];
+
+  // Clear existing promo rows (keep header)
+  var lastRow = promosSheet.getLastRow();
+  if (lastRow > 1) {
+    promosSheet.getRange(2, 1, lastRow - 1, 4).clearContent();
+  }
+
+  // Insert updated promos list
+  for (var i = 0; i < promosList.length; i++) {
+    var p = promosList[i];
+    promosSheet.appendRow([
+      p.code.toString().toUpperCase(),
+      p.discountPercent || 10,
+      p.active !== false,
+      p.description || ""
+    ]);
+  }
+
+  return jsonResponse({ status: "success", message: "Promo codes successfully saved to Apps Script!" });
+}
+
+/**
+ * Handle User Orders GET
+ */
+function handleGetUserOrders(ss, userEmail) {
+  var sheet = getOrCreateOrdersSheet(ss);
+  var rows = sheet.getDataRange().getValues();
+  var userOrders = [];
+
+  for (var i = 1; i < rows.length; i++) {
+    var row = rows[i];
+    var emailInRow = (row[3] || "").toString().toLowerCase();
+    if (emailInRow && emailInRow === userEmail) {
+      userOrders.push({
+        id: row[0].toString(),
+        date: row[1] ? row[1].toString() : "",
+        customerName: row[2] ? row[2].toString() : "",
+        customerEmail: row[3] ? row[3].toString() : "",
+        customerPhone: row[4] ? row[4].toString() : "",
+        shippingAddress: row[5] ? row[5].toString() : "",
+        city: row[6] ? row[6].toString() : "",
+        pincode: row[7] ? row[7].toString() : "",
+        itemsSummary: row[8] ? row[8].toString() : "",
+        total: parseFloat(row[9]) || 0,
+        paymentMethod: row[10] ? row[10].toString() : "Razorpay",
+        paymentId: row[11] ? row[11].toString() : "",
+        status: row[12] ? row[12].toString() : "Processing"
+      });
+    }
+  }
+
+  return jsonResponse({ status: "success", orders: userOrders });
 }
 
 /**
@@ -161,7 +264,7 @@ function handleCreateOrder(ordersSheet, customerSheet, data) {
   // Log/Update Customer CRM Sheet
   logCustomerCRM(customerSheet, custName, custEmail, custPhone, city);
 
-  // Send Emails safely in background (errors caught so database never fails)
+  // Send Emails safely in background
   sendCustomerOrderEmail(custEmail, custName, orderId, totalAmount, itemsSummary, fullAddress);
   sendAdminNotificationEmail(orderId, custName, custEmail, custPhone, totalAmount, itemsSummary);
 
@@ -226,7 +329,6 @@ function getOrCreateOrdersSheet(ss) {
     ];
     sheet.appendRow(headers);
 
-    // Format Header Row
     var headerRange = sheet.getRange(1, 1, 1, headers.length);
     headerRange.setFontWeight("bold")
                .setBackground("#3A5303")
@@ -238,13 +340,45 @@ function getOrCreateOrdersSheet(ss) {
     sheet.setRowHeight(1, 35);
     sheet.setFrozenRows(1);
 
-    // Set Data Validation for Status Column (Column 13)
     var statusRange = sheet.getRange("M2:M1000");
     var rule = SpreadsheetApp.newDataValidation()
       .requireValueInList(["Processing", "Shipped", "Delivered", "Cancelled"], true)
       .setAllowInvalid(false)
       .build();
     statusRange.setDataValidation(rule);
+  }
+
+  return sheet;
+}
+
+/**
+ * Self-Initializing Promo_Codes Sheet Creator
+ */
+function getOrCreatePromosSheet(ss) {
+  var sheet = ss.getSheetByName("Promo_Codes");
+  if (!sheet) {
+    sheet = ss.insertSheet("Promo_Codes");
+  }
+
+  if (sheet.getLastRow() === 0) {
+    var headers = ["Code", "Discount %", "Active", "Description"];
+    sheet.appendRow(headers);
+
+    var headerRange = sheet.getRange(1, 1, 1, headers.length);
+    headerRange.setFontWeight("bold")
+               .setBackground("#3A5303")
+               .setFontColor("#FFFFFF")
+               .setFontFamily("Arial")
+               .setFontSize(10)
+               .setVerticalAlignment("middle");
+
+    sheet.setRowHeight(1, 35);
+    sheet.setFrozenRows(1);
+
+    // Initial Default Seed Promos
+    sheet.appendRow(["ORGANIC10", 10, true, "10% Discount on Produce"]);
+    sheet.appendRow(["BRINDAVANAM20", 20, true, "20% Farm Harvest Special"]);
+    sheet.appendRow(["FREESHIP", 15, true, "15% Express Shipping Coupon"]);
   }
 
   return sheet;
@@ -260,15 +394,18 @@ function getOrCreateCustomerSheet(ss) {
   }
 
   if (sheet.getLastRow() === 0) {
-    var headers = ["Customer Name", "Email Address", "Phone Number", "City", "First Order Date", "Total Orders"];
+    var headers = ["Customer Name", "Email Address", "Phone Number", "City", "Total Orders", "First Seen"];
     sheet.appendRow(headers);
 
     var headerRange = sheet.getRange(1, 1, 1, headers.length);
     headerRange.setFontWeight("bold")
-               .setBackground("#1c260b")
-               .setFontColor("#94C000")
+               .setBackground("#3A5303")
+               .setFontColor("#FFFFFF")
                .setFontFamily("Arial")
-               .setFontSize(10);
+               .setFontSize(10)
+               .setVerticalAlignment("middle");
+
+    sheet.setRowHeight(1, 35);
     sheet.setFrozenRows(1);
   }
 
@@ -285,122 +422,146 @@ function getOrCreateAnalyticsSheet(ss) {
   }
 
   if (sheet.getLastRow() === 0) {
-    sheet.appendRow(["Brindavanam Store Analytics Summary", ""]);
-    sheet.appendRow(["Total Revenue (INR)", "=SUM(Orders!J2:J1000)"]);
-    sheet.appendRow(["Total Orders Placed", "=COUNTA(Orders!A2:A1000)"]);
-    sheet.appendRow(["Average Order Value (INR)", "=AVERAGE(Orders!J2:J1000)"]);
+    var headers = ["Metric", "Value", "Last Updated"];
+    sheet.appendRow(headers);
 
-    sheet.getRange("A1:B1").setFontWeight("bold").setBackground("#3A5303").setFontColor("#FFFFFF");
-    sheet.getRange("A2:A4").setFontWeight("bold");
+    var headerRange = sheet.getRange(1, 1, 1, headers.length);
+    headerRange.setFontWeight("bold")
+               .setBackground("#3A5303")
+               .setFontColor("#FFFFFF")
+               .setFontFamily("Arial")
+               .setFontSize(10)
+               .setVerticalAlignment("middle");
+
+    sheet.setRowHeight(1, 35);
+    sheet.setFrozenRows(1);
   }
 
   return sheet;
 }
 
 /**
- * Helper: Log Customer to CRM Sheet
+ * Customer CRM Logging Helper
  */
-function logCustomerCRM(sheet, name, email, phone, city) {
+function logCustomerCRM(customerSheet, name, email, phone, city) {
   if (!email) return;
-  try {
-    var rows = sheet.getDataRange().getValues();
-    var existingRow = -1;
 
-    for (var i = 1; i < rows.length; i++) {
-      if (rows[i][1].toString().toLowerCase() === email.toLowerCase()) {
-        existingRow = i + 1;
-        break;
-      }
-    }
+  var rows = customerSheet.getDataRange().getValues();
+  var foundRow = -1;
 
-    if (existingRow > -1) {
-      var currentOrderCount = parseInt(sheet.getRange(existingRow, 6).getValue()) || 1;
-      sheet.getRange(existingRow, 6).setValue(currentOrderCount + 1);
-    } else {
-      sheet.appendRow([name, email, phone, city, new Date().toLocaleDateString("en-IN"), 1]);
+  for (var i = 1; i < rows.length; i++) {
+    if (rows[i][1].toString().toLowerCase() === email.toLowerCase()) {
+      foundRow = i + 1;
+      break;
     }
-  } catch (err) {
-    Logger.log("CRM Log Error: " + err.toString());
+  }
+
+  var nowStr = new Date().toLocaleDateString("en-IN");
+
+  if (foundRow > -1) {
+    var currentOrders = parseInt(customerSheet.getRange(foundRow, 5).getValue()) || 1;
+    customerSheet.getRange(foundRow, 5).setValue(currentOrders + 1);
+    if (phone) customerSheet.getRange(foundRow, 3).setValue(phone);
+    if (city) customerSheet.getRange(foundRow, 4).setValue(city);
+  } else {
+    customerSheet.appendRow([name, email, phone, city, 1, nowStr]);
   }
 }
 
 /**
- * Email Helper: Customer Order Confirmation Receipt
+ * Email Helper: Send Customer Order Receipt
  */
 function sendCustomerOrderEmail(email, name, orderId, total, items, address) {
   if (!email) return;
-  try {
-    var subject = "🌿 Brindavanam Order Confirmation - #" + orderId;
-    var htmlBody = 
-      "<div style='font-family: Arial, sans-serif; background-color: #F7F6F2; padding: 30px; color: #1c260b;'>" +
-        "<div style='max-w: 600px; margin: 0 auto; background: #ffffff; border-radius: 16px; padding: 30px; border: 1px solid #e2e8f0;'>" +
-          "<h2 style='color: #3A5303; margin-top: 0; font-family: Georgia, serif;'>Brindavanam Organic Farms</h2>" +
-          "<p style='font-size: 14px;'>Dear <strong>" + name + "</strong>,</p>" +
-          "<p style='font-size: 14px; color: #4a5568;'>Thank you for choosing pure organic produce! We have received your order and our village farm team is preparing your shipment.</p>" +
-          
-          "<div style='background-color: #F7F6F2; border-left: 4px solid #3A5303; padding: 15px; margin: 20px 0; border-radius: 4px;'>" +
-            "<p style='margin: 0; font-size: 13px;'><strong>Order Number:</strong> #" + orderId + "</p>" +
-            "<p style='margin: 5px 0 0 0; font-size: 13px;'><strong>Items Purchased:</strong> " + items + "</p>" +
-            "<p style='margin: 5px 0 0 0; font-size: 13px;'><strong>Delivery Address:</strong> " + address + "</p>" +
-            "<p style='margin: 5px 0 0 0; font-size: 15px; color: #3A5303;'><strong>Total Paid:</strong> ₹" + total + "</p>" +
-          "</div>" +
-          
-          "<p style='font-size: 13px; color: #718096;'>Your Wood-Pressed Oils & A2 Bilona Ghee will be dispatched in thermal protective packaging within 24 hours.</p>" +
-          "<hr style='border: none; border-top: 1px solid #edf2f7; margin: 20px 0;' />" +
-          "<p style='font-size: 12px; color: #a0aec0; margin: 0;'>Brindavanam Organic Estate • brindavanam1902@gmail.com</p>" +
-        "</div>" +
-      "</div>";
 
+  var subject = "🌿 Order Confirmed! #" + orderId + " - Brindavanam Organic Farms";
+  var htmlBody = 
+    "<div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e0e0e0; border-radius: 16px; overflow: hidden;'>" +
+      "<div style='background-color: #3A5303; padding: 24px; text-align: center; color: white;'>" +
+        "<h1 style='font-family: Georgia, serif; margin: 0; font-size: 26px;'>Brindavanam Organic Farms</h1>" +
+        "<p style='color: #94C000; font-size: 12px; margin-top: 4px; text-transform: uppercase; tracking-wider;'>100% Certified Native Farm Produce</p>" +
+      "</div>" +
+      "<div style='padding: 24px; background-color: #ffffff; color: #333; font-size: 14px; line-height: 1.6;'>" +
+        "<h2 style='color: #3A5303; font-size: 20px;'>Thank you for your order, " + name + "!</h2>" +
+        "<p>Your order for artisanal wood-pressed produce has been received and is being prepared for dispatch.</p>" +
+        "<div style='background-color: #F7F6F2; border: 1px solid #e0e0e0; border-radius: 12px; padding: 16px; margin: 20px 0;'>" +
+          "<p style='margin: 0 0 8px 0; font-weight: bold; color: #3A5303;'>Order Summary (Ref: " + orderId + ")</p>" +
+          "<p style='margin: 4px 0;'><strong>Items:</strong> " + items + "</p>" +
+          "<p style='margin: 4px 0;'><strong>Total Paid:</strong> ₹" + total + "</p>" +
+          "<p style='margin: 4px 0;'><strong>Shipping Address:</strong> " + address + "</p>" +
+        "</div>" +
+        "<p style='font-size: 12px; color: #666;'>For any queries regarding your dispatch, reply to this email or write to <strong>brindavanam1902@gmail.com</strong>.</p>" +
+      "</div>" +
+      "<div style='background-color: #1c260b; padding: 16px; text-align: center; color: #888; font-size: 11px;'>" +
+        "© 2026 Brindavanam Organic Farms • Brindavan Farm Hyd • Powered By Rendervoid" +
+      "</div>" +
+    "</div>";
+
+  try {
     MailApp.sendEmail({
       to: email,
       subject: subject,
       htmlBody: htmlBody
     });
-  } catch (err) {
-    Logger.log("Customer email dispatch notice: " + err.toString());
+  } catch (e) {
+    console.warn("Customer Email failed:", e);
   }
 }
 
 /**
- * Email Helper: Admin Order Alert Email
+ * Email Helper: Send Admin Order Alert
  */
 function sendAdminNotificationEmail(orderId, name, email, phone, total, items) {
-  try {
-    var subject = "🚨 NEW ORGANIC ORDER #" + orderId + " (₹" + total + ")";
-    var body = "New Order Received at Brindavanam Store!\n\n" +
-      "Order ID: #" + orderId + "\n" +
-      "Customer: " + name + "\n" +
-      "Email: " + email + "\n" +
-      "Phone: " + phone + "\n" +
-      "Items: " + items + "\n" +
-      "Total Amount: ₹" + total + "\n\n" +
-      "Open your Google Sheet to view complete shipping details & update tracking status.";
+  var subject = "🚨 NEW ORDER #" + orderId + " (₹" + total + ") - Brindavanam Admin";
+  var htmlBody = 
+    "<div style='font-family: Arial, sans-serif; padding: 20px; border: 2px solid #3A5303; border-radius: 12px;'>" +
+      "<h2 style='color: #3A5303; margin-top: 0;'>New Order Dispatch Required!</h2>" +
+      "<p><strong>Order ID:</strong> " + orderId + "</p>" +
+      "<p><strong>Customer:</strong> " + name + " (" + email + " | Phone: " + phone + ")</p>" +
+      "<p><strong>Total Amount:</strong> ₹" + total + "</p>" +
+      "<p><strong>Items:</strong> " + items + "</p>" +
+      "<p style='margin-top: 20px;'><a href='https://bhaveshbasrani.github.io/Brindavanam/#admin' style='background-color: #3A5303; color: white; padding: 10px 20px; text-decoration: none; border-radius: 8px;'>Open Admin Operations Desk</a></p>" +
+    "</div>";
 
-    MailApp.sendEmail(ADMIN_EMAIL, subject, body);
-  } catch (err) {
-    Logger.log("Admin email alert notice: " + err.toString());
+  try {
+    MailApp.sendEmail({
+      to: ADMIN_EMAIL,
+      subject: subject,
+      htmlBody: htmlBody
+    });
+  } catch (e) {
+    console.warn("Admin Alert Email failed:", e);
   }
 }
 
 /**
- * Email Helper: Customer Status Update Email
+ * Email Helper: Send Status Update Notification
  */
 function sendStatusUpdateEmail(email, name, orderId, newStatus) {
-  try {
-    var subject = "🚚 Brindavanam Order #" + orderId + " Status Update: " + newStatus;
-    var body = "Hello " + name + ",\n\n" +
-      "Your order #" + orderId + " has been updated to: " + newStatus.toUpperCase() + ".\n\n" +
-      "Thank you for supporting small-batch organic farming!\n\n" +
-      "Warm Regards,\nBrindavanam Organic Farms";
+  if (!email) return;
 
-    MailApp.sendEmail(email, subject, body);
-  } catch (err) {
-    Logger.log("Status update email notice: " + err.toString());
+  var subject = "🚚 Order #" + orderId + " Status Update: " + newStatus + " - Brindavanam";
+  var htmlBody = 
+    "<div style='font-family: Arial, sans-serif; padding: 20px; border: 1px solid #e0e0e0; border-radius: 12px;'>" +
+      "<h2 style='color: #3A5303;'>Order #" + orderId + " Status Updated!</h2>" +
+      "<p>Hello " + name + ",</p>" +
+      "<p>Your order status has been updated to: <strong style='color: #3A5303; text-transform: uppercase; font-size: 16px;'>" + newStatus + "</strong></p>" +
+      "<p>Thank you for choosing Brindavanam 100% Certified Organic Farms.</p>" +
+    "</div>";
+
+  try {
+    MailApp.sendEmail({
+      to: email,
+      subject: subject,
+      htmlBody: htmlBody
+    });
+  } catch (e) {
+    console.warn("Status Email failed:", e);
   }
 }
 
 /**
- * JSON Response Helper
+ * Utility: Standard CORS & JSON HTTP Response
  */
 function jsonResponse(obj) {
   return ContentService.createTextOutput(JSON.stringify(obj))

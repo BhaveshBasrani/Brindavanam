@@ -102,7 +102,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
       } catch (e) {
         console.warn('Store Context load error:', e);
-      } font-serif finally {
+      } finally {
         setIsLoaded(true);
       }
     };
