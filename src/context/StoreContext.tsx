@@ -2,7 +2,12 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { Product, ProductVariant, CartItem, Order } from '@/types/store';
-import { syncPromosToGAS, fetchPromosFromGAS } from '@/lib/googleAppsScript';
+import { PRODUCTS as INITIAL_PRODUCTS } from '@/data/products';
+import { 
+  syncPromosToGAS, fetchPromosFromGAS, 
+  syncProductsToGAS, fetchProductsFromGAS, 
+  updateOrderDetailsInGAS, deleteOrderFromGAS 
+} from '@/lib/googleAppsScript';
 
 export interface PromoCodeItem {
   code: string;
@@ -12,6 +17,7 @@ export interface PromoCodeItem {
 }
 
 interface StoreContextType {
+  products: Product[];
   cartItems: CartItem[];
   userOrders: Order[];
   promoCodes: PromoCodeItem[];
@@ -32,9 +38,14 @@ interface StoreContextType {
   addPromoCode: (code: string, discountPercent: number, description: string) => void;
   togglePromoCode: (code: string) => void;
   deletePromoCode: (code: string) => void;
+  addProduct: (product: Product) => void;
+  deleteProduct: (productId: string) => void;
+  updateOrderDetails: (orderId: string, details: Partial<Order>) => Promise<void>;
+  deleteOrder: (orderId: string) => Promise<void>;
   triggerCheckout: (discount: number, promo: string) => void;
   onOrderSuccess: (order: Order) => void;
   refreshPromosFromGAS: () => Promise<void>;
+  refreshProductsFromGAS: () => Promise<void>;
 }
 
 const DEFAULT_PROMOS: PromoCodeItem[] = [
@@ -46,6 +57,7 @@ const DEFAULT_PROMOS: PromoCodeItem[] = [
 const StoreContext = createContext<StoreContextType | undefined>(undefined);
 
 export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [products, setProducts] = useState<Product[]>(INITIAL_PRODUCTS);
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [userOrders, setUserOrders] = useState<Order[]>([]);
   const [promoCodes, setPromoCodes] = useState<PromoCodeItem[]>(DEFAULT_PROMOS);
@@ -58,7 +70,6 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [isOrdersOpen, setIsOrdersOpen] = useState(false);
   const [isAdminOpen, setIsAdminOpen] = useState(false);
 
-  // Function to refresh promo codes live from Google Apps Script
   const refreshPromosFromGAS = async () => {
     const remotePromos = await fetchPromosFromGAS();
     if (remotePromos && remotePromos.length > 0) {
@@ -71,34 +82,48 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   };
 
-  // Load saved cart, orders & promo codes from localStorage and Apps Script on initial mount
+  const refreshProductsFromGAS = async () => {
+    const remoteProducts = await fetchProductsFromGAS();
+    if (remoteProducts && remoteProducts.length > 0) {
+      setProducts(remoteProducts);
+      try {
+        localStorage.setItem('brindavanam_products', JSON.stringify(remoteProducts));
+      } catch (e) {
+        console.warn('localStorage products cache error:', e);
+      }
+    }
+  };
+
+  // Load initial saved state on client mount
   useEffect(() => {
     const loadInitialData = async () => {
       try {
+        const savedProducts = localStorage.getItem('brindavanam_products');
+        if (savedProducts) {
+          const parsed = JSON.parse(savedProducts);
+          if (Array.isArray(parsed) && parsed.length > 0) setProducts(parsed);
+        }
+
         const savedCart = localStorage.getItem('brindavanam_cart');
         if (savedCart) {
           const parsed = JSON.parse(savedCart);
-          if (Array.isArray(parsed) && parsed.length > 0) {
-            setCartItems(parsed);
-          }
+          if (Array.isArray(parsed) && parsed.length > 0) setCartItems(parsed);
         }
+
         const savedOrders = localStorage.getItem('brindavanam_orders');
         if (savedOrders) {
           const parsedOrders = JSON.parse(savedOrders);
-          if (Array.isArray(parsedOrders)) {
-            setUserOrders(parsedOrders);
-          }
+          if (Array.isArray(parsedOrders)) setUserOrders(parsedOrders);
         }
+
         const savedPromos = localStorage.getItem('brindavanam_promos');
         if (savedPromos) {
           const parsedPromos = JSON.parse(savedPromos);
-          if (Array.isArray(parsedPromos) && parsedPromos.length > 0) {
-            setPromoCodes(parsedPromos);
-          }
+          if (Array.isArray(parsedPromos) && parsedPromos.length > 0) setPromoCodes(parsedPromos);
         }
 
-        // Fetch live promo codes from Google Apps Script backend
         await refreshPromosFromGAS();
+        await refreshProductsFromGAS();
 
       } catch (e) {
         console.warn('Store Context load error:', e);
@@ -153,18 +178,14 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setCartItems((prev) => prev.filter((_, i) => i !== index));
   };
 
-  // Dynamic promo code evaluation against Apps Script and local state
   const applyPromoCode = async (code: string) => {
     const rawSubtotal = cartItems.reduce((sum, item) => sum + item.selectedVariant.price * item.quantity, 0);
     const cleanCode = code.trim().toUpperCase();
     
-    // Fetch latest live promo codes from Google Apps Script before applying
     const remotePromos = await fetchPromosFromGAS();
     const activePromosList = (remotePromos && remotePromos.length > 0) ? remotePromos : promoCodes;
     
-    if (remotePromos && remotePromos.length > 0) {
-      setPromoCodes(remotePromos);
-    }
+    if (remotePromos && remotePromos.length > 0) setPromoCodes(remotePromos);
 
     const matched = activePromosList.find((p) => p.code.toUpperCase() === cleanCode);
 
@@ -198,43 +219,56 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
     const updated = [...promoCodes.filter((p) => p.code !== clean), newItem];
     setPromoCodes(updated);
-    
-    try {
-      localStorage.setItem('brindavanam_promos', JSON.stringify(updated));
-    } catch {
-      // ignore
-    }
-
-    // Sync to Google Apps Script Backend
+    try { localStorage.setItem('brindavanam_promos', JSON.stringify(updated)); } catch {}
     syncPromosToGAS(updated);
   };
 
   const togglePromoCode = (code: string) => {
     const updated = promoCodes.map((p) => (p.code === code ? { ...p, active: !p.active } : p));
     setPromoCodes(updated);
-
-    try {
-      localStorage.setItem('brindavanam_promos', JSON.stringify(updated));
-    } catch {
-      // ignore
-    }
-
-    // Sync to Google Apps Script Backend
+    try { localStorage.setItem('brindavanam_promos', JSON.stringify(updated)); } catch {}
     syncPromosToGAS(updated);
   };
 
   const deletePromoCode = (code: string) => {
     const updated = promoCodes.filter((p) => p.code !== code);
     setPromoCodes(updated);
-
-    try {
-      localStorage.setItem('brindavanam_promos', JSON.stringify(updated));
-    } catch {
-      // ignore
-    }
-
-    // Sync to Google Apps Script Backend
+    try { localStorage.setItem('brindavanam_promos', JSON.stringify(updated)); } catch {}
     syncPromosToGAS(updated);
+  };
+
+  // Add Product to Storefront Catalog
+  const addProduct = (newProd: Product) => {
+    const updated = [...products.filter((p) => p.id !== newProd.id), newProd];
+    setProducts(updated);
+    try { localStorage.setItem('brindavanam_products', JSON.stringify(updated)); } catch {}
+    syncProductsToGAS(updated);
+  };
+
+  // Delete Product from Storefront Catalog
+  const deleteProduct = (productId: string) => {
+    const updated = products.filter((p) => p.id !== productId);
+    setProducts(updated);
+    try { localStorage.setItem('brindavanam_products', JSON.stringify(updated)); } catch {}
+    syncProductsToGAS(updated);
+  };
+
+  // Update Order Details (Notes, Tracking URL, ETA, Status)
+  const updateOrderDetails = async (orderId: string, details: Partial<Order>) => {
+    setUserOrders((prev) =>
+      prev.map((o) => (o.id === orderId ? { ...o, ...details } : o))
+    );
+    await updateOrderDetailsInGAS(orderId, details);
+  };
+
+  // Delete Order
+  const deleteOrder = async (orderId: string) => {
+    setUserOrders((prev) => {
+      const updated = prev.filter((o) => o.id !== orderId);
+      try { localStorage.setItem('brindavanam_orders', JSON.stringify(updated)); } catch {}
+      return updated;
+    });
+    await deleteOrderFromGAS(orderId);
   };
 
   const triggerCheckout = (discount: number, promo: string) => {
@@ -246,11 +280,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const onOrderSuccess = (newOrder: Order) => {
     setUserOrders((prev) => {
       const updated = [newOrder, ...prev];
-      try {
-        localStorage.setItem('brindavanam_orders', JSON.stringify(updated));
-      } catch {
-        // ignore
-      }
+      try { localStorage.setItem('brindavanam_orders', JSON.stringify(updated)); } catch {}
       return updated;
     });
     setCartItems([]);
@@ -261,6 +291,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   return (
     <StoreContext.Provider
       value={{
+        products,
         cartItems,
         userOrders,
         promoCodes,
@@ -281,9 +312,14 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         addPromoCode,
         togglePromoCode,
         deletePromoCode,
+        addProduct,
+        deleteProduct,
+        updateOrderDetails,
+        deleteOrder,
         triggerCheckout,
         onOrderSuccess,
         refreshPromosFromGAS,
+        refreshProductsFromGAS,
       }}
     >
       {children}

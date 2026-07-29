@@ -84,12 +84,12 @@ export const Navbar: React.FC<NavbarProps> = ({
           </div>
         )}
 
-        {/* Floating Dynamic Island Bar - Freely floating over content */}
+        {/* Floating Dynamic Island Bar - Freely floating over content (NO OVERFLOW-HIDDEN CLIPPING DROPDOWN) */}
         <div className="w-full flex justify-center px-3 sm:px-6 pointer-events-none">
           <motion.div
             layout
             transition={{ type: 'spring', stiffness: 350, damping: 25 }}
-            className={`pointer-events-auto transition-all duration-300 flex items-center justify-between gap-2 sm:gap-3 select-none w-full overflow-hidden ${
+            className={`pointer-events-auto transition-all duration-300 flex items-center justify-between gap-2 sm:gap-3 select-none w-full relative ${
               isScrolled
                 ? 'mt-3 px-4 sm:px-6 py-2 sm:py-2.5 rounded-full border border-stone-300/80 bg-white/95 backdrop-blur-xl shadow-2xl max-w-5xl'
                 : 'mt-2.5 px-4 sm:px-7 py-2.5 sm:py-3 rounded-2xl border border-stone-200/80 bg-white/95 backdrop-blur-md max-w-7xl shadow-lg'
@@ -181,7 +181,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                     </button>
 
                     {userDropdownOpen && (
-                      <div className="absolute right-0 mt-2 w-56 bg-white rounded-2xl shadow-2xl border border-stone-200 py-3 z-50 animate-in fade-in duration-150">
+                      <div className="absolute right-0 mt-3 w-60 bg-white rounded-2xl shadow-2xl border border-stone-200 py-3 z-50 animate-in fade-in duration-150">
                         <div className="px-4 py-2 border-b border-stone-100 flex items-center space-x-3">
                           {user.photoURL ? (
                             <img
@@ -247,7 +247,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 )}
               </div>
 
-              {/* Shopping Cart Button Trigger - OPENS SLIDE-OUT CART DRAWER DIRECTLY */}
+              {/* Shopping Cart Button Trigger */}
               <button
                 onClick={onOpenCart}
                 className="relative p-2 sm:p-2.5 rounded-full bg-[#3A5303] hover:bg-[#2b3e02] text-white transition-transform active:scale-95 shadow-xs flex items-center justify-center shrink-0"

@@ -5,7 +5,7 @@ import './globals.css';
 export const metadata: Metadata = {
   title: 'Brindavanam Organic | 100% Wood-Pressed Oils & A2 Bilona Ghee',
   description: 'Authentic organic farm produce inspired by Two Brothers Organic Farms and Organic India. Hand-churned A2 Gir Cow Bilona Ghee, zero-heat Kachi Ghani oils, and organic Desi Paneer.',
-  keywords: ['A2 Bilona Ghee', 'Wood Pressed Groundnut Oil', 'Virgin Coconut Oil', 'Kusuma Safflower Oil', 'Organic Paneer', 'Two Brothers Organic Farms'],
+  keywords: ['A2 Bilona Ghee', 'Wood Pressed Groundnut Oil', 'Virgin Coconut Oil', 'Kusuma Safflower Oil', 'Organic Paneer', 'Brindavan Farm Hyd'],
   icons: {
     icon: '/favicon.svg',
     shortcut: '/favicon.svg',
@@ -26,6 +26,10 @@ export default function RootLayout({
         <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
         <Script
           src="https://www.google.com/recaptcha/api.js"
+          strategy="lazyOnload"
+        />
+        <Script
+          src="https://checkout.razorpay.com/v1/checkout.js"
           strategy="lazyOnload"
         />
       </head>

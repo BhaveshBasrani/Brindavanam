@@ -68,6 +68,9 @@ export interface Order {
   city?: string;
   recaptchaVerified?: boolean;
   promoCode?: string;
+  trackingUrl?: string;
+  estimatedArrival?: string;
+  adminNotes?: string;
 }
 
 export interface UserProfile {

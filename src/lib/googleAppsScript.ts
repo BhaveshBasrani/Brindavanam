@@ -1,4 +1,4 @@
-import { Order } from '@/types/store';
+import { Order, Product, ShippingAddress } from '@/types/store';
 import { PromoCodeItem } from '@/context/StoreContext';
 
 const gasUrl = process.env.NEXT_PUBLIC_GAS_WEB_APP_URL || 'https://script.google.com/macros/s/AKfycbwqHEdFL5zR_cCPSUkvb91nudf72H9K1CdFYPEyHgP_XInRSaHQU0TiZEtadcYHpQPS/exec';
@@ -29,14 +29,60 @@ export const sendOrderToGoogleAppsScript = async (order: Order): Promise<{ succe
 
 export const saveOrderToGAS = sendOrderToGoogleAppsScript;
 
-// Sync Admin Promo Codes to Google Apps Script Backend
+export const updateOrderDetailsInGAS = async (
+  orderId: string,
+  details: {
+    customerName?: string;
+    customerPhone?: string;
+    shippingAddress?: ShippingAddress | string;
+    status?: Order['status'];
+    trackingUrl?: string;
+    estimatedArrival?: string;
+    adminNotes?: string;
+  }
+): Promise<boolean> => {
+  try {
+    const response = await fetch(gasUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({
+        action: 'update_order_details',
+        orderId,
+        shippingAddress: typeof details.shippingAddress === 'object' ? details.shippingAddress.addressLine1 : details.shippingAddress,
+        ...details,
+      }),
+    });
+    const data = await response.json();
+    return data.status === 'success';
+  } catch (err) {
+    console.warn('Order detail update notice:', err);
+    return false;
+  }
+};
+
+export const deleteOrderFromGAS = async (orderId: string): Promise<boolean> => {
+  try {
+    const response = await fetch(gasUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({
+        action: 'delete_order',
+        orderId,
+      }),
+    });
+    const data = await response.json();
+    return data.status === 'success';
+  } catch (err) {
+    console.warn('Delete order notice:', err);
+    return false;
+  }
+};
+
 export const syncPromosToGAS = async (promos: PromoCodeItem[]): Promise<boolean> => {
   try {
     const response = await fetch(gasUrl, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'text/plain;charset=utf-8',
-      },
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
       body: JSON.stringify({
         action: 'save_promos',
         promos,
@@ -50,7 +96,6 @@ export const syncPromosToGAS = async (promos: PromoCodeItem[]): Promise<boolean>
   }
 };
 
-// Fetch Live Promo Codes from Google Apps Script Backend
 export const fetchPromosFromGAS = async (): Promise<PromoCodeItem[] | null> => {
   try {
     const response = await fetch(`${gasUrl}?action=get_promos`);
@@ -61,6 +106,38 @@ export const fetchPromosFromGAS = async (): Promise<PromoCodeItem[] | null> => {
     return null;
   } catch (err) {
     console.warn('Apps Script Promo Fetch notice:', err);
+    return null;
+  }
+};
+
+export const syncProductsToGAS = async (products: Product[]): Promise<boolean> => {
+  try {
+    const response = await fetch(gasUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({
+        action: 'save_products',
+        products,
+      }),
+    });
+    const data = await response.json();
+    return data.status === 'success';
+  } catch (err) {
+    console.warn('Apps Script Product Sync notice:', err);
+    return false;
+  }
+};
+
+export const fetchProductsFromGAS = async (): Promise<Product[] | null> => {
+  try {
+    const response = await fetch(`${gasUrl}?action=get_products`);
+    const data = await response.json();
+    if (data.status === 'success' && Array.isArray(data.products) && data.products.length > 0) {
+      return data.products;
+    }
+    return null;
+  } catch (err) {
+    console.warn('Apps Script Product Fetch notice:', err);
     return null;
   }
 };

@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import { ShoppingBag, ArrowLeft, ArrowRight, Trash2, Tag, ShieldCheck, Truck, Sparkles, CheckCircle } from 'lucide-react';
 import { AuthProvider } from '@/context/AuthContext';
 import { StoreProvider, useStore } from '@/context/StoreContext';
 import { Navbar } from '@/components/Navbar';
@@ -10,7 +11,6 @@ import { CheckoutModal } from '@/components/CheckoutModal';
 import { AuthModal } from '@/components/AuthModal';
 import { UserOrdersModal } from '@/components/UserOrdersModal';
 import { AdminDashboardModal } from '@/components/AdminDashboardModal';
-import { Trash2, ArrowLeft, ArrowRight, ShieldCheck, Tag, ShoppingBag, Truck } from 'lucide-react';
 
 function CartPageContent() {
   const {
@@ -33,6 +33,9 @@ function CartPageContent() {
     onOrderSuccess,
   } = useStore();
 
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [searchQuery, setSearchQuery] = useState<string>('');
+
   const [promoInput, setPromoInput] = useState('');
   const [promoMessage, setPromoMessage] = useState({ text: '', isError: false });
 
@@ -41,9 +44,10 @@ function CartPageContent() {
     0
   );
 
-  const handleApplyPromo = (e: React.FormEvent) => {
+  const handleApplyPromo = async (e: React.FormEvent) => {
     e.preventDefault();
-    const result = applyPromoCode(promoInput);
+    if (!promoInput.trim()) return;
+    const result = await applyPromoCode(promoInput);
     setPromoMessage({ text: result.message, isError: !result.success });
   };
 
@@ -63,213 +67,217 @@ function CartPageContent() {
         onOpenAuth={() => setIsAuthOpen(true)}
         onOpenOrders={() => setIsOrdersOpen(true)}
         onOpenAdmin={() => setIsAdminOpen(true)}
-        searchQuery=""
-        setSearchQuery={() => {}}
-        selectedCategory="all"
-        setSelectedCategory={() => {}}
+        searchQuery={searchQuery}
+        setSearchQuery={setSearchQuery}
+        selectedCategory={selectedCategory}
+        setSelectedCategory={setSelectedCategory}
       />
 
-      {/* Main Content */}
-      <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 w-full">
+      <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 w-full">
         
-        {/* Page Title & Breadcrumb */}
-        <div className="mb-10 flex flex-col sm:flex-row sm:items-end justify-between border-b border-stone-200 pb-6">
-          <div>
-            <Link href="/" className="inline-flex items-center text-xs text-stone-500 hover:text-[#3A5303] mb-2 transition-colors font-medium">
-              <ArrowLeft className="w-3.5 h-3.5 mr-1" /> Continue Shopping
-            </Link>
-            <h1 className="text-3xl sm:text-4xl font-serif text-stone-900 font-normal">
-              Your Organic Shopping Cart
-            </h1>
-          </div>
-          <span className="text-xs uppercase tracking-widest font-bold text-[#3A5303] mt-2 sm:mt-0">
-            {cartItems.length} {cartItems.length === 1 ? 'Item' : 'Items'} Selected
-          </span>
+        {/* Breadcrumb Header */}
+        <div className="mb-8">
+          <Link
+            href="/"
+            className="inline-flex items-center text-xs font-semibold text-stone-500 hover:text-[#3A5303] transition-colors mb-4"
+          >
+            <ArrowLeft className="w-4 h-4 mr-1" />
+            Back to Produce Store
+          </Link>
+          <h1 className="text-3xl sm:text-4xl font-serif text-stone-900 font-bold">Your Organic Produce Cart</h1>
+          <p className="text-xs text-stone-500 mt-1 font-light">Direct dispatch from Brindavan Farm Hyd</p>
         </div>
 
         {cartItems.length === 0 ? (
-          <div className="text-center py-24 bg-white rounded-2xl border border-stone-200/80 space-y-4 max-w-md mx-auto">
-            <ShoppingBag className="w-12 h-12 text-stone-300 mx-auto" />
-            <h2 className="text-xl font-serif text-stone-800">Your bag is currently empty</h2>
-            <p className="text-xs text-stone-500 font-light max-w-xs mx-auto">
-              Explore our small-batch A2 Desi Bilona Ghee and traditional wood-pressed oils.
+          <div className="bg-white rounded-3xl p-12 text-center border border-stone-200 shadow-sm max-w-lg mx-auto space-y-4">
+            <div className="w-16 h-16 bg-[#F7F6F2] rounded-full flex items-center justify-center mx-auto text-stone-400">
+              <ShoppingBag className="w-8 h-8" />
+            </div>
+            <h2 className="text-xl font-serif text-stone-800 font-bold">Your Shopping Cart is Empty</h2>
+            <p className="text-xs text-stone-500 font-light">
+              Add some of our A2 Gir Cow Bilona Ghee or Cold-Pressed Oils to your cart.
             </p>
             <Link
               href="/"
-              className="inline-flex items-center space-x-2 px-6 py-3 bg-[#3A5303] text-white text-xs font-semibold uppercase tracking-wider rounded shadow-xs hover:bg-[#2b3e02] transition-colors"
+              className="inline-block px-8 py-3 bg-[#3A5303] text-white font-bold text-xs uppercase tracking-wider rounded-xl hover:bg-[#2b3e02] shadow-md transition-all"
             >
-              <span>Explore Farm Produce</span>
-              <ArrowRight className="w-3.5 h-3.5" />
+              Browse Organic Lineup
             </Link>
           </div>
         ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             
-            {/* Left: Items List */}
-            <div className="lg:col-span-8 space-y-4">
+            {/* Left Column: Cart Items List */}
+            <div className="lg:col-span-2 space-y-4">
               
-              {/* Free Shipping Bar */}
-              <div className="bg-white p-4 rounded-xl border border-stone-200/80 text-xs">
-                {rawSubtotal >= freeShippingThreshold ? (
-                  <p className="text-[#3A5303] font-semibold flex items-center">
-                    <Truck className="w-4 h-4 mr-2" /> 🎉 You qualify for Complimentary Express Delivery!
-                  </p>
-                ) : (
-                  <p className="text-stone-600 font-light">
-                    Add <span className="font-semibold text-[#3A5303]">₹{freeShippingThreshold - rawSubtotal}</span> more for <span className="font-semibold text-[#3A5303]">Free Shipping</span>
-                  </p>
-                )}
-                <div className="w-full bg-stone-100 h-1.5 rounded-full mt-2 overflow-hidden">
+              {/* Free Shipping Callout */}
+              <div className="bg-white p-4 rounded-2xl border border-stone-200 shadow-xs space-y-2">
+                <div className="flex items-center justify-between text-xs">
+                  {rawSubtotal >= freeShippingThreshold ? (
+                    <span className="font-bold text-emerald-700 flex items-center">
+                      <Truck className="w-4 h-4 mr-1.5 text-[#3A5303]" />
+                      🎉 You unlocked FREE Delivery across India!
+                    </span>
+                  ) : (
+                    <span className="text-stone-600 font-medium">
+                      Add <span className="font-bold text-[#3A5303]">₹{freeShippingThreshold - rawSubtotal}</span> more for <span className="font-bold text-emerald-700">FREE Shipping</span>
+                    </span>
+                  )}
+                  <span className="font-bold text-stone-500">{progressToFreeShipping}%</span>
+                </div>
+                <div className="w-full bg-stone-100 h-2 rounded-full overflow-hidden">
                   <div
-                    className="bg-[#3A5303] h-full transition-all duration-500 rounded-full"
+                    className="bg-gradient-to-r from-[#94C000] to-[#3A5303] h-full transition-all duration-500"
                     style={{ width: `${progressToFreeShipping}%` }}
                   />
                 </div>
               </div>
 
-              {/* Items Table */}
-              <div className="bg-white rounded-xl border border-stone-200/80 overflow-hidden">
-                <div className="divide-y divide-stone-100">
-                  {cartItems.map((item, idx) => (
-                    <div key={idx} className="p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                      
-                      <div className="flex items-center space-x-4">
-                        <img
-                          src={item.product.images[0]}
-                          alt={item.product.name}
-                          className="w-20 h-20 rounded-lg object-cover bg-stone-100 border border-stone-200"
-                        />
-                        <div className="space-y-1">
-                          <Link
-                            href={`/products/${item.product.id}`}
-                            className="text-base font-serif text-stone-900 hover:text-[#3A5303] transition-colors"
-                          >
-                            {item.product.name}
-                          </Link>
-                          <p className="text-xs text-stone-500">{item.selectedVariant.weight}</p>
-                          <p className="text-xs font-semibold text-[#3A5303]">₹{item.selectedVariant.price} each</p>
-                        </div>
-                      </div>
+              {/* Items Card List */}
+              <div className="bg-white rounded-3xl border border-stone-200 overflow-hidden shadow-xs divide-y divide-stone-100">
+                {cartItems.map((item, index) => (
+                  <div key={index} className="p-4 sm:p-6 flex items-center space-x-4">
+                    <img
+                      src={item.product.images[0]}
+                      alt={item.product.name}
+                      className="w-20 h-20 rounded-2xl object-cover border border-stone-200 shrink-0 bg-stone-50"
+                    />
 
-                      <div className="flex items-center justify-between sm:justify-end space-x-6 border-t sm:border-t-0 pt-3 sm:pt-0 border-stone-100">
-                        {/* Quantity controls */}
-                        <div className="flex items-center border border-stone-200 rounded overflow-hidden bg-[#F7F6F2]">
+                    <div className="flex-1 min-w-0">
+                      <span className="text-[10px] uppercase font-bold text-[#3A5303] tracking-widest block">
+                        {item.product.category}
+                      </span>
+                      <h3 className="text-sm sm:text-base font-serif font-bold text-stone-900 truncate">
+                        {item.product.name}
+                      </h3>
+                      <p className="text-xs text-stone-500 font-light mt-0.5">
+                        {item.selectedVariant.weight} • ₹{item.selectedVariant.price} each
+                      </p>
+
+                      <div className="flex items-center space-x-4 mt-3">
+                        {/* Incrementor */}
+                        <div className="flex items-center border border-stone-300 rounded-xl bg-stone-50 overflow-hidden">
                           <button
-                            onClick={() => updateQuantity(idx, item.quantity - 1)}
-                            className="px-3 py-1 text-xs text-stone-600 hover:bg-stone-200 font-semibold"
+                            onClick={() => updateQuantity(index, item.quantity - 1)}
+                            className="px-3 py-1 text-stone-600 hover:bg-stone-200 font-bold text-xs"
                           >
                             -
                           </button>
-                          <span className="px-3 py-1 text-xs font-semibold text-stone-900 bg-white">
+                          <span className="px-3 py-1 text-xs font-bold text-stone-800">
                             {item.quantity}
                           </span>
                           <button
-                            onClick={() => updateQuantity(idx, item.quantity + 1)}
-                            className="px-3 py-1 text-xs text-stone-600 hover:bg-stone-200 font-semibold"
+                            onClick={() => updateQuantity(index, item.quantity + 1)}
+                            className="px-3 py-1 text-stone-600 hover:bg-stone-200 font-bold text-xs"
                           >
                             +
                           </button>
                         </div>
 
-                        {/* Total price for line */}
-                        <span className="text-sm font-semibold text-stone-900 min-w-[70px] text-right">
-                          ₹{item.selectedVariant.price * item.quantity}
-                        </span>
-
-                        {/* Remove */}
                         <button
-                          onClick={() => removeCartItem(idx)}
+                          onClick={() => removeCartItem(index)}
                           className="text-stone-400 hover:text-red-600 transition-colors p-1"
                           title="Remove item"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
                       </div>
-
                     </div>
-                  ))}
-                </div>
+
+                    <div className="text-right shrink-0">
+                      <span className="text-base font-bold font-serif text-[#3A5303]">
+                        ₹{item.selectedVariant.price * item.quantity}
+                      </span>
+                    </div>
+                  </div>
+                ))}
               </div>
 
             </div>
 
-            {/* Right: Summary Box */}
-            <div className="lg:col-span-4 space-y-6">
+            {/* Right Column: Order Summary & Checkout Card */}
+            <div className="space-y-6">
               
-              {/* Promo Code Input */}
-              <div className="bg-white p-6 rounded-xl border border-stone-200/80 space-y-3">
-                <h3 className="text-xs uppercase tracking-wider font-bold text-stone-900">
-                  Have a Promo Code?
-                </h3>
-                <form onSubmit={handleApplyPromo} className="flex space-x-2">
-                  <div className="relative flex-1">
-                    <input
-                      type="text"
-                      placeholder="e.g. ORGANIC10"
-                      value={promoInput}
-                      onChange={(e) => setPromoInput(e.target.value)}
-                      className="w-full pl-8 pr-3 py-2 text-xs border border-stone-300 rounded uppercase bg-[#F7F6F2] focus:outline-none focus:border-[#3A5303]"
-                    />
-                    <Tag className="w-3.5 h-3.5 text-stone-400 absolute left-2.5 top-2.5" />
-                  </div>
-                  <button
-                    type="submit"
-                    className="px-4 py-2 bg-[#3A5303] text-white text-xs font-semibold uppercase tracking-wider rounded hover:bg-[#2b3e02] transition-colors"
-                  >
-                    Apply
-                  </button>
-                </form>
-
-                {promoMessage.text && (
-                  <p className={`text-[11px] font-semibold ${promoMessage.isError ? 'text-red-600' : 'text-[#3A5303]'}`}>
-                    {promoMessage.text}
-                  </p>
-                )}
-                {appliedPromoCode && !promoMessage.text && (
-                  <p className="text-[11px] font-semibold text-[#3A5303]">
-                    Code {appliedPromoCode} applied!
-                  </p>
-                )}
-              </div>
-
-              {/* Order Breakdown */}
-              <div className="bg-white p-6 rounded-xl border border-stone-200/80 space-y-4">
-                <h3 className="text-xs uppercase tracking-wider font-bold text-stone-900 border-b border-stone-100 pb-3">
+              <div className="bg-white p-6 rounded-3xl border border-stone-200 shadow-sm space-y-6">
+                <h3 className="text-lg font-serif font-bold text-stone-900 border-b border-stone-100 pb-3">
                   Order Summary
                 </h3>
 
-                <div className="space-y-2 text-xs text-stone-600 font-light">
-                  <div className="flex justify-between">
-                    <span>Subtotal</span>
-                    <span className="font-semibold text-stone-900">₹{rawSubtotal}</span>
+                {/* Promo Code Form */}
+                <form onSubmit={handleApplyPromo} className="space-y-2">
+                  <label className="block text-xs font-bold text-stone-700 uppercase tracking-wider">
+                    Have a Promo Code?
+                  </label>
+                  <div className="flex space-x-2">
+                    <div className="relative flex-1">
+                      <input
+                        type="text"
+                        placeholder="ORGANIC10"
+                        value={promoInput}
+                        onChange={(e) => setPromoInput(e.target.value)}
+                        className="w-full pl-8 pr-3 py-2 text-xs border border-stone-300 rounded-xl uppercase focus:outline-none focus:border-[#3A5303]"
+                      />
+                      <Tag className="w-3.5 h-3.5 text-stone-400 absolute left-2.5 top-2.5" />
+                    </div>
+                    <button
+                      type="submit"
+                      className="px-4 py-2 bg-[#3A5303] text-white text-xs font-bold rounded-xl hover:bg-[#2b3e02] transition-colors"
+                    >
+                      Apply
+                    </button>
                   </div>
+
+                  {promoMessage.text && (
+                    <p className={`text-xs ${promoMessage.isError ? 'text-red-600' : 'text-emerald-700 font-bold'} flex items-center mt-1`}>
+                      {!promoMessage.isError && <Sparkles className="w-3.5 h-3.5 mr-1" />}
+                      {promoMessage.text}
+                    </p>
+                  )}
+                </form>
+
+                {/* Price Breakdown Details */}
+                <div className="space-y-2.5 text-xs text-stone-600 border-t border-stone-100 pt-4">
+                  <div className="flex justify-between">
+                    <span>Items Subtotal</span>
+                    <span className="font-semibold text-stone-800">₹{rawSubtotal}</span>
+                  </div>
+
                   {appliedDiscount > 0 && (
-                    <div className="flex justify-between text-[#3A5303] font-semibold">
-                      <span>Discount ({appliedPromoCode})</span>
+                    <div className="flex justify-between text-emerald-700 font-bold">
+                      <span>Promo Discount ({appliedPromoCode})</span>
                       <span>-₹{appliedDiscount}</span>
                     </div>
                   )}
+
                   <div className="flex justify-between">
-                    <span>Delivery Charges</span>
-                    <span>{deliveryFee === 0 ? <span className="text-[#3A5303] font-semibold">FREE</span> : `₹${deliveryFee}`}</span>
+                    <span>Shipping Charges</span>
+                    <span>
+                      {deliveryFee === 0 ? (
+                        <span className="font-bold text-emerald-700">FREE</span>
+                      ) : (
+                        `₹${deliveryFee}`
+                      )}
+                    </span>
                   </div>
-                  <div className="flex justify-between text-sm font-semibold text-stone-900 pt-3 border-t border-stone-100">
+
+                  <div className="border-t border-stone-200 pt-3 flex justify-between items-center text-sm font-bold text-stone-900">
                     <span>Total Amount</span>
-                    <span className="text-[#3A5303] text-base font-serif">₹{finalTotal}</span>
+                    <span className="text-xl font-serif text-[#3A5303]">₹{finalTotal}</span>
                   </div>
                 </div>
 
+                {/* Checkout Trigger */}
                 <button
                   onClick={() => triggerCheckout(appliedDiscount, appliedPromoCode)}
-                  className="w-full py-3.5 bg-[#3A5303] hover:bg-[#2b3e02] text-white font-semibold text-xs uppercase tracking-wider rounded shadow-xs transition-colors flex items-center justify-center space-x-2"
+                  className="w-full py-4 bg-[#3A5303] hover:bg-[#2b3e02] text-white font-bold text-xs uppercase tracking-wider rounded-xl shadow-lg flex items-center justify-center space-x-2 transition-transform active:scale-98"
                 >
-                  <span>Proceed to Razorpay Checkout</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
+                  <span>Proceed to Farm Checkout</span>
+                  <ArrowRight className="w-4 h-4" />
                 </button>
 
-                <div className="flex items-center justify-center space-x-2 text-[10px] text-stone-400 pt-1">
-                  <ShieldCheck className="w-3.5 h-3.5 text-[#3A5303]" />
-                  <span>Protected by Google reCAPTCHA Security</span>
+                <div className="flex items-center justify-center space-x-2 text-[10px] text-stone-400 pt-2 border-t border-stone-100">
+                  <ShieldCheck className="w-4 h-4 text-[#3A5303]" />
+                  <span>Encrypted 256-Bit Payment Guarantee</span>
                 </div>
               </div>
 
@@ -277,12 +285,12 @@ function CartPageContent() {
 
           </div>
         )}
+
       </main>
 
-      {/* Footer */}
       <Footer />
 
-      {/* Modals */}
+      {/* Checkout Modal */}
       <CheckoutModal
         isOpen={isCheckoutOpen}
         onClose={() => setIsCheckoutOpen(false)}
@@ -292,17 +300,20 @@ function CartPageContent() {
         onOrderSuccess={onOrderSuccess}
       />
 
+      {/* Customer Auth Modal */}
       <AuthModal
         isOpen={isAuthOpen}
         onClose={() => setIsAuthOpen(false)}
       />
 
+      {/* Customer Orders Modal */}
       <UserOrdersModal
         isOpen={isOrdersOpen}
         onClose={() => setIsOrdersOpen(false)}
         orders={userOrders}
       />
 
+      {/* Admin Operations Desk Modal */}
       <AdminDashboardModal
         isOpen={isAdminOpen}
         onClose={() => setIsAdminOpen(false)}
