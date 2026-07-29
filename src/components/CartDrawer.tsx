@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { X, Trash2, ShoppingBag, ArrowRight, Tag, Truck, ShieldCheck, Sparkles } from 'lucide-react';
 import { CartItem } from '@/types/store';
+import { useStore } from '@/context/StoreContext';
 
 interface CartDrawerProps {
   isOpen: boolean;
@@ -21,10 +22,13 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
   onRemoveItem,
   onCheckout,
 }) => {
+  const { applyPromoCode } = useStore();
   const [promoCode, setPromoCode] = useState('');
   const [appliedCode, setAppliedCode] = useState<string | null>(null);
-  const [discountPercent, setDiscountPercent] = useState<number>(0);
+  const [discountAmount, setDiscountAmount] = useState<number>(0);
+  const [promoMessage, setPromoMessage] = useState('');
   const [promoError, setPromoError] = useState('');
+  const [applying, setApplying] = useState(false);
 
   if (!isOpen) return null;
 
@@ -33,20 +37,28 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
     0
   );
 
-  const handleApplyPromo = () => {
+  const handleApplyPromo = async () => {
+    if (!promoCode.trim()) return;
     setPromoError('');
-    if (promoCode.trim().toUpperCase() === 'ORGANIC10') {
-      setAppliedCode('ORGANIC10');
-      setDiscountPercent(10);
-    } else if (promoCode.trim().toUpperCase() === 'BRINDAVANAM20') {
-      setAppliedCode('BRINDAVANAM20');
-      setDiscountPercent(20);
-    } else {
-      setPromoError('Invalid coupon code. Try ORGANIC10');
+    setPromoMessage('');
+    setApplying(true);
+
+    try {
+      const res = await applyPromoCode(promoCode);
+      if (res.success) {
+        setAppliedCode(promoCode.trim().toUpperCase());
+        setDiscountAmount(res.discountAmount);
+        setPromoMessage(res.message);
+      } else {
+        setPromoError(res.message);
+      }
+    } catch {
+      setPromoError('Failed to apply promo code.');
+    } finally {
+      setApplying(false);
     }
   };
 
-  const discountAmount = Math.round((rawSubtotal * discountPercent) / 100);
   const freeShippingThreshold = 999;
   const deliveryFee = rawSubtotal >= freeShippingThreshold || items.length === 0 ? 0 : 70;
   const finalTotal = Math.max(0, rawSubtotal - discountAmount + deliveryFee);
@@ -66,7 +78,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
           <div className="p-6 border-b border-stone-200 bg-[#F3F6F3]">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-2">
-                <div className="w-8 h-8 rounded-lg bg-[#4B6B03] text-white flex items-center justify-center">
+                <div className="w-8 h-8 rounded-lg bg-[#3A5303] text-white flex items-center justify-center">
                   <ShoppingBag className="w-4 h-4" />
                 </div>
                 <h2 className="text-lg font-bold font-serif text-stone-900">Your Organic Cart</h2>
@@ -86,16 +98,16 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
             <div className="mt-4 bg-white p-3 rounded-xl border border-stone-200 text-xs">
               {rawSubtotal >= freeShippingThreshold ? (
                 <p className="text-emerald-700 font-bold flex items-center">
-                  <Truck className="w-4 h-4 mr-1.5 text-[#4B6B03]" /> 🎉 Congratulations! You qualify for Free Delivery
+                  <Truck className="w-4 h-4 mr-1.5 text-[#3A5303]" /> 🎉 Congratulations! You qualify for Free Delivery
                 </p>
               ) : (
                 <p className="text-stone-600 font-medium">
-                  Add <span className="font-bold text-[#4B6B03]">₹{freeShippingThreshold - rawSubtotal}</span> more for <span className="font-bold text-emerald-700">FREE Shipping</span>
+                  Add <span className="font-bold text-[#3A5303]">₹{freeShippingThreshold - rawSubtotal}</span> more for <span className="font-bold text-emerald-700">FREE Shipping</span>
                 </p>
               )}
               <div className="w-full bg-stone-200 h-2 rounded-full mt-2 overflow-hidden">
                 <div
-                  className="bg-gradient-to-r from-[#94C000] to-[#4B6B03] h-full transition-all duration-500 rounded-full"
+                  className="bg-gradient-to-r from-[#94C000] to-[#3A5303] h-full transition-all duration-500 rounded-full"
                   style={{ width: `${progressToFreeShipping}%` }}
                 />
               </div>
@@ -115,7 +127,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                 </p>
                 <button
                   onClick={onClose}
-                  className="mt-2 px-6 py-2.5 bg-[#4B6B03] text-white font-bold text-xs rounded-full shadow-md hover:bg-[#385002]"
+                  className="mt-2 px-6 py-2.5 bg-[#3A5303] text-white font-bold text-xs rounded-full shadow-md hover:bg-[#2b3e02]"
                 >
                   Start Shopping
                 </button>
@@ -137,7 +149,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                     </h4>
                     <p className="text-[11px] text-stone-500">{item.selectedVariant.weight}</p>
                     <div className="flex items-center justify-between mt-2">
-                      <span className="text-xs font-bold text-[#4B6B03]">
+                      <span className="text-xs font-bold text-[#3A5303]">
                         ₹{item.selectedVariant.price * item.quantity}
                       </span>
                       
@@ -184,20 +196,21 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                       placeholder="Promo Code (e.g. ORGANIC10)"
                       value={promoCode}
                       onChange={(e) => setPromoCode(e.target.value)}
-                      className="w-full pl-8 pr-3 py-2 text-xs border border-stone-300 rounded-xl uppercase bg-white focus:outline-none focus:ring-1 focus:ring-[#4B6B03]"
+                      className="w-full pl-8 pr-3 py-2 text-xs border border-stone-300 rounded-xl uppercase bg-white focus:outline-none focus:ring-1 focus:ring-[#3A5303]"
                     />
                     <Tag className="w-3.5 h-3.5 text-stone-400 absolute left-2.5 top-2.5" />
                   </div>
                   <button
                     onClick={handleApplyPromo}
-                    className="px-4 py-2 bg-[#4B6B03] text-white text-xs font-bold rounded-xl hover:bg-[#385002]"
+                    disabled={applying}
+                    className="px-4 py-2 bg-[#3A5303] text-white text-xs font-bold rounded-xl hover:bg-[#2b3e02]"
                   >
-                    Apply
+                    {applying ? 'Checking...' : 'Apply'}
                   </button>
                 </div>
                 {appliedCode && (
                   <p className="text-[11px] text-emerald-700 font-semibold mt-1 flex items-center">
-                    <Sparkles className="w-3 h-3 mr-1 text-[#94C000]" /> Promo code {appliedCode} applied ({discountPercent}% OFF)
+                    <Sparkles className="w-3 h-3 mr-1 text-[#94C000]" /> {promoMessage || `Coupon ${appliedCode} applied`}
                   </p>
                 )}
                 {promoError && <p className="text-[11px] text-red-600 mt-1">{promoError}</p>}
@@ -211,7 +224,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                 </div>
                 {discountAmount > 0 && (
                   <div className="flex justify-between text-emerald-700 font-semibold">
-                    <span>Discount ({discountPercent}%)</span>
+                    <span>Discount Coupon</span>
                     <span>-₹{discountAmount}</span>
                   </div>
                 )}
@@ -221,7 +234,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                 </div>
                 <div className="flex justify-between text-sm font-bold text-stone-900 pt-2 border-t border-stone-200">
                   <span>Total Amount</span>
-                  <span className="text-[#4B6B03] text-base font-serif">₹{finalTotal}</span>
+                  <span className="text-[#3A5303] text-base font-serif">₹{finalTotal}</span>
                 </div>
               </div>
 
@@ -231,15 +244,15 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                   onCheckout(discountAmount, appliedCode || '');
                   onClose();
                 }}
-                className="w-full py-4 bg-[#4B6B03] hover:bg-[#385002] text-white font-bold text-sm rounded-xl shadow-xl flex items-center justify-center space-x-2 transition-transform active:scale-98"
+                className="w-full py-4 bg-[#3A5303] hover:bg-[#2b3e02] text-white font-bold text-sm rounded-xl shadow-xl flex items-center justify-center space-x-2 transition-transform active:scale-98"
               >
                 <span>Proceed to Checkout</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
 
               <div className="flex items-center justify-center space-x-2 text-[10px] text-stone-400">
-                <ShieldCheck className="w-3.5 h-3.5 text-[#4E90F5]" />
-                <span>Protected by Google reCAPTCHA & Razorpay SSL</span>
+                <ShieldCheck className="w-3.5 h-3.5 text-[#3A5303]" />
+                <span>Protected by Google reCAPTCHA & SSL Encryption</span>
               </div>
             </div>
           )}

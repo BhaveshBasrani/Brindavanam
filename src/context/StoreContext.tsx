@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { Product, ProductVariant, CartItem, Order } from '@/types/store';
+import { syncPromosToGAS, fetchPromosFromGAS } from '@/lib/googleAppsScript';
 
 export interface PromoCodeItem {
   code: string;
@@ -27,12 +28,13 @@ interface StoreContextType {
   addToCart: (product: Product, variant: ProductVariant, quantity: number) => void;
   updateQuantity: (index: number, newQty: number) => void;
   removeCartItem: (index: number) => void;
-  applyPromoCode: (code: string) => { success: boolean; discountAmount: number; message: string };
+  applyPromoCode: (code: string) => Promise<{ success: boolean; discountAmount: number; message: string }>;
   addPromoCode: (code: string, discountPercent: number, description: string) => void;
   togglePromoCode: (code: string) => void;
   deletePromoCode: (code: string) => void;
   triggerCheckout: (discount: number, promo: string) => void;
   onOrderSuccess: (order: Order) => void;
+  refreshPromosFromGAS: () => Promise<void>;
 }
 
 const DEFAULT_PROMOS: PromoCodeItem[] = [
@@ -56,35 +58,56 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [isOrdersOpen, setIsOrdersOpen] = useState(false);
   const [isAdminOpen, setIsAdminOpen] = useState(false);
 
-  // Load saved cart, orders & promo codes from localStorage on initial mount
-  useEffect(() => {
-    try {
-      const savedCart = localStorage.getItem('brindavanam_cart');
-      if (savedCart) {
-        const parsed = JSON.parse(savedCart);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          setCartItems(parsed);
-        }
+  // Function to refresh promo codes live from Google Apps Script
+  const refreshPromosFromGAS = async () => {
+    const remotePromos = await fetchPromosFromGAS();
+    if (remotePromos && remotePromos.length > 0) {
+      setPromoCodes(remotePromos);
+      try {
+        localStorage.setItem('brindavanam_promos', JSON.stringify(remotePromos));
+      } catch (e) {
+        console.warn('localStorage promo cache error:', e);
       }
-      const savedOrders = localStorage.getItem('brindavanam_orders');
-      if (savedOrders) {
-        const parsedOrders = JSON.parse(savedOrders);
-        if (Array.isArray(parsedOrders)) {
-          setUserOrders(parsedOrders);
-        }
-      }
-      const savedPromos = localStorage.getItem('brindavanam_promos');
-      if (savedPromos) {
-        const parsedPromos = JSON.parse(savedPromos);
-        if (Array.isArray(parsedPromos) && parsedPromos.length > 0) {
-          setPromoCodes(parsedPromos);
-        }
-      }
-    } catch (e) {
-      console.warn('Store Context localStorage load error:', e);
-    } finally {
-      setIsLoaded(true);
     }
+  };
+
+  // Load saved cart, orders & promo codes from localStorage and Apps Script on initial mount
+  useEffect(() => {
+    const loadInitialData = async () => {
+      try {
+        const savedCart = localStorage.getItem('brindavanam_cart');
+        if (savedCart) {
+          const parsed = JSON.parse(savedCart);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            setCartItems(parsed);
+          }
+        }
+        const savedOrders = localStorage.getItem('brindavanam_orders');
+        if (savedOrders) {
+          const parsedOrders = JSON.parse(savedOrders);
+          if (Array.isArray(parsedOrders)) {
+            setUserOrders(parsedOrders);
+          }
+        }
+        const savedPromos = localStorage.getItem('brindavanam_promos');
+        if (savedPromos) {
+          const parsedPromos = JSON.parse(savedPromos);
+          if (Array.isArray(parsedPromos) && parsedPromos.length > 0) {
+            setPromoCodes(parsedPromos);
+          }
+        }
+
+        // Fetch live promo codes from Google Apps Script backend
+        await refreshPromosFromGAS();
+
+      } catch (e) {
+        console.warn('Store Context load error:', e);
+      } font-serif finally {
+        setIsLoaded(true);
+      }
+    };
+
+    loadInitialData();
   }, []);
 
   // Sync cart changes to localStorage
@@ -96,16 +119,6 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       console.warn('Store Context localStorage save error:', e);
     }
   }, [cartItems, isLoaded]);
-
-  // Sync promo codes to localStorage
-  useEffect(() => {
-    if (!isLoaded) return;
-    try {
-      localStorage.setItem('brindavanam_promos', JSON.stringify(promoCodes));
-    } catch (e) {
-      console.warn('Store Context promo code save error:', e);
-    }
-  }, [promoCodes, isLoaded]);
 
   const addToCart = (product: Product, variant: ProductVariant, quantity: number) => {
     setCartItems((prev) => {
@@ -140,12 +153,20 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setCartItems((prev) => prev.filter((_, i) => i !== index));
   };
 
-  // Dynamic promo code evaluation against store promoCodes state
-  const applyPromoCode = (code: string) => {
+  // Dynamic promo code evaluation against Apps Script and local state
+  const applyPromoCode = async (code: string) => {
     const rawSubtotal = cartItems.reduce((sum, item) => sum + item.selectedVariant.price * item.quantity, 0);
     const cleanCode = code.trim().toUpperCase();
     
-    const matched = promoCodes.find((p) => p.code.toUpperCase() === cleanCode);
+    // Fetch latest live promo codes from Google Apps Script before applying
+    const remotePromos = await fetchPromosFromGAS();
+    const activePromosList = (remotePromos && remotePromos.length > 0) ? remotePromos : promoCodes;
+    
+    if (remotePromos && remotePromos.length > 0) {
+      setPromoCodes(remotePromos);
+    }
+
+    const matched = activePromosList.find((p) => p.code.toUpperCase() === cleanCode);
 
     if (!matched) {
       return { success: false, discountAmount: 0, message: 'Invalid promo coupon code.' };
@@ -174,17 +195,46 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       active: true,
       description: description || `${discountPercent}% Storewide Coupon`,
     };
-    setPromoCodes((prev) => [...prev.filter((p) => p.code !== clean), newItem]);
+
+    const updated = [...promoCodes.filter((p) => p.code !== clean), newItem];
+    setPromoCodes(updated);
+    
+    try {
+      localStorage.setItem('brindavanam_promos', JSON.stringify(updated));
+    } catch {
+      // ignore
+    }
+
+    // Sync to Google Apps Script Backend
+    syncPromosToGAS(updated);
   };
 
   const togglePromoCode = (code: string) => {
-    setPromoCodes((prev) =>
-      prev.map((p) => (p.code === code ? { ...p, active: !p.active } : p))
-    );
+    const updated = promoCodes.map((p) => (p.code === code ? { ...p, active: !p.active } : p));
+    setPromoCodes(updated);
+
+    try {
+      localStorage.setItem('brindavanam_promos', JSON.stringify(updated));
+    } catch {
+      // ignore
+    }
+
+    // Sync to Google Apps Script Backend
+    syncPromosToGAS(updated);
   };
 
   const deletePromoCode = (code: string) => {
-    setPromoCodes((prev) => prev.filter((p) => p.code !== code));
+    const updated = promoCodes.filter((p) => p.code !== code);
+    setPromoCodes(updated);
+
+    try {
+      localStorage.setItem('brindavanam_promos', JSON.stringify(updated));
+    } catch {
+      // ignore
+    }
+
+    // Sync to Google Apps Script Backend
+    syncPromosToGAS(updated);
   };
 
   const triggerCheckout = (discount: number, promo: string) => {
@@ -233,6 +283,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         deletePromoCode,
         triggerCheckout,
         onOrderSuccess,
+        refreshPromosFromGAS,
       }}
     >
       {children}
