@@ -133,43 +133,69 @@ export const Navbar: React.FC<NavbarProps> = ({
               <Search className="w-3.5 h-3.5 text-stone-400 absolute left-2" />
             </div>
 
-            {/* User Profile */}
+            {/* User Profile PFP Avatar */}
             <div className="relative">
               {user ? (
                 <div className="relative">
                   <button
                     onClick={() => setUserDropdownOpen(!userDropdownOpen)}
-                    className="flex items-center space-x-1.5 text-xs font-semibold text-stone-800 hover:text-[#3A5303]"
+                    className="flex items-center space-x-2 text-xs font-semibold text-stone-800 hover:text-[#3A5303] p-1 rounded-full hover:bg-stone-100 transition-colors"
                   >
-                    <div className="w-7 h-7 rounded-full bg-[#3A5303] text-white flex items-center justify-center font-bold text-[11px]">
-                      {user.displayName.charAt(0).toUpperCase()}
-                    </div>
+                    {user.photoURL ? (
+                      <img
+                        src={user.photoURL}
+                        alt={user.displayName}
+                        className="w-8 h-8 rounded-full object-cover ring-2 ring-[#3A5303] shadow-xs"
+                      />
+                    ) : (
+                      <div className="w-8 h-8 rounded-full bg-[#3A5303] text-white flex items-center justify-center font-bold text-xs shadow-xs ring-2 ring-[#94C000]">
+                        {user.displayName.charAt(0).toUpperCase()}
+                      </div>
+                    )}
+                    <span className="hidden lg:inline text-xs font-bold text-stone-800">
+                      {user.displayName.split(' ')[0]}
+                    </span>
                   </button>
 
                   {userDropdownOpen && (
-                    <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-xl border border-stone-200 py-2 z-50">
-                      <div className="px-4 py-2 border-b border-stone-100">
-                        <p className="text-xs font-bold text-stone-900">{user.displayName}</p>
-                        <p className="text-[10px] text-stone-400 truncate">{user.email}</p>
+                    <div className="absolute right-0 mt-2 w-56 bg-white rounded-2xl shadow-2xl border border-stone-200 py-3 z-50 animate-in fade-in duration-150">
+                      <div className="px-4 py-2 border-b border-stone-100 flex items-center space-x-3">
+                        {user.photoURL ? (
+                          <img
+                            src={user.photoURL}
+                            alt=""
+                            className="w-10 h-10 rounded-full object-cover ring-2 ring-[#3A5303]"
+                          />
+                        ) : (
+                          <div className="w-10 h-10 rounded-full bg-[#3A5303] text-white flex items-center justify-center font-bold text-sm">
+                            {user.displayName.charAt(0).toUpperCase()}
+                          </div>
+                        )}
+                        <div className="overflow-hidden">
+                          <p className="text-xs font-bold text-stone-900 truncate">{user.displayName}</p>
+                          <p className="text-[10px] text-stone-400 truncate">{user.email}</p>
+                        </div>
                       </div>
+                      
                       <button
                         onClick={() => {
                           setUserDropdownOpen(false);
                           onOpenOrders();
                         }}
-                        className="w-full text-left px-4 py-2 text-xs text-stone-700 hover:bg-[#F7F6F2] flex items-center space-x-2"
+                        className="w-full text-left px-4 py-2.5 text-xs text-stone-700 hover:bg-[#F7F6F2] font-semibold flex items-center space-x-2 transition-colors"
                       >
-                        <Package className="w-3.5 h-3.5 text-[#3A5303]" />
-                        <span>My Orders</span>
+                        <Package className="w-4 h-4 text-[#3A5303]" />
+                        <span>Customer Dashboard & Orders</span>
                       </button>
+
                       <button
                         onClick={() => {
                           setUserDropdownOpen(false);
                           logout();
                         }}
-                        className="w-full text-left px-4 py-2 text-xs text-stone-500 hover:bg-stone-50 flex items-center space-x-2 border-t border-stone-100"
+                        className="w-full text-left px-4 py-2.5 text-xs text-stone-500 hover:bg-red-50 hover:text-red-700 font-semibold flex items-center space-x-2 border-t border-stone-100 transition-colors"
                       >
-                        <LogOut className="w-3.5 h-3.5" />
+                        <LogOut className="w-4 h-4" />
                         <span>Sign Out</span>
                       </button>
                     </div>
@@ -178,10 +204,10 @@ export const Navbar: React.FC<NavbarProps> = ({
               ) : (
                 <button
                   onClick={onOpenAuth}
-                  className="p-1.5 text-stone-700 hover:text-[#3A5303] text-xs font-semibold flex items-center space-x-1"
+                  className="px-3 py-1.5 rounded-full border border-[#3A5303] text-[#3A5303] hover:bg-[#3A5303] hover:text-white text-xs font-bold uppercase tracking-wider flex items-center space-x-1.5 transition-all"
                 >
-                  <User className="w-4 h-4 text-[#3A5303]" />
-                  <span className="hidden sm:inline">Account</span>
+                  <User className="w-3.5 h-3.5" />
+                  <span>Sign In</span>
                 </button>
               )}
             </div>
@@ -189,7 +215,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             {/* Cart Link */}
             <Link
               href="/cart"
-              className="relative p-2 rounded-full bg-[#3A5303] text-white hover:bg-[#2b3e02] transition-transform active:scale-95 shadow-xs flex items-center justify-center"
+              className="relative p-2.5 rounded-full bg-[#3A5303] text-white hover:bg-[#2b3e02] transition-transform active:scale-95 shadow-xs flex items-center justify-center"
               title="Shopping Cart"
             >
               <ShoppingBag className="w-4 h-4" />
