@@ -64,8 +64,8 @@ export const Navbar: React.FC<NavbarProps> = ({
   return (
     <header className="sticky top-0 z-50 w-full flex flex-col items-center bg-[#F7F6F2]">
       
-      {/* Top Announcement Bar - In Flow */}
-      <div className="w-full bg-[#3A5303] text-stone-100 text-[10px] sm:text-[11px] font-bold tracking-wider uppercase py-2 px-4 shadow-xs">
+      {/* Top Announcement Bar */}
+      <div className="w-full bg-[#3A5303] text-stone-100 text-[10px] sm:text-[11px] font-bold tracking-wider uppercase py-2 px-3 shadow-xs">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
           <div className="flex items-center space-x-2 truncate">
             <span className="w-2 h-2 rounded-full bg-[#94C000] animate-pulse shrink-0" />
@@ -80,37 +80,37 @@ export const Navbar: React.FC<NavbarProps> = ({
       </div>
 
       {/* Floating Dynamic Island Navbar */}
-      <div className="w-full flex justify-center px-3 sm:px-6 py-2">
+      <div className="w-full flex justify-center px-2 sm:px-6 py-1.5 sm:py-2">
         <motion.div
           layout
           transition={{ type: 'spring', stiffness: 350, damping: 25 }}
-          className={`transition-all duration-300 flex items-center justify-between gap-2 select-none w-full ${
+          className={`transition-all duration-300 flex items-center justify-between gap-1 sm:gap-3 select-none w-full ${
             isScrolled
-              ? 'px-3.5 sm:px-5 py-2 sm:py-2.5 rounded-full border border-stone-300/80 bg-white/95 backdrop-blur-xl shadow-xl max-w-5xl'
-              : 'px-4 sm:px-6 py-2.5 sm:py-3.5 rounded-2xl border border-stone-200/80 bg-white/90 backdrop-blur-md max-w-7xl shadow-xs'
+              ? 'px-2.5 sm:px-5 py-1.5 sm:py-2.5 rounded-full border border-stone-300/80 bg-white/95 backdrop-blur-xl shadow-xl max-w-5xl'
+              : 'px-3 sm:px-6 py-2 sm:py-3.5 rounded-2xl border border-stone-200/80 bg-white/95 backdrop-blur-md max-w-7xl shadow-xs'
           }`}
         >
-          {/* Logo & Brand */}
-          <div className="flex items-center space-x-2">
+          {/* Left: Mobile Menu & Logo */}
+          <div className="flex items-center space-x-1 sm:space-x-2 shrink-0">
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="md:hidden p-2 text-stone-800 hover:text-[#3A5303] rounded-xl hover:bg-stone-100 transition-colors"
-              aria-label="Toggle Navigation Drawer"
+              className="md:hidden p-1.5 text-stone-800 hover:text-[#3A5303] rounded-lg hover:bg-stone-100 transition-colors"
+              aria-label="Toggle Menu"
             >
               {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
             
-            <Link href="/" className="flex items-center space-x-2 group">
-              <div className="w-8 h-8 rounded-xl bg-[#3A5303] text-white flex items-center justify-center font-bold shadow-xs">
-                <Leaf className="w-4.5 h-4.5 text-[#94C000]" />
+            <Link href="/" className="flex items-center space-x-1.5 group">
+              <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-[#3A5303] text-white flex items-center justify-center font-bold shadow-xs shrink-0">
+                <Leaf className="w-4 h-4 sm:w-4.5 sm:h-4.5 text-[#94C000]" />
               </div>
-              <span className="text-xl sm:text-2xl font-serif tracking-tight text-[#3A5303] italic font-normal">
+              <span className="text-lg sm:text-2xl font-serif tracking-tight text-[#3A5303] italic font-normal truncate">
                 Brindavanam
               </span>
             </Link>
           </div>
 
-          {/* Desktop Navigation Links */}
+          {/* Center: Desktop Navigation Links */}
           <nav className="hidden md:flex items-center space-x-1 bg-[#F7F6F2] px-3 py-1.5 rounded-full border border-stone-200/80 text-xs uppercase tracking-wider font-semibold">
             {categories.map((cat) => (
               <button
@@ -127,15 +127,16 @@ export const Navbar: React.FC<NavbarProps> = ({
             ))}
           </nav>
 
-          {/* Actions & Profile */}
-          <div className="flex items-center space-x-1.5 sm:space-x-3">
+          {/* Right: Actions & Profile - Mobile Compact */}
+          <div className="flex items-center space-x-1 sm:space-x-2 shrink-0">
             
-            {/* Mobile Search Toggle */}
+            {/* Mobile Search Button */}
             <button
               onClick={() => setMobileSearchOpen(!mobileSearchOpen)}
-              className="sm:hidden p-2 text-stone-700 hover:text-[#3A5303] rounded-full hover:bg-stone-100"
+              className="sm:hidden p-1.5 text-stone-700 hover:text-[#3A5303] rounded-full hover:bg-stone-100"
+              aria-label="Search"
             >
-              <Search className="w-5 h-5" />
+              <Search className="w-4.5 h-4.5" />
             </button>
 
             {/* Desktop Search Input */}
@@ -150,22 +151,22 @@ export const Navbar: React.FC<NavbarProps> = ({
               <Search className="w-3.5 h-3.5 text-stone-400 absolute left-2" />
             </div>
 
-            {/* User Profile PFP Avatar */}
+            {/* User Profile Avatar / Sign In */}
             <div className="relative">
               {user ? (
                 <div className="relative">
                   <button
                     onClick={() => setUserDropdownOpen(!userDropdownOpen)}
-                    className="flex items-center space-x-2 text-xs font-semibold text-stone-800 hover:text-[#3A5303] p-1 rounded-full hover:bg-stone-100 transition-colors"
+                    className="flex items-center space-x-1.5 text-xs font-semibold text-stone-800 p-1 rounded-full hover:bg-stone-100 transition-colors"
                   >
                     {user.photoURL ? (
                       <img
                         src={user.photoURL}
                         alt={user.displayName}
-                        className="w-8 h-8 rounded-full object-cover ring-2 ring-[#3A5303] shadow-xs"
+                        className="w-7 h-7 sm:w-8 sm:h-8 rounded-full object-cover ring-2 ring-[#3A5303] shadow-xs"
                       />
                     ) : (
-                      <div className="w-8 h-8 rounded-full bg-[#3A5303] text-white flex items-center justify-center font-bold text-xs shadow-xs ring-2 ring-[#94C000]">
+                      <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-[#3A5303] text-white flex items-center justify-center font-bold text-xs shadow-xs ring-2 ring-[#94C000]">
                         {user.displayName.charAt(0).toUpperCase()}
                       </div>
                     )}
@@ -219,20 +220,32 @@ export const Navbar: React.FC<NavbarProps> = ({
                   )}
                 </div>
               ) : (
-                <button
-                  onClick={onOpenAuth}
-                  className="px-3 py-1.5 rounded-full border border-[#3A5303] text-[#3A5303] hover:bg-[#3A5303] hover:text-white text-xs font-bold uppercase tracking-wider flex items-center space-x-1 transition-all"
-                >
-                  <User className="w-3.5 h-3.5" />
-                  <span>Sign In</span>
-                </button>
+                <>
+                  {/* Mobile Compact Icon Sign In */}
+                  <button
+                    onClick={onOpenAuth}
+                    className="sm:hidden p-2 rounded-full border border-[#3A5303] text-[#3A5303] hover:bg-[#3A5303] hover:text-white transition-all active:scale-90 flex items-center justify-center"
+                    title="Sign In"
+                  >
+                    <User className="w-4 h-4" />
+                  </button>
+
+                  {/* Desktop Text Sign In */}
+                  <button
+                    onClick={onOpenAuth}
+                    className="hidden sm:flex px-3 py-1.5 rounded-full border border-[#3A5303] text-[#3A5303] hover:bg-[#3A5303] hover:text-white text-xs font-bold uppercase tracking-wider items-center space-x-1 transition-all"
+                  >
+                    <User className="w-3.5 h-3.5" />
+                    <span>Sign In</span>
+                  </button>
+                </>
               )}
             </div>
 
             {/* Cart Link Trigger */}
             <Link
               href="/cart"
-              className="relative p-2.5 rounded-full bg-[#3A5303] text-white hover:bg-[#2b3e02] transition-transform active:scale-95 shadow-xs flex items-center justify-center"
+              className="relative p-2 sm:p-2.5 rounded-full bg-[#3A5303] text-white hover:bg-[#2b3e02] transition-transform active:scale-95 shadow-xs flex items-center justify-center shrink-0"
               title="Shopping Cart"
             >
               <ShoppingBag className="w-4 h-4" />
