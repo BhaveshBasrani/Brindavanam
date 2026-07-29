@@ -1,14 +1,22 @@
-name: Brindavanam CI/CD Pipeline
+name: Deploy Brindavanam to GitHub Pages
 
 on:
   push:
     branches: [ main ]
-  pull_request:
-    branches: [ main ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
 
 jobs:
   build:
-    name: Build & Verify Application
+    name: Build Next.js Static Export
     runs-on: ubuntu-latest
 
     steps:
@@ -21,10 +29,13 @@ jobs:
           node-version: 20
           cache: 'npm'
 
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+
       - name: Install Dependencies
         run: npm install
 
-      - name: Type Check & Build Next.js App
+      - name: Build Next.js Static Site
         env:
           NEXT_PUBLIC_FIREBASE_API_KEY: ${{ secrets.NEXT_PUBLIC_FIREBASE_API_KEY }}
           NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: ${{ secrets.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN }}
@@ -37,3 +48,20 @@ jobs:
           NEXT_PUBLIC_RECAPTCHA_SITE_KEY: ${{ secrets.NEXT_PUBLIC_RECAPTCHA_SITE_KEY }}
           NEXT_PUBLIC_GAS_WEB_APP_URL: ${{ secrets.NEXT_PUBLIC_GAS_WEB_APP_URL }}
         run: npm run build
+
+      - name: Upload Pages Artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: './out'
+
+  deploy:
+    name: Deploy to GitHub Pages
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
