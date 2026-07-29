@@ -8,14 +8,8 @@ import {
   Tag, Plus, Trash2, ToggleLeft, ToggleRight, Phone, Mail
 } from 'lucide-react';
 import { Order } from '@/types/store';
+import { useStore } from '@/context/StoreContext';
 import { SafeRecaptcha } from '@/components/SafeRecaptcha';
-
-interface PromoCodeItem {
-  code: string;
-  discountPercent: number;
-  active: boolean;
-  description: string;
-}
 
 interface AdminDashboardModalProps {
   isOpen: boolean;
@@ -28,6 +22,8 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
   onClose,
   localOrders,
 }) => {
+  const { promoCodes, addPromoCode, togglePromoCode, deletePromoCode } = useStore();
+
   const [authenticated, setAuthenticated] = useState(false);
   const [passcode, setPasscode] = useState('');
   const [authError, setAuthError] = useState('');
@@ -42,12 +38,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
   const [selectedOrderDetails, setSelectedOrderDetails] = useState<Order | null>(null);
   const [printingOrder, setPrintingOrder] = useState<Order | null>(null);
 
-  // Admin Promo Codes State
-  const [promoCodes, setPromoCodes] = useState<PromoCodeItem[]>([
-    { code: 'ORGANIC10', discountPercent: 10, active: true, description: '10% Discount on First Purchase' },
-    { code: 'BRINDAVANAM20', discountPercent: 20, active: true, description: '20% Special Farm Harvest Discount' },
-    { code: 'FREESHIP', discountPercent: 100, active: true, description: 'Free Delivery on Orders Over ₹999' },
-  ]);
+  // New Promo Code Form Inputs
   const [newPromoCode, setNewPromoCode] = useState('');
   const [newPromoDiscount, setNewPromoDiscount] = useState<number>(15);
   const [newPromoDesc, setNewPromoDesc] = useState('');
@@ -121,29 +112,12 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
     }
   };
 
-  const handleAddPromoCode = (e: React.FormEvent) => {
+  const handleCreatePromoCode = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newPromoCode.trim()) return;
-    const formattedCode = newPromoCode.trim().toUpperCase().replace(/\s+/g, '');
-    const newItem: PromoCodeItem = {
-      code: formattedCode,
-      discountPercent: newPromoDiscount,
-      active: true,
-      description: newPromoDesc || `${newPromoDiscount}% Storewide Coupon`,
-    };
-    setPromoCodes((prev) => [...prev.filter((p) => p.code !== formattedCode), newItem]);
+    addPromoCode(newPromoCode, newPromoDiscount, newPromoDesc);
     setNewPromoCode('');
     setNewPromoDesc('');
-  };
-
-  const handleTogglePromo = (code: string) => {
-    setPromoCodes((prev) =>
-      prev.map((p) => (p.code === code ? { ...p, active: !p.active } : p))
-    );
-  };
-
-  const handleDeletePromo = (code: string) => {
-    setPromoCodes((prev) => prev.filter((p) => p.code !== code));
   };
 
   const combinedOrders = gasOrders.length > 0 ? gasOrders : localOrders;
@@ -158,7 +132,6 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
   });
 
   const totalRevenue = combinedOrders.reduce((sum, o) => sum + (o.total || 0), 0);
-  const averageOrderValue = combinedOrders.length > 0 ? Math.round(totalRevenue / combinedOrders.length) : 0;
   const processingCount = combinedOrders.filter((o) => o.status === 'Processing').length;
   const shippedCount = combinedOrders.filter((o) => o.status === 'Shipped').length;
   const deliveredCount = combinedOrders.filter((o) => o.status === 'Delivered').length;
@@ -355,7 +328,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                 className="w-full sm:w-auto px-4 py-2 bg-[#F7F6F2] hover:bg-stone-200 border border-stone-300 text-stone-800 text-xs font-semibold rounded-xl flex items-center justify-center space-x-2 transition-colors shadow-xs shrink-0"
               >
                 <RefreshCw className={`w-3.5 h-3.5 text-[#3A5303] ${loading ? 'animate-spin' : ''}`} />
-                <span>Sync Google Sheet</span>
+                <span>Sync Order Stream</span>
               </button>
             </div>
 
@@ -509,7 +482,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                         {filteredOrders.length === 0 ? (
                           <tr>
                             <td colSpan={6} className="text-center py-16 text-stone-400">
-                              No matching orders found in Google Apps Script database.
+                              No matching orders logged in database.
                             </td>
                           </tr>
                         ) : (
@@ -588,7 +561,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
             {/* TAB 2: Promo Codes Manager */}
             {activeTab === 'promos' && (
               <div className="space-y-4">
-                <form onSubmit={handleAddPromoCode} className="bg-[#F7F6F2] p-4 rounded-2xl border border-stone-200 space-y-3">
+                <form onSubmit={handleCreatePromoCode} className="bg-[#F7F6F2] p-4 rounded-2xl border border-stone-200 space-y-3">
                   <h3 className="text-xs font-serif font-bold text-stone-900 flex items-center space-x-1.5">
                     <Plus className="w-4 h-4 text-[#3A5303]" />
                     <span>Create Storefront Promo Coupon</span>
@@ -638,7 +611,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                     className="w-full sm:w-auto px-5 py-2.5 bg-[#3A5303] text-white font-bold text-xs uppercase rounded-xl hover:bg-[#2b3e02] shadow-sm flex items-center justify-center space-x-1"
                   >
                     <Plus className="w-3.5 h-3.5" />
-                    <span>Save Coupon</span>
+                    <span>Save Coupon Code</span>
                   </button>
                 </form>
 
@@ -646,14 +619,20 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                   {promoCodes.map((p) => (
                     <div key={p.code} className="bg-stone-50 p-3.5 rounded-2xl border border-stone-200 flex items-center justify-between text-xs">
                       <div>
-                        <span className="font-mono font-bold text-[#3A5303] text-sm block">{p.code} ({p.discountPercent}% OFF)</span>
-                        <span className="text-stone-500 text-[11px]">{p.description}</span>
+                        <div className="flex items-center space-x-2">
+                          <span className="font-mono font-bold text-[#3A5303] text-sm">{p.code}</span>
+                          <span className="bg-[#3A5303]/10 text-[#3A5303] font-bold px-2 py-0.5 rounded text-[10px]">
+                            {p.discountPercent}% OFF
+                          </span>
+                          {!p.active && <span className="bg-red-100 text-red-800 text-[9px] font-bold px-1.5 py-0.5 rounded">DISABLED</span>}
+                        </div>
+                        <span className="text-stone-500 text-[11px] block mt-0.5">{p.description}</span>
                       </div>
                       <div className="flex items-center space-x-2">
-                        <button onClick={() => handleTogglePromo(p.code)}>
-                          {p.active ? <ToggleRight className="w-6 h-6 text-[#3A5303]" /> : <ToggleLeft className="w-6 h-6 text-stone-400" />}
+                        <button onClick={() => togglePromoCode(p.code)} title="Toggle Active">
+                          {p.active ? <ToggleRight className="w-7 h-7 text-[#3A5303]" /> : <ToggleLeft className="w-7 h-7 text-stone-400" />}
                         </button>
-                        <button onClick={() => handleDeletePromo(p.code)} className="p-1 text-stone-400 hover:text-red-600">
+                        <button onClick={() => deletePromoCode(p.code)} className="p-1 text-stone-400 hover:text-red-600" title="Delete Coupon">
                           <Trash2 className="w-4 h-4" />
                         </button>
                       </div>
@@ -721,19 +700,19 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
               </div>
             )}
 
-            {/* TAB 5: Google Apps Script Engine Monitor */}
+            {/* TAB 5: Data Stream Sync Monitor */}
             {activeTab === 'gas' && (
               <div className="bg-[#F7F6F2] p-4 rounded-2xl border border-stone-200 space-y-3 text-xs">
                 <div className="flex items-center space-x-2.5">
                   <CheckCircle2 className="w-6 h-6 text-[#3A5303] shrink-0" />
                   <div>
-                    <h3 className="text-sm font-bold text-stone-900 font-serif">Google Apps Script Web App Engine</h3>
-                    <p className="text-stone-500 text-[11px]">Connected Live with Google Sheets Database</p>
+                    <h3 className="text-sm font-bold text-stone-900 font-serif">Encrypted Order Sync Engine</h3>
+                    <p className="text-stone-500 text-[11px]">Connected Live with Central Farm Fulfillment Database</p>
                   </div>
                 </div>
 
                 <div className="bg-white p-3 rounded-xl border border-stone-200 space-y-1">
-                  <p className="font-bold text-stone-800">Live Web App Endpoint:</p>
+                  <p className="font-bold text-stone-800">Live Data Stream Endpoint:</p>
                   <p className="font-mono text-stone-600 text-[10px] break-all bg-[#F7F6F2] p-2 rounded-lg border border-stone-200 select-all">
                     {gasUrl}
                   </p>

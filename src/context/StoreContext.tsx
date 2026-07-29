@@ -3,9 +3,17 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { Product, ProductVariant, CartItem, Order } from '@/types/store';
 
+export interface PromoCodeItem {
+  code: string;
+  discountPercent: number;
+  active: boolean;
+  description: string;
+}
+
 interface StoreContextType {
   cartItems: CartItem[];
   userOrders: Order[];
+  promoCodes: PromoCodeItem[];
   appliedDiscount: number;
   appliedPromoCode: string;
   isCheckoutOpen: boolean;
@@ -20,15 +28,25 @@ interface StoreContextType {
   updateQuantity: (index: number, newQty: number) => void;
   removeCartItem: (index: number) => void;
   applyPromoCode: (code: string) => { success: boolean; discountAmount: number; message: string };
+  addPromoCode: (code: string, discountPercent: number, description: string) => void;
+  togglePromoCode: (code: string) => void;
+  deletePromoCode: (code: string) => void;
   triggerCheckout: (discount: number, promo: string) => void;
   onOrderSuccess: (order: Order) => void;
 }
+
+const DEFAULT_PROMOS: PromoCodeItem[] = [
+  { code: 'ORGANIC10', discountPercent: 10, active: true, description: '10% Discount on Produce' },
+  { code: 'BRINDAVANAM20', discountPercent: 20, active: true, description: '20% Farm Harvest Special' },
+  { code: 'FREESHIP', discountPercent: 15, active: true, description: '15% Express Shipping Coupon' },
+];
 
 const StoreContext = createContext<StoreContextType | undefined>(undefined);
 
 export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [userOrders, setUserOrders] = useState<Order[]>([]);
+  const [promoCodes, setPromoCodes] = useState<PromoCodeItem[]>(DEFAULT_PROMOS);
   const [appliedDiscount, setAppliedDiscount] = useState<number>(0);
   const [appliedPromoCode, setAppliedPromoCode] = useState<string>('');
   const [isLoaded, setIsLoaded] = useState<boolean>(false);
@@ -38,7 +56,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [isOrdersOpen, setIsOrdersOpen] = useState(false);
   const [isAdminOpen, setIsAdminOpen] = useState(false);
 
-  // Load saved cart from localStorage on initial client mount FIRST
+  // Load saved cart, orders & promo codes from localStorage on initial mount
   useEffect(() => {
     try {
       const savedCart = localStorage.getItem('brindavanam_cart');
@@ -55,6 +73,13 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           setUserOrders(parsedOrders);
         }
       }
+      const savedPromos = localStorage.getItem('brindavanam_promos');
+      if (savedPromos) {
+        const parsedPromos = JSON.parse(savedPromos);
+        if (Array.isArray(parsedPromos) && parsedPromos.length > 0) {
+          setPromoCodes(parsedPromos);
+        }
+      }
     } catch (e) {
       console.warn('Store Context localStorage load error:', e);
     } finally {
@@ -62,7 +87,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   }, []);
 
-  // Sync cart changes to localStorage ONLY after initial load completes
+  // Sync cart changes to localStorage
   useEffect(() => {
     if (!isLoaded) return;
     try {
@@ -71,6 +96,16 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       console.warn('Store Context localStorage save error:', e);
     }
   }, [cartItems, isLoaded]);
+
+  // Sync promo codes to localStorage
+  useEffect(() => {
+    if (!isLoaded) return;
+    try {
+      localStorage.setItem('brindavanam_promos', JSON.stringify(promoCodes));
+    } catch (e) {
+      console.warn('Store Context promo code save error:', e);
+    }
+  }, [promoCodes, isLoaded]);
 
   const addToCart = (product: Product, variant: ProductVariant, quantity: number) => {
     setCartItems((prev) => {
@@ -105,21 +140,51 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setCartItems((prev) => prev.filter((_, i) => i !== index));
   };
 
+  // Dynamic promo code evaluation against store promoCodes state
   const applyPromoCode = (code: string) => {
     const rawSubtotal = cartItems.reduce((sum, item) => sum + item.selectedVariant.price * item.quantity, 0);
     const cleanCode = code.trim().toUpperCase();
-    if (cleanCode === 'ORGANIC10') {
-      const discount = Math.round((rawSubtotal * 10) / 100);
-      setAppliedDiscount(discount);
-      setAppliedPromoCode('ORGANIC10');
-      return { success: true, discountAmount: discount, message: '10% discount applied!' };
-    } else if (cleanCode === 'BRINDAVANAM20') {
-      const discount = Math.round((rawSubtotal * 20) / 100);
-      setAppliedDiscount(discount);
-      setAppliedPromoCode('BRINDAVANAM20');
-      return { success: true, discountAmount: discount, message: '20% discount applied!' };
+    
+    const matched = promoCodes.find((p) => p.code.toUpperCase() === cleanCode);
+
+    if (!matched) {
+      return { success: false, discountAmount: 0, message: 'Invalid promo coupon code.' };
     }
-    return { success: false, discountAmount: 0, message: 'Invalid promo code. Try ORGANIC10' };
+
+    if (!matched.active) {
+      return { success: false, discountAmount: 0, message: 'This coupon code has expired or is disabled.' };
+    }
+
+    const discount = Math.round((rawSubtotal * matched.discountPercent) / 100);
+    setAppliedDiscount(discount);
+    setAppliedPromoCode(matched.code);
+    return {
+      success: true,
+      discountAmount: discount,
+      message: `${matched.discountPercent}% discount applied! (${matched.description})`,
+    };
+  };
+
+  const addPromoCode = (code: string, discountPercent: number, description: string) => {
+    const clean = code.trim().toUpperCase().replace(/\s+/g, '');
+    if (!clean) return;
+    const newItem: PromoCodeItem = {
+      code: clean,
+      discountPercent,
+      active: true,
+      description: description || `${discountPercent}% Storewide Coupon`,
+    };
+    setPromoCodes((prev) => [...prev.filter((p) => p.code !== clean), newItem]);
+  };
+
+  const togglePromoCode = (code: string) => {
+    setPromoCodes((prev) =>
+      prev.map((p) => (p.code === code ? { ...p, active: !p.active } : p))
+    );
+  };
+
+  const deletePromoCode = (code: string) => {
+    setPromoCodes((prev) => prev.filter((p) => p.code !== code));
   };
 
   const triggerCheckout = (discount: number, promo: string) => {
@@ -148,6 +213,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       value={{
         cartItems,
         userOrders,
+        promoCodes,
         appliedDiscount,
         appliedPromoCode,
         isCheckoutOpen,
@@ -162,6 +228,9 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         updateQuantity,
         removeCartItem,
         applyPromoCode,
+        addPromoCode,
+        togglePromoCode,
+        deletePromoCode,
         triggerCheckout,
         onOrderSuccess,
       }}
