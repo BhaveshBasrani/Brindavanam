@@ -32,10 +32,11 @@ export const Navbar: React.FC<NavbarProps> = ({
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
+  const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 25);
+      setIsScrolled(window.scrollY > 20);
     };
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
@@ -62,50 +63,52 @@ export const Navbar: React.FC<NavbarProps> = ({
 
   return (
     <>
-      {/* Dynamic Header Wrapper */}
+      {/* Dynamic Mobile-First Header Wrapper */}
       <div className="fixed top-0 left-0 right-0 z-50 flex flex-col items-center pointer-events-none">
         
-        {/* Top Editorial Announcement Bar */}
+        {/* Mobile & Desktop Top Announcement Ticker */}
         {!isScrolled && (
-          <div className="w-full bg-[#3A5303] text-stone-100 text-[11px] font-medium tracking-wider uppercase py-2.5 px-4 pointer-events-auto transition-all duration-200 shadow-xs">
-            <div className="max-w-7xl mx-auto flex justify-between items-center px-2">
-              <div className="flex items-center space-x-4 overflow-x-auto whitespace-nowrap scrollbar-none py-0.5 text-stone-200">
-                <span>Traditional Wood-Pressed & A2 Certified</span>
-                <span className="hidden md:inline text-stone-400">•</span>
-                <span className="hidden md:inline">Complimentary Shipping Over ₹999</span>
+          <div className="w-full bg-[#3A5303] text-stone-100 text-[10px] sm:text-[11px] font-bold tracking-wider uppercase py-2 px-3 pointer-events-auto transition-all duration-200 shadow-xs">
+            <div className="max-w-7xl mx-auto flex justify-between items-center">
+              <div className="flex items-center space-x-2 truncate">
+                <span className="w-2 h-2 rounded-full bg-[#94C000] animate-pulse shrink-0" />
+                <span className="truncate">Traditional Wood-Pressed & A2 Certified</span>
               </div>
-              <div className="flex items-center space-x-3">
-                <span className="text-[#94C000] font-mono text-[10px] font-bold">CODE: ORGANIC10</span>
+              <div className="flex items-center space-x-2 shrink-0">
+                <span className="bg-[#94C000] text-[#1c260b] px-2 py-0.5 rounded text-[9px] font-extrabold tracking-wider">
+                  CODE: ORGANIC10
+                </span>
               </div>
             </div>
           </div>
         )}
 
         {/* Dynamic Island Floating Header Bar */}
-        <header className="w-full flex justify-center pointer-events-none">
+        <header className="w-full flex justify-center pointer-events-none px-3 sm:px-6">
           <motion.div
             layout
             transition={{ type: 'spring', stiffness: 350, damping: 25 }}
-            className={`pointer-events-auto transition-all duration-300 flex items-center justify-between gap-3 select-none ${
+            className={`pointer-events-auto transition-all duration-300 flex items-center justify-between gap-2 select-none ${
               isScrolled
-                ? 'mt-3 px-4 py-2.5 rounded-full border border-stone-300/80 bg-white/95 backdrop-blur-xl shadow-xl w-[94%] sm:w-[88%] max-w-5xl'
-                : 'px-6 py-3.5 rounded-none md:rounded-b-2xl border-b border-stone-200/80 bg-[#F7F6F2]/95 backdrop-blur-md w-full max-w-7xl'
+                ? 'mt-2 sm:mt-3 px-3.5 sm:px-5 py-2 sm:py-2.5 rounded-full border border-stone-300/80 bg-white/95 backdrop-blur-xl shadow-xl w-full max-w-5xl'
+                : 'mt-2 px-4 sm:px-6 py-2.5 sm:py-3.5 rounded-2xl sm:rounded-b-2xl border border-stone-200/80 bg-[#F7F6F2]/95 backdrop-blur-md w-full max-w-7xl shadow-xs'
             }`}
           >
             {/* Logo & Brand */}
-            <div className="flex items-center space-x-3">
+            <div className="flex items-center space-x-2">
               <button
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="md:hidden p-1.5 text-stone-700 hover:text-[#3A5303]"
+                className="md:hidden p-2 text-stone-800 hover:text-[#3A5303] rounded-xl hover:bg-stone-100 transition-colors"
+                aria-label="Toggle Navigation Drawer"
               >
                 {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
               </button>
               
               <Link href="/" className="flex items-center space-x-2 group">
-                <div className="w-8 h-8 rounded-lg bg-[#3A5303] text-white flex items-center justify-center font-bold shadow-xs">
-                  <Leaf className="w-4 h-4 text-[#94C000]" />
+                <div className="w-8 h-8 rounded-xl bg-[#3A5303] text-white flex items-center justify-center font-bold shadow-xs">
+                  <Leaf className="w-4.5 h-4.5 text-[#94C000]" />
                 </div>
-                <span className="text-2xl font-serif tracking-tight text-[#3A5303] italic font-normal">
+                <span className="text-xl sm:text-2xl font-serif tracking-tight text-[#3A5303] italic font-normal">
                   Brindavanam
                 </span>
               </Link>
@@ -128,19 +131,28 @@ export const Navbar: React.FC<NavbarProps> = ({
               ))}
             </nav>
 
-            {/* Search & Actions */}
-            <div className="flex items-center space-x-2 sm:space-x-3">
+            {/* Actions & Profile */}
+            <div className="flex items-center space-x-1.5 sm:space-x-3">
               
-              {/* Minimal Search Input */}
-              <div className="relative hidden sm:flex items-center">
-                <input
-                  type="text"
-                  placeholder="Search produce..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-32 lg:w-44 pl-8 pr-3 py-1.5 text-xs border-b border-stone-300 bg-transparent text-stone-800 focus:outline-none focus:border-[#3A5303] transition-all"
-                />
-                <Search className="w-3.5 h-3.5 text-stone-400 absolute left-2" />
+              {/* Search Toggle for Mobile & Input for Desktop */}
+              <div className="relative flex items-center">
+                <button
+                  onClick={() => setMobileSearchOpen(!mobileSearchOpen)}
+                  className="sm:hidden p-2 text-stone-700 hover:text-[#3A5303] rounded-full hover:bg-stone-100"
+                >
+                  <Search className="w-5 h-5" />
+                </button>
+
+                <div className="relative hidden sm:flex items-center">
+                  <input
+                    type="text"
+                    placeholder="Search produce..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-32 lg:w-44 pl-8 pr-3 py-1.5 text-xs border-b border-stone-300 bg-transparent text-stone-800 focus:outline-none focus:border-[#3A5303] transition-all"
+                  />
+                  <Search className="w-3.5 h-3.5 text-stone-400 absolute left-2" />
+                </div>
               </div>
 
               {/* User Profile PFP Avatar */}
@@ -214,7 +226,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 ) : (
                   <button
                     onClick={onOpenAuth}
-                    className="px-3 py-1.5 rounded-full border border-[#3A5303] text-[#3A5303] hover:bg-[#3A5303] hover:text-white text-xs font-bold uppercase tracking-wider flex items-center space-x-1.5 transition-all"
+                    className="px-3 py-1.5 rounded-full border border-[#3A5303] text-[#3A5303] hover:bg-[#3A5303] hover:text-white text-xs font-bold uppercase tracking-wider flex items-center space-x-1 transition-all"
                   >
                     <User className="w-3.5 h-3.5" />
                     <span>Sign In</span>
@@ -222,7 +234,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 )}
               </div>
 
-              {/* Cart Link */}
+              {/* Cart Link Trigger */}
               <Link
                 href="/cart"
                 className="relative p-2.5 rounded-full bg-[#3A5303] text-white hover:bg-[#2b3e02] transition-transform active:scale-95 shadow-xs flex items-center justify-center"
@@ -242,28 +254,50 @@ export const Navbar: React.FC<NavbarProps> = ({
 
       </div>
 
-      {/* Mobile Navigation Drawer */}
+      {/* Mobile Search Overlay Bar */}
+      <AnimatePresence>
+        {mobileSearchOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            className="fixed top-16 inset-x-3 z-50 p-3 bg-white rounded-2xl border border-stone-200 shadow-2xl sm:hidden pointer-events-auto"
+          >
+            <div className="relative flex items-center">
+              <input
+                type="text"
+                placeholder="Search organic produce..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                autoFocus
+                className="w-full pl-9 pr-8 py-2.5 text-xs border border-stone-300 rounded-xl bg-[#F7F6F2] focus:outline-none focus:border-[#3A5303]"
+              />
+              <Search className="w-4 h-4 text-stone-400 absolute left-3" />
+              <button onClick={() => setMobileSearchOpen(false)} className="absolute right-3 text-stone-400 hover:text-stone-700">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Mobile Drawer Menu */}
       <AnimatePresence>
         {mobileMenuOpen && (
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
-            className="fixed inset-x-4 top-24 z-50 p-5 rounded-2xl bg-white border border-stone-200 shadow-2xl space-y-4 md:hidden"
+            className="fixed inset-x-3 top-20 z-50 p-5 rounded-3xl bg-white border border-stone-200 shadow-2xl space-y-4 md:hidden pointer-events-auto"
           >
-            <div className="relative">
-              <input
-                type="text"
-                placeholder="Search produce..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-9 pr-3 py-2 border border-stone-300 rounded-xl text-xs bg-[#F7F6F2]"
-              />
-              <Search className="w-4 h-4 text-stone-400 absolute left-3 top-2.5" />
+            <div className="flex items-center justify-between border-b border-stone-100 pb-3">
+              <span className="text-xs font-serif font-bold text-[#3A5303] uppercase tracking-wider">Organic Lineup Categories</span>
+              <button onClick={() => setMobileMenuOpen(false)} className="p-1 text-stone-400">
+                <X className="w-5 h-5" />
+              </button>
             </div>
 
-            <div className="flex flex-col space-y-2 pt-2 border-t border-stone-100">
-              <span className="text-[10px] uppercase tracking-widest font-bold text-stone-400">Categories</span>
+            <div className="grid grid-cols-2 gap-2">
               {categories.map((cat) => (
                 <button
                   key={cat.id}
@@ -271,14 +305,27 @@ export const Navbar: React.FC<NavbarProps> = ({
                     setSelectedCategory(cat.id);
                     setMobileMenuOpen(false);
                   }}
-                  className={`text-left py-2 px-3 rounded-xl text-xs uppercase font-semibold transition-colors ${
-                    selectedCategory === cat.id ? 'bg-[#3A5303] text-white font-bold' : 'bg-[#F7F6F2] text-stone-700'
+                  className={`text-center py-3 px-3 rounded-xl text-xs uppercase font-bold transition-all active:scale-95 ${
+                    selectedCategory === cat.id ? 'bg-[#3A5303] text-white shadow-md' : 'bg-[#F7F6F2] text-stone-700 hover:bg-stone-200'
                   }`}
                 >
                   {cat.label}
                 </button>
               ))}
             </div>
+
+            {user && (
+              <button
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  onOpenOrders();
+                }}
+                className="w-full py-3 bg-[#F7F6F2] text-[#3A5303] rounded-xl text-xs font-bold uppercase tracking-wider flex items-center justify-center space-x-2 border border-stone-200"
+              >
+                <Package className="w-4 h-4" />
+                <span>My Customer Dashboard</span>
+              </button>
+            )}
           </motion.div>
         )}
       </AnimatePresence>

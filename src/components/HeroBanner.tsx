@@ -9,9 +9,12 @@ interface HeroBannerProps {
   onShopNow: () => void;
 }
 
+const FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1608686207856-001b95cf60ca?auto=format&fit=crop&w=800&q=80';
+
 export const HeroBanner: React.FC<HeroBannerProps> = ({ onShopNow }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
+  const [heroImgError, setHeroImgError] = useState<Record<string, boolean>>({});
 
   // Auto-switch products every 4.5 seconds (unless hovered)
   useEffect(() => {
@@ -23,6 +26,7 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({ onShopNow }) => {
   }, [isHovered]);
 
   const currentProduct = PRODUCTS[currentIndex];
+  const activeHeroImg = heroImgError[currentProduct.id] ? FALLBACK_IMAGE : (currentProduct.images[0] || FALLBACK_IMAGE);
 
   const handleNext = () => {
     setCurrentIndex((prev) => (prev + 1) % PRODUCTS.length);
@@ -162,8 +166,9 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({ onShopNow }) => {
               <AnimatePresence mode="wait">
                 <motion.img
                   key={currentProduct.id}
-                  src={currentProduct.images[0]}
+                  src={activeHeroImg}
                   alt={currentProduct.name}
+                  onError={() => setHeroImgError((prev) => ({ ...prev, [currentProduct.id]: true }))}
                   initial={{ opacity: 0, scale: 1.05 }}
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.95 }}
