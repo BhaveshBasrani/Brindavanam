@@ -5,10 +5,17 @@ import {
   X, ShieldAlert, RefreshCw, Package, Mail, Search, Lock, Filter, 
   DollarSign, Users, TrendingUp, ChevronRight, CheckCircle2, Truck, 
   BarChart3, Database, Printer, ExternalLink, ArrowUpRight, Clock,
-  FileText, ShieldCheck, ShoppingBag
+  Tag, Plus, Trash2, ToggleLeft, ToggleRight
 } from 'lucide-react';
 import { Order } from '@/types/store';
 import { SafeRecaptcha } from '@/components/SafeRecaptcha';
+
+interface PromoCodeItem {
+  code: string;
+  discountPercent: number;
+  active: boolean;
+  description: string;
+}
 
 interface AdminDashboardModalProps {
   isOpen: boolean;
@@ -26,7 +33,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
   const [authError, setAuthError] = useState('');
   const [recaptchaToken, setRecaptchaToken] = useState<string | null>(null);
 
-  const [activeTab, setActiveTab] = useState<'orders' | 'crm' | 'analytics' | 'gas'>('orders');
+  const [activeTab, setActiveTab] = useState<'orders' | 'crm' | 'promos' | 'analytics' | 'gas'>('orders');
   const [gasOrders, setGasOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(false);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
@@ -34,6 +41,16 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedOrderDetails, setSelectedOrderDetails] = useState<Order | null>(null);
   const [printingOrder, setPrintingOrder] = useState<Order | null>(null);
+
+  // Admin Promo Codes State
+  const [promoCodes, setPromoCodes] = useState<PromoCodeItem[]>([
+    { code: 'ORGANIC10', discountPercent: 10, active: true, description: '10% Discount on First Purchase' },
+    { code: 'BRINDAVANAM20', discountPercent: 20, active: true, description: '20% Special Farm Harvest Discount' },
+    { code: 'FREESHIP', discountPercent: 100, active: true, description: 'Free Delivery on Orders Over ₹999' },
+  ]);
+  const [newPromoCode, setNewPromoCode] = useState('');
+  const [newPromoDiscount, setNewPromoDiscount] = useState<number>(15);
+  const [newPromoDesc, setNewPromoDesc] = useState('');
 
   const siteKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || '6LcpqGstAAAAAMBOybBtJPFQ2aMtBfLmsUT9AAtB';
   const gasUrl = process.env.NEXT_PUBLIC_GAS_WEB_APP_URL || 'https://script.google.com/macros/s/AKfycbwqHEdFL5zR_cCPSUkvb91nudf72H9K1CdFYPEyHgP_XInRSaHQU0TiZEtadcYHpQPS/exec';
@@ -104,6 +121,31 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
     }
   };
 
+  const handleAddPromoCode = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newPromoCode.trim()) return;
+    const formattedCode = newPromoCode.trim().toUpperCase().replace(/\s+/g, '');
+    const newItem: PromoCodeItem = {
+      code: formattedCode,
+      discountPercent: newPromoDiscount,
+      active: true,
+      description: newPromoDesc || `${newPromoDiscount}% Storewide Coupon`,
+    };
+    setPromoCodes((prev) => [...prev.filter((p) => p.code !== formattedCode), newItem]);
+    setNewPromoCode('');
+    setNewPromoDesc('');
+  };
+
+  const handleTogglePromo = (code: string) => {
+    setPromoCodes((prev) =>
+      prev.map((p) => (p.code === code ? { ...p, active: !p.active } : p))
+    );
+  };
+
+  const handleDeletePromo = (code: string) => {
+    setPromoCodes((prev) => prev.filter((p) => p.code !== code));
+  };
+
   const combinedOrders = gasOrders.length > 0 ? gasOrders : localOrders;
   const filteredOrders = combinedOrders.filter((o) => {
     const matchesFilter = statusFilter === 'all' || o.status.toLowerCase() === statusFilter.toLowerCase();
@@ -121,7 +163,6 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
   const shippedCount = combinedOrders.filter((o) => o.status === 'Shipped').length;
   const deliveredCount = combinedOrders.filter((o) => o.status === 'Delivered').length;
 
-  // Extract Unique CRM Customers
   const customerMap = new Map<string, { name: string; email: string; phone: string; count: number; totalSpent: number }>();
   combinedOrders.forEach((o) => {
     const email = (o.shippingAddress?.email || o.customerEmail || '').toLowerCase();
@@ -180,7 +221,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
             <div className="space-y-1.5">
               <h3 className="text-2xl font-serif text-stone-900">Admin Portal Verification</h3>
               <p className="text-xs text-stone-500 font-light leading-relaxed">
-                Protected area for store operators. Enter your security passcode to access real-time order fulfillments, CRM database, and automated Google Sheets sync.
+                Protected area for store operators. Enter your security passcode to access real-time order fulfillments, CRM database, and promo codes manager.
               </p>
             </div>
 
@@ -223,7 +264,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
             
             {/* Top Navigation Bar */}
             <div className="flex flex-wrap items-center justify-between gap-4 border-b border-stone-200 pb-4">
-              <div className="flex space-x-1.5 bg-[#F7F6F2] p-1.5 rounded-2xl border border-stone-200 text-xs font-semibold">
+              <div className="flex flex-wrap gap-1.5 bg-[#F7F6F2] p-1.5 rounded-2xl border border-stone-200 text-xs font-semibold">
                 <button
                   onClick={() => setActiveTab('orders')}
                   className={`px-4 py-2.5 rounded-xl transition-all flex items-center space-x-2 ${
@@ -236,6 +277,18 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                   <span>Live Orders ({combinedOrders.length})</span>
                 </button>
                 
+                <button
+                  onClick={() => setActiveTab('promos')}
+                  className={`px-4 py-2.5 rounded-xl transition-all flex items-center space-x-2 ${
+                    activeTab === 'promos'
+                      ? 'bg-[#3A5303] text-white shadow-md font-bold'
+                      : 'text-stone-600 hover:text-stone-900'
+                  }`}
+                >
+                  <Tag className="w-4 h-4 text-[#94C000]" />
+                  <span>Promo Codes ({promoCodes.length})</span>
+                </button>
+
                 <button
                   onClick={() => setActiveTab('crm')}
                   className={`px-4 py-2.5 rounded-xl transition-all flex items-center space-x-2 ${
@@ -325,13 +378,13 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
 
               <div className="bg-[#F7F6F2] p-5 rounded-2xl border border-stone-200 space-y-2 relative overflow-hidden">
                 <div className="flex items-center justify-between text-stone-500">
-                  <span className="text-[10px] font-bold uppercase tracking-widest">Avg Order Value</span>
+                  <span className="text-[10px] font-bold uppercase tracking-widest">Active Promo Coupons</span>
                   <div className="w-8 h-8 rounded-lg bg-[#94C000]/20 text-[#3A5303] flex items-center justify-center">
-                    <TrendingUp className="w-4 h-4" />
+                    <Tag className="w-4 h-4" />
                   </div>
                 </div>
-                <p className="text-3xl font-serif text-stone-900 font-bold">₹{averageOrderValue}</p>
-                <p className="text-[10px] text-stone-400">Per organic order cart</p>
+                <p className="text-3xl font-serif text-stone-900 font-bold">{promoCodes.filter((p) => p.active).length}</p>
+                <p className="text-[10px] text-stone-400">Live store discounts</p>
               </div>
             </div>
 
@@ -463,7 +516,114 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
               </div>
             )}
 
-            {/* TAB 2: Customer CRM Directory */}
+            {/* TAB 2: Promo Codes Manager */}
+            {activeTab === 'promos' && (
+              <div className="space-y-6">
+                {/* Create Promo Form */}
+                <form onSubmit={handleAddPromoCode} className="bg-[#F7F6F2] p-5 rounded-2xl border border-stone-200 space-y-4">
+                  <h3 className="text-sm font-serif font-bold text-stone-900 flex items-center space-x-2">
+                    <Plus className="w-4 h-4 text-[#3A5303]" />
+                    <span>Create New Storefront Promo Coupon</span>
+                  </h3>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div>
+                      <label className="block text-[11px] font-bold text-stone-700 uppercase mb-1">Coupon Code *</label>
+                      <input
+                        type="text"
+                        required
+                        value={newPromoCode}
+                        onChange={(e) => setNewPromoCode(e.target.value)}
+                        className="w-full px-3.5 py-2.5 text-xs font-mono font-bold uppercase border border-stone-300 rounded-xl bg-white focus:outline-none focus:border-[#3A5303]"
+                        placeholder="e.g. FESTIVE25"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-[11px] font-bold text-stone-700 uppercase mb-1">Discount % *</label>
+                      <input
+                        type="number"
+                        min="1"
+                        max="100"
+                        required
+                        value={newPromoDiscount}
+                        onChange={(e) => setNewPromoDiscount(parseInt(e.target.value) || 10)}
+                        className="w-full px-3.5 py-2.5 text-xs border border-stone-300 rounded-xl bg-white focus:outline-none focus:border-[#3A5303]"
+                        placeholder="25"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-[11px] font-bold text-stone-700 uppercase mb-1">Description</label>
+                      <input
+                        type="text"
+                        value={newPromoDesc}
+                        onChange={(e) => setNewPromoDesc(e.target.value)}
+                        className="w-full px-3.5 py-2.5 text-xs border border-stone-300 rounded-xl bg-white focus:outline-none focus:border-[#3A5303]"
+                        placeholder="25% Off Storewide Harvest Sale"
+                      />
+                    </div>
+                  </div>
+
+                  <button
+                    type="submit"
+                    className="px-6 py-2.5 bg-[#3A5303] text-white font-bold text-xs uppercase rounded-xl hover:bg-[#2b3e02] shadow-sm flex items-center space-x-1"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    <span>Save Promo Coupon</span>
+                  </button>
+                </form>
+
+                {/* Promo Codes List */}
+                <div className="bg-white rounded-2xl border border-stone-200 overflow-hidden shadow-xs">
+                  <table className="w-full text-left text-xs">
+                    <thead className="bg-[#1c260b] text-white font-bold">
+                      <tr>
+                        <th className="p-3.5">Coupon Code</th>
+                        <th className="p-3.5">Discount</th>
+                        <th className="p-3.5">Description</th>
+                        <th className="p-3.5">Status</th>
+                        <th className="p-3.5 text-right">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-stone-100">
+                      {promoCodes.map((p) => (
+                        <tr key={p.code} className="hover:bg-stone-50 transition-colors">
+                          <td className="p-3.5 font-mono font-bold text-[#3A5303] text-sm">{p.code}</td>
+                          <td className="p-3.5 font-bold text-stone-900">{p.discountPercent}% OFF</td>
+                          <td className="p-3.5 text-stone-600">{p.description}</td>
+                          <td className="p-3.5">
+                            <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase ${
+                              p.active ? 'bg-emerald-100 text-emerald-800' : 'bg-stone-100 text-stone-500'
+                            }`}>
+                              {p.active ? 'Active' : 'Disabled'}
+                            </span>
+                          </td>
+                          <td className="p-3.5 text-right space-x-2">
+                            <button
+                              onClick={() => handleTogglePromo(p.code)}
+                              className="p-1.5 text-stone-600 hover:text-[#3A5303] rounded"
+                              title="Toggle Active Status"
+                            >
+                              {p.active ? <ToggleRight className="w-5 h-5 text-[#3A5303]" /> : <ToggleLeft className="w-5 h-5 text-stone-400" />}
+                            </button>
+                            <button
+                              onClick={() => handleDeletePromo(p.code)}
+                              className="p-1.5 text-stone-400 hover:text-red-600 rounded"
+                              title="Delete Coupon"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+
+            {/* TAB 3: Customer CRM Directory */}
             {activeTab === 'crm' && (
               <div className="bg-white rounded-2xl border border-stone-200 overflow-hidden max-h-[420px] overflow-y-auto shadow-xs">
                 <table className="w-full text-left text-xs">
@@ -499,7 +659,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
               </div>
             )}
 
-            {/* TAB 3: Sales Analytics & Charts */}
+            {/* TAB 4: Sales Analytics & Charts */}
             {activeTab === 'analytics' && (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="bg-[#F7F6F2] p-6 rounded-2xl border border-stone-200 space-y-4">
@@ -557,7 +717,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
               </div>
             )}
 
-            {/* TAB 4: Google Apps Script Health & Engine Monitor */}
+            {/* TAB 5: Google Apps Script Health & Engine Monitor */}
             {activeTab === 'gas' && (
               <div className="bg-[#F7F6F2] p-6 rounded-2xl border border-stone-200 space-y-4 text-xs">
                 <div className="flex items-center space-x-3">
