@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import Script from 'next/script';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -23,6 +24,10 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+        <Script
+          src="https://www.google.com/recaptcha/api.js"
+          strategy="lazyOnload"
+        />
       </head>
       <body className="antialiased selection:bg-[#94C000] selection:text-[#1c260b]">
         {children}
