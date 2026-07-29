@@ -45,7 +45,7 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({ onShopNow }) => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
           
-          {/* Left Column: Copy & CTAs */}
+          {/* Left Column: Headline, Copy & CTAs */}
           <div className="lg:col-span-7 space-y-6 text-center lg:text-left">
             
             <div className="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-full bg-[#3A5303]/10 border border-[#3A5303]/20 text-[#3A5303] text-xs font-bold uppercase tracking-widest mx-auto lg:mx-0">
@@ -53,29 +53,43 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({ onShopNow }) => {
               <span>Artisanal Organic Produce • Native Heirloom Farms</span>
             </div>
 
-            {/* Dynamic Product Headline with Framer Motion */}
-            <div className="min-h-[160px] sm:min-h-[180px] flex flex-col justify-center">
+            {/* Headline */}
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-serif text-stone-900 leading-[1.15] font-normal">
+              Pure Wood-Pressed Oils <br className="hidden sm:inline" />
+              <span className="italic text-[#3A5303] font-normal">& A2 Desi Cow Bilona Ghee</span>
+            </h1>
+
+            <p className="text-stone-600 text-sm sm:text-base font-light leading-relaxed max-w-2xl mx-auto lg:mx-0">
+              Handcrafted in small batches using ancient Vedic methods. Slow wood-fire hand-churned Gir Cow Bilona Ghee, zero-heat Marachekku pressed oils, and fresh unadulterated Paneer.
+            </p>
+
+            {/* Dynamic Product Spotlight Tag */}
+            <div className="bg-white/80 p-4 rounded-2xl border border-stone-200 shadow-xs max-w-lg mx-auto lg:mx-0">
               <AnimatePresence mode="wait">
                 <motion.div
                   key={currentProduct.id}
-                  initial={{ opacity: 0, y: 15 }}
+                  initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -15 }}
-                  transition={{ duration: 0.4 }}
-                  className="space-y-3"
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ duration: 0.35 }}
+                  className="flex items-center justify-between text-xs"
                 >
-                  <h1 className="text-4xl sm:text-5xl lg:text-6xl font-serif text-stone-900 leading-[1.15] font-normal">
-                    {currentProduct.name}
-                  </h1>
-                  <p className="text-lg sm:text-xl italic font-serif text-[#3A5303]">
-                    {currentProduct.subtitle}
-                  </p>
+                  <div className="flex items-center space-x-3">
+                    <span className="w-2.5 h-2.5 rounded-full bg-[#94C000] animate-pulse" />
+                    <div>
+                      <span className="font-bold text-stone-900 block">{currentProduct.name}</span>
+                      <span className="text-[10px] text-stone-500">{currentProduct.subtitle}</span>
+                    </div>
+                  </div>
+                  <span className="font-bold text-[#3A5303] bg-[#3A5303]/10 px-3 py-1 rounded-full text-[11px]">
+                    ₹{currentProduct.variants[0].price}
+                  </span>
                 </motion.div>
               </AnimatePresence>
             </div>
 
             {/* Key Value Props */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2 text-left max-w-lg mx-auto lg:mx-0 text-xs font-medium text-stone-700">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1 text-left max-w-lg mx-auto lg:mx-0 text-xs font-medium text-stone-700">
               <div className="flex items-center space-x-2 bg-white/80 p-2.5 rounded-xl border border-stone-200/80 shadow-xs">
                 <CheckCircle2 className="w-4 h-4 text-[#3A5303] shrink-0" />
                 <span>Wood-Fire Hand Churned</span>
@@ -90,14 +104,14 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({ onShopNow }) => {
               </div>
             </div>
 
-            {/* Action Buttons & Product Indicators */}
+            {/* Action Buttons & Navigation Dots */}
             <div className="space-y-4 pt-2">
               <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4">
                 <button
                   onClick={onShopNow}
                   className="w-full sm:w-auto px-8 py-4 bg-[#3A5303] hover:bg-[#2b3e02] text-white font-bold text-xs uppercase tracking-wider rounded-2xl shadow-lg hover:shadow-xl transition-all active:scale-98 flex items-center justify-center space-x-2"
                 >
-                  <span>Shop {currentProduct.name}</span>
+                  <span>Shop Organic Lineup</span>
                   <ArrowRight className="w-4 h-4" />
                 </button>
 
@@ -114,7 +128,7 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({ onShopNow }) => {
               </div>
 
               {/* Product Selector Dots */}
-              <div className="flex items-center justify-center lg:justify-start space-x-2 pt-3">
+              <div className="flex items-center justify-center lg:justify-start space-x-2 pt-2">
                 {PRODUCTS.map((prod, idx) => (
                   <button
                     key={prod.id}
@@ -132,10 +146,10 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({ onShopNow }) => {
 
           </div>
 
-          {/* Right Column: Dynamic Switching Product Image */}
+          {/* Right Column: Auto-Switching Product Card Image */}
           <div className="lg:col-span-5 relative flex justify-center items-center">
             
-            {/* Prev Button */}
+            {/* Prev Arrow */}
             <button
               onClick={handlePrev}
               className="absolute left-0 sm:-left-4 z-20 p-2.5 rounded-full bg-white/90 shadow-md text-stone-700 hover:bg-[#3A5303] hover:text-white transition-colors"
@@ -158,7 +172,7 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({ onShopNow }) => {
                 />
               </AnimatePresence>
 
-              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/10 to-transparent" />
               
               <div className="absolute bottom-6 left-6 right-6 text-white space-y-1.5">
                 <span className="px-3 py-1 rounded-full bg-[#94C000] text-[#1c260b] text-[10px] font-bold uppercase tracking-wider inline-block">
@@ -173,7 +187,7 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({ onShopNow }) => {
               </div>
             </div>
 
-            {/* Next Button */}
+            {/* Next Arrow */}
             <button
               onClick={handleNext}
               className="absolute right-0 sm:-right-4 z-20 p-2.5 rounded-full bg-white/90 shadow-md text-stone-700 hover:bg-[#3A5303] hover:text-white transition-colors"
