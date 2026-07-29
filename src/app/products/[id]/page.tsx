@@ -6,7 +6,7 @@ import { notFound } from 'next/navigation';
 import { AuthProvider } from '@/context/AuthContext';
 import { StoreProvider, useStore } from '@/context/StoreContext';
 import { PRODUCTS } from '@/data/products';
-import { ProductVariant } from '@/types/store';
+import { Product, ProductVariant } from '@/types/store';
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
 import { CheckoutModal } from '@/components/CheckoutModal';
@@ -46,7 +46,7 @@ function ProductDetailPageContent({ id }: { id: string }) {
   const [activeTab, setActiveTab] = useState<'benefits' | 'nutrition' | 'reviews'>('benefits');
   const [added, setAdded] = useState(false);
 
-  const [quickViewProduct, setQuickViewProduct] = useState<typeof product | null>(null);
+  const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
 
   if (!product) {
     return notFound();
@@ -82,7 +82,7 @@ function ProductDetailPageContent({ id }: { id: string }) {
 
       <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 w-full">
         {/* Breadcrumb */}
-        <div className="mb-8">
+        <div className="mb-8 pt-16 lg:pt-20">
           <Link
             href="/"
             className="inline-flex items-center text-xs text-stone-500 hover:text-[#3A5303] transition-colors font-medium"
