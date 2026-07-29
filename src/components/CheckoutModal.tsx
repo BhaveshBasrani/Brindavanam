@@ -15,12 +15,6 @@ interface CheckoutModalProps {
   onOrderSuccess: (order: Order) => void;
 }
 
-declare global {
-  interface Window {
-    Razorpay?: any;
-  }
-}
-
 export const CheckoutModal: React.FC<CheckoutModalProps> = ({
   isOpen,
   onClose,
@@ -82,7 +76,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
       total: totalAmount,
       status: 'Processing',
       shippingAddress: { ...address },
-      paymentMethod: 'Razorpay / UPI / Card',
+      paymentMethod: 'Razorpay',
       paymentId: `pay_test_${Math.random().toString(36).substring(7)}`,
       recaptchaVerified: true,
       promoCode: promoCode || 'ORGANIC10',

@@ -56,7 +56,7 @@ export interface Order {
   shippingAddress: ShippingAddress;
   subtotal: number;
   discount: number;
-  deliveryFee: number;
+  deliveryFee?: number;
   total: number;
   paymentMethod: 'Razorpay' | 'Cash on Delivery';
   paymentId?: string;
@@ -66,6 +66,8 @@ export interface Order {
   customerPhone?: string;
   itemsSummary?: string;
   city?: string;
+  recaptchaVerified?: boolean;
+  promoCode?: string;
 }
 
 export interface UserProfile {

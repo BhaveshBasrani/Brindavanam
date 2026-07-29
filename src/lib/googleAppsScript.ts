@@ -18,10 +18,12 @@ export const sendOrderToGoogleAppsScript = async (order: Order): Promise<{ succe
     const result = await response.json();
     return result;
   } catch (error) {
-    console.warn('Google Apps Script client dispatch notice:', error);
+    console.warn('Order client dispatch notice:', error);
     return {
       success: true,
-      message: 'Order saved & dispatched to Google Apps Script',
+      message: 'Order saved & dispatched',
     };
   }
 };
+
+export const saveOrderToGAS = sendOrderToGoogleAppsScript;
