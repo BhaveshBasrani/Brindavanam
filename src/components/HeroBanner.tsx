@@ -9,48 +9,48 @@ interface HeroBannerProps {
 
 export const HeroBanner: React.FC<HeroBannerProps> = ({ onShopNow }) => {
   return (
-    <div className="relative bg-[#F7F6F2] py-16 lg:py-24 border-b border-stone-200/80">
+    <div className="relative bg-[#F7F6F2] pt-28 pb-16 lg:pt-32 lg:pb-24 border-b border-stone-200/80">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16 items-center">
           
           {/* Left Column: Editorial Headline */}
-          <div className="lg:col-span-7 space-y-6 text-left">
+          <div className="lg:col-span-7 space-y-5 text-left">
             <div className="inline-block border-b border-[#3A5303] pb-1">
-              <span className="text-[10px] uppercase tracking-[0.25em] font-bold text-[#3A5303]">
+              <span className="text-[9px] sm:text-[10px] uppercase tracking-[0.2em] font-bold text-[#3A5303]">
                 Artisanal Organic Produce • Native Heirloom Farms
               </span>
             </div>
 
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-serif text-stone-900 leading-[1.1] font-normal">
+            <h1 className="text-3xl sm:text-5xl lg:text-6xl font-serif text-stone-900 leading-[1.12] font-normal">
               Pure Wood-Pressed Oils <br />
               <span className="italic text-[#3A5303]">& A2 Desi Cow Bilona Ghee</span>
             </h1>
 
-            <p className="text-stone-600 text-sm sm:text-base font-light max-w-xl leading-relaxed">
+            <p className="text-stone-600 text-xs sm:text-sm lg:text-base font-light max-w-xl leading-relaxed">
               Handcrafted in small batches using ancient Vedic methods. Slow wood-fire hand-churned Gir Cow Bilona Ghee, zero-heat Marachekku pressed oils, and fresh unadulterated Paneer.
             </p>
 
             {/* Key Quality Pillars */}
-            <div className="flex flex-wrap gap-6 pt-2 text-xs font-semibold text-stone-700">
+            <div className="flex flex-wrap gap-4 sm:gap-6 pt-2 text-xs font-semibold text-stone-700">
               <span className="flex items-center space-x-1.5">
-                <Check className="w-3.5 h-3.5 text-[#3A5303]" />
+                <Check className="w-3.5 h-3.5 text-[#3A5303] shrink-0" />
                 <span>Wood-Fire Hand Churned</span>
               </span>
               <span className="flex items-center space-x-1.5">
-                <Check className="w-3.5 h-3.5 text-[#3A5303]" />
+                <Check className="w-3.5 h-3.5 text-[#3A5303] shrink-0" />
                 <span>Zero Chemicals or Bleach</span>
               </span>
               <span className="flex items-center space-x-1.5">
-                <Check className="w-3.5 h-3.5 text-[#3A5303]" />
+                <Check className="w-3.5 h-3.5 text-[#3A5303] shrink-0" />
                 <span>Glass Packaging</span>
               </span>
             </div>
 
             {/* Action Buttons */}
-            <div className="pt-4 flex items-center space-x-4">
+            <div className="pt-3 flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4">
               <button
                 onClick={onShopNow}
-                className="px-8 py-3.5 bg-[#3A5303] hover:bg-[#2b3e02] text-white font-semibold text-xs uppercase tracking-wider rounded-md transition-colors flex items-center space-x-2 shadow-xs"
+                className="w-full sm:w-auto px-8 py-3.5 bg-[#3A5303] hover:bg-[#2b3e02] active:scale-98 text-white font-semibold text-xs uppercase tracking-wider rounded-xl transition-all flex items-center justify-center space-x-2 shadow-xs"
               >
                 <span>Shop Organic Lineup</span>
                 <ArrowRight className="w-3.5 h-3.5" />
@@ -58,7 +58,7 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({ onShopNow }) => {
 
               <a
                 href="#traditional-process"
-                className="px-6 py-3.5 text-stone-700 hover:text-[#3A5303] font-semibold text-xs uppercase tracking-wider transition-colors"
+                className="w-full sm:w-auto text-center px-6 py-3.5 text-stone-700 hover:text-[#3A5303] font-semibold text-xs uppercase tracking-wider transition-colors border border-stone-300 sm:border-0 rounded-xl sm:rounded-none"
               >
                 Our Process
               </a>
