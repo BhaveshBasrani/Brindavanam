@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { X, Lock, Mail, User as UserIcon, AlertCircle, Sparkles } from 'lucide-react';
+import { X, Lock, Mail, User as UserIcon, AlertCircle } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { SafeRecaptcha } from '@/components/SafeRecaptcha';
 
@@ -11,7 +11,7 @@ interface AuthModalProps {
 }
 
 export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
-  const { loginWithEmail, signUpWithEmail, loginWithGoogle, demoLogin } = useAuth();
+  const { loginWithEmail, signUpWithEmail, loginWithGoogle } = useAuth();
 
   const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail] = useState('');
@@ -23,7 +23,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
 
   if (!isOpen) return null;
 
-  const siteKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || '6LcpqGstAAAAAMBOybBtJPFQ2aMtBfLmsUT9AAtB';
+  const siteKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || '';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -75,7 +75,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
           </button>
           <div className="space-y-1">
             <span className="text-xs uppercase tracking-widest text-[#94C000] font-bold">
-              Firebase Authentication
+              Customer Account
             </span>
             <h2 className="text-2xl font-serif">
               {isSignUp ? 'Join Brindavanam' : 'Welcome Back'}
@@ -94,25 +94,6 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
             </div>
           )}
 
-          {/* Quick Demo Login Option */}
-          <button
-            type="button"
-            onClick={() => {
-              demoLogin('user.organic@gmail.com', 'Bhavesh Basrani');
-              onClose();
-            }}
-            className="w-full py-2.5 px-4 bg-[#F7F6F2] border border-stone-300 rounded-xl text-stone-800 text-xs font-semibold hover:bg-emerald-50 hover:border-[#3A5303] flex items-center justify-center space-x-2 transition-colors"
-          >
-            <Sparkles className="w-4 h-4 text-[#94C000]" />
-            <span>Instant Demo Login (One-Click Test)</span>
-          </button>
-
-          <div className="relative flex py-1 items-center">
-            <div className="flex-grow border-t border-stone-200"></div>
-            <span className="flex-shrink mx-3 text-[11px] text-stone-400 uppercase font-semibold">Or Continue With</span>
-            <div className="flex-grow border-t border-stone-200"></div>
-          </div>
-
           {/* Google Sign-in Button */}
           <button
             type="button"
@@ -128,6 +109,12 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
             </svg>
             <span>Sign in with Google</span>
           </button>
+
+          <div className="relative flex py-1 items-center">
+            <div className="flex-grow border-t border-stone-200"></div>
+            <span className="flex-shrink mx-3 text-[11px] text-stone-400 uppercase font-semibold">Or Continue With Email</span>
+            <div className="flex-grow border-t border-stone-200"></div>
+          </div>
 
           {/* Email / Password Form */}
           <form onSubmit={handleSubmit} className="space-y-3">
