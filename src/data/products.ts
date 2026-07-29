@@ -18,9 +18,8 @@ export const PRODUCTS: Product[] = [
     rating: 4.9,
     reviewsCount: 148,
     images: [
-      'https://images.unsplash.com/photo-1631451095765-2c91616fc9e6?auto=format&fit=crop&w=1200&q=85',
-      'https://images.unsplash.com/photo-1589927986089-35812388d1f4?auto=format&fit=crop&w=1200&q=85',
-      'https://images.unsplash.com/photo-1608686207856-001b95cf60ca?auto=format&fit=crop&w=1200&q=85'
+      'https://images.unsplash.com/photo-1608686207856-001b95cf60ca?auto=format&fit=crop&w=800&q=80',
+      'https://images.unsplash.com/photo-1589927986089-35812388d1f4?auto=format&fit=crop&w=800&q=80'
     ],
     variants: [
       { id: 'ghee-500ml', weight: '500 ml Glass Jar', price: 1450, originalPrice: 1650, inStock: true },
@@ -71,9 +70,8 @@ export const PRODUCTS: Product[] = [
     rating: 4.8,
     reviewsCount: 96,
     images: [
-      'https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?auto=format&fit=crop&w=1200&q=85',
-      'https://images.unsplash.com/photo-1541256942802-7b29531f0df8?auto=format&fit=crop&w=1200&q=85',
-      'https://images.unsplash.com/photo-1620706857370-e1b9770e8bb1?auto=format&fit=crop&w=1200&q=85'
+      'https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?auto=format&fit=crop&w=800&q=80',
+      'https://images.unsplash.com/photo-1541256942802-7b29531f0df8?auto=format&fit=crop&w=800&q=80'
     ],
     variants: [
       { id: 'peanut-1l', weight: '1 Litre Glass Bottle', price: 420, originalPrice: 480, inStock: true },
@@ -114,9 +112,8 @@ export const PRODUCTS: Product[] = [
     rating: 4.9,
     reviewsCount: 112,
     images: [
-      'https://images.unsplash.com/photo-1620706857370-e1b9770e8bb1?auto=format&fit=crop&w=1200&q=85',
-      'https://images.unsplash.com/photo-1541256942802-7b29531f0df8?auto=format&fit=crop&w=1200&q=85',
-      'https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?auto=format&fit=crop&w=1200&q=85'
+      'https://images.unsplash.com/photo-1598440947619-2c35fc9aa908?auto=format&fit=crop&w=800&q=80',
+      'https://images.unsplash.com/photo-1615485290382-441e4d049cb5?auto=format&fit=crop&w=800&q=80'
     ],
     variants: [
       { id: 'coco-500ml', weight: '500 ml Glass Jar', price: 380, originalPrice: 440, inStock: true },
@@ -156,8 +153,8 @@ export const PRODUCTS: Product[] = [
     rating: 4.7,
     reviewsCount: 64,
     images: [
-      'https://images.unsplash.com/photo-1541256942802-7b29531f0df8?auto=format&fit=crop&w=1200&q=85',
-      'https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?auto=format&fit=crop&w=1200&q=85'
+      'https://images.unsplash.com/photo-1546554137-f86b9593a222?auto=format&fit=crop&w=800&q=80',
+      'https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?auto=format&fit=crop&w=800&q=80'
     ],
     variants: [
       { id: 'kusuma-1l', weight: '1 Litre Glass Bottle', price: 460, originalPrice: 520, inStock: true },
@@ -197,8 +194,8 @@ export const PRODUCTS: Product[] = [
     rating: 5.0,
     reviewsCount: 182,
     images: [
-      'https://images.unsplash.com/photo-1631451095765-2c91616fc9e6?auto=format&fit=crop&w=1200&q=85',
-      'https://images.unsplash.com/photo-1589927986089-35812388d1f4?auto=format&fit=crop&w=1200&q=85'
+      'https://images.unsplash.com/photo-1567188040759-fb8a883dc6d8?auto=format&fit=crop&w=800&q=80',
+      'https://images.unsplash.com/photo-1559561853-08451507cbe7?auto=format&fit=crop&w=800&q=80'
     ],
     variants: [
       { id: 'paneer-250g', weight: '250g Fresh Vacuum Pack', price: 140, originalPrice: 160, inStock: true },

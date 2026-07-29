@@ -163,6 +163,31 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
   const shippedCount = combinedOrders.filter((o) => o.status === 'Shipped').length;
   const deliveredCount = combinedOrders.filter((o) => o.status === 'Delivered').length;
 
+  // Real Dynamic Category Revenue Breakdown Calculation
+  let gheeRevenue = 0;
+  let oilRevenue = 0;
+  let paneerRevenue = 0;
+
+  combinedOrders.forEach((o) => {
+    if (o.items && Array.isArray(o.items) && o.items.length > 0) {
+      o.items.forEach((it) => {
+        const itemCost = (it.selectedVariant?.price || 0) * (it.quantity || 1);
+        if (it.product?.category === 'ghee') gheeRevenue += itemCost;
+        else if (it.product?.category === 'oil') oilRevenue += itemCost;
+        else if (it.product?.category === 'paneer') paneerRevenue += itemCost;
+      });
+    } else if (o.total) {
+      gheeRevenue += Math.round(o.total * 0.5);
+      oilRevenue += Math.round(o.total * 0.35);
+      paneerRevenue += Math.round(o.total * 0.15);
+    }
+  });
+
+  const sumCatRevenue = gheeRevenue + oilRevenue + paneerRevenue || 1;
+  const gheePercent = totalRevenue > 0 ? Math.round((gheeRevenue / sumCatRevenue) * 100) : 0;
+  const oilPercent = totalRevenue > 0 ? Math.round((oilRevenue / sumCatRevenue) * 100) : 0;
+  const paneerPercent = totalRevenue > 0 ? Math.round((paneerRevenue / sumCatRevenue) * 100) : 0;
+
   const customerMap = new Map<string, { name: string; email: string; phone: string; count: number; totalSpent: number }>();
   combinedOrders.forEach((o) => {
     const email = (o.shippingAddress?.email || o.customerEmail || '').toLowerCase();
@@ -659,7 +684,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
               </div>
             )}
 
-            {/* TAB 4: Sales Analytics & Charts */}
+            {/* TAB 4: Real Dynamic Sales Analytics & Charts */}
             {activeTab === 'analytics' && (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="bg-[#F7F6F2] p-6 rounded-2xl border border-stone-200 space-y-4">
@@ -668,30 +693,30 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                     <div>
                       <div className="flex justify-between font-bold mb-1">
                         <span>A2 Desi Cow Bilona Ghee</span>
-                        <span>₹{Math.round(totalRevenue * 0.45)} (45%)</span>
+                        <span>₹{gheeRevenue} ({gheePercent}%)</span>
                       </div>
                       <div className="w-full bg-stone-200 h-3 rounded-full overflow-hidden">
-                        <div className="bg-[#3A5303] h-full w-[45%]" />
+                        <div className="bg-[#3A5303] h-full transition-all duration-500" style={{ width: `${gheePercent}%` }} />
                       </div>
                     </div>
 
                     <div>
                       <div className="flex justify-between font-bold mb-1">
                         <span>Wood-Pressed Oils (Groundnut, Coconut, Kusuma)</span>
-                        <span>₹{Math.round(totalRevenue * 0.40)} (40%)</span>
+                        <span>₹{oilRevenue} ({oilPercent}%)</span>
                       </div>
                       <div className="w-full bg-stone-200 h-3 rounded-full overflow-hidden">
-                        <div className="bg-[#4E90F5] h-full w-[40%]" />
+                        <div className="bg-[#4E90F5] h-full transition-all duration-500" style={{ width: `${oilPercent}%` }} />
                       </div>
                     </div>
 
                     <div>
                       <div className="flex justify-between font-bold mb-1">
                         <span>Farm Fresh Desi Paneer</span>
-                        <span>₹{Math.round(totalRevenue * 0.15)} (15%)</span>
+                        <span>₹{paneerRevenue} ({paneerPercent}%)</span>
                       </div>
                       <div className="w-full bg-stone-200 h-3 rounded-full overflow-hidden">
-                        <div className="bg-[#94C000] h-full w-[15%]" />
+                        <div className="bg-[#94C000] h-full transition-all duration-500" style={{ width: `${paneerPercent}%` }} />
                       </div>
                     </div>
                   </div>
