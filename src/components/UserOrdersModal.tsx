@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { X, Package, Clock, Truck, CheckCircle2, ShieldCheck, MapPin, CreditCard, RefreshCw } from 'lucide-react';
+import { X, Package, Clock, Truck, CheckCircle2, RefreshCw, ShieldCheck, MapPin, CreditCard } from 'lucide-react';
 import { Order } from '@/types/store';
 import { useAuth } from '@/context/AuthContext';
 
@@ -11,7 +11,11 @@ interface UserOrdersModalProps {
   orders: Order[];
 }
 
-export const UserOrdersModal: React.FC<UserOrdersModalProps> = ({ isOpen, onClose, orders: localOrders }) => {
+export const UserOrdersModal: React.FC<UserOrdersModalProps> = ({
+  isOpen,
+  onClose,
+  orders,
+}) => {
   const { user } = useAuth();
   const [gasOrders, setGasOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(false);
@@ -19,22 +23,16 @@ export const UserOrdersModal: React.FC<UserOrdersModalProps> = ({ isOpen, onClos
   const gasUrl = process.env.NEXT_PUBLIC_GAS_WEB_APP_URL || 'https://script.google.com/macros/s/AKfycbwqHEdFL5zR_cCPSUkvb91nudf72H9K1CdFYPEyHgP_XInRSaHQU0TiZEtadcYHpQPS/exec';
 
   const fetchUserOrdersFromGAS = async () => {
-    if (!user || !user.email) return;
+    if (!user?.email) return;
     setLoading(true);
     try {
-      const response = await fetch(gasUrl);
+      const response = await fetch(`${gasUrl}?action=get_user_orders&email=${encodeURIComponent(user.email)}`);
       const data = await response.json();
       if (data.status === 'success' && Array.isArray(data.orders)) {
-        // Filter orders placed by this logged-in customer email
-        const userEmailLower = user.email.toLowerCase();
-        const userMatchedOrders = data.orders.filter((o: Order) => {
-          const email = (o.shippingAddress?.email || o.customerEmail || '').toLowerCase();
-          return email === userEmailLower;
-        });
-        setGasOrders(userMatchedOrders);
+        setGasOrders(data.orders);
       }
     } catch (err) {
-      console.warn('Google Apps Script order fetch notice:', err);
+      console.warn('Order fetch notice:', err);
     } finally {
       setLoading(false);
     }
@@ -48,55 +46,39 @@ export const UserOrdersModal: React.FC<UserOrdersModalProps> = ({ isOpen, onClos
 
   if (!isOpen) return null;
 
-  // Combine local state orders and Google Apps Script fetched orders without duplicates
-  const orderMap = new Map<string, Order>();
-  localOrders.forEach((o) => orderMap.set(o.id, o));
-  gasOrders.forEach((o) => orderMap.set(o.id, o));
-  const combinedOrders = Array.from(orderMap.values());
+  // Combine local state orders and remote fetched orders without duplicates
+  const allOrdersMap = new Map<string, Order>();
+  orders.forEach((o) => allOrdersMap.set(o.id, o));
+  gasOrders.forEach((o) => allOrdersMap.set(o.id, o));
 
-  const totalSpent = combinedOrders.reduce((sum, o) => sum + (o.total || 0), 0);
+  const combinedOrders = Array.from(allOrdersMap.values()).sort(
+    (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+  );
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-      <div className="bg-white w-full max-w-3xl rounded-3xl shadow-2xl overflow-hidden relative border border-stone-200 animate-in fade-in duration-200 my-8">
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-black/70 backdrop-blur-xs flex items-center justify-center p-4">
+      <div className="bg-white w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden relative border border-stone-200 animate-in fade-in duration-200">
         
-        {/* Header with User Profile PFP */}
-        <div className="bg-[#3A5303] text-white p-6 relative flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <button
-            onClick={onClose}
-            className="absolute top-4 right-4 text-white/70 hover:text-white p-2 rounded-full hover:bg-white/10"
-          >
-            <X className="w-5 h-5" />
-          </button>
-
-          <div className="flex items-center space-x-4">
-            {user?.photoURL ? (
-              <img
-                src={user.photoURL}
-                alt={user.displayName}
-                className="w-14 h-14 rounded-full object-cover ring-4 ring-[#94C000] shadow-md shrink-0"
-              />
-            ) : (
-              <div className="w-14 h-14 rounded-full bg-[#1c260b] text-[#94C000] flex items-center justify-center font-serif text-2xl font-bold ring-4 ring-[#94C000] shadow-md shrink-0">
-                {user?.displayName ? user.displayName.charAt(0).toUpperCase() : 'P'}
-              </div>
-            )}
+        {/* Header */}
+        <div className="bg-[#3A5303] text-white p-6 flex justify-between items-center">
+          <div className="flex items-center space-x-3">
+            <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-white">
+              <Package className="w-5 h-5 text-[#94C000]" />
+            </div>
             <div>
-              <div className="flex items-center space-x-2">
-                <span className="text-[10px] uppercase tracking-widest text-[#94C000] font-bold block">
-                  Organic Patron Dashboard
-                </span>
-                {loading && <RefreshCw className="w-3 h-3 text-[#94C000] animate-spin" />}
-              </div>
-              <h2 className="text-2xl font-serif">{user?.displayName || 'Valued Customer'}</h2>
-              <p className="text-xs text-stone-200 font-light">{user?.email || 'Patron Account'}</p>
+              <h2 className="text-xl font-serif">Customer Order Portal</h2>
+              <p className="text-xs text-[#94C000] font-light">
+                {user ? user.displayName : 'Patron Account'} • Live Tracking
+              </p>
             </div>
           </div>
 
-          <div className="bg-white/10 backdrop-blur-md px-4 py-2 rounded-xl text-left border border-white/20 sm:self-center">
-            <span className="text-[10px] text-stone-300 uppercase font-semibold block">Total Organic Orders</span>
-            <span className="text-xl font-serif text-[#94C000] font-bold">{combinedOrders.length} Orders (₹{totalSpent})</span>
-          </div>
+          <button
+            onClick={onClose}
+            className="p-2 text-white/80 hover:text-white rounded-full hover:bg-white/10 transition-colors"
+          >
+            <X className="w-6 h-6" />
+          </button>
         </div>
 
         {/* Content Body */}
@@ -109,7 +91,7 @@ export const UserOrdersModal: React.FC<UserOrdersModalProps> = ({ isOpen, onClos
               <div className="space-y-1">
                 <h3 className="text-lg font-serif text-stone-800">No Orders Logged Yet</h3>
                 <p className="text-xs text-stone-500 max-w-sm mx-auto">
-                  Your fresh wood-pressed oils and hand-churned A2 ghee orders will appear here automatically as synced from Google Apps Script.
+                  Your fresh wood-pressed oils and hand-churned A2 ghee orders will appear here automatically upon confirmation.
                 </p>
               </div>
             </div>
@@ -117,7 +99,7 @@ export const UserOrdersModal: React.FC<UserOrdersModalProps> = ({ isOpen, onClos
             <div className="space-y-6">
               <div className="flex items-center justify-between border-b border-stone-200 pb-2">
                 <h3 className="text-xs font-bold text-stone-900 uppercase tracking-wider font-serif">
-                  Synced Order History ({combinedOrders.length})
+                  Order History ({combinedOrders.length})
                 </h3>
                 <button
                   onClick={fetchUserOrdersFromGAS}
@@ -217,7 +199,7 @@ export const UserOrdersModal: React.FC<UserOrdersModalProps> = ({ isOpen, onClos
         <div className="bg-[#F7F6F2] p-4 border-t border-stone-200 flex justify-between items-center text-xs">
           <span className="text-stone-500 flex items-center">
             <ShieldCheck className="w-4 h-4 text-[#3A5303] mr-1" />
-            Live Synced with Google Apps Script Engine
+            100% Encrypted Farm Order Tracking
           </span>
           <button
             onClick={onClose}

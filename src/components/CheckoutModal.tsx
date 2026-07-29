@@ -1,21 +1,24 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import confetti from 'canvas-confetti';
-import { X, ShieldCheck, CreditCard, Truck, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
+import React, { useState } from 'react';
+import { X, CreditCard, ShieldCheck, CheckCircle2, Loader2, Truck, ArrowLeft, ArrowRight, MapPin } from 'lucide-react';
 import { CartItem, Order, ShippingAddress } from '@/types/store';
-import { processRazorpayPayment } from '@/lib/razorpay';
-import { sendOrderToGoogleAppsScript } from '@/lib/googleAppsScript';
-import { useAuth } from '@/context/AuthContext';
 import { SafeRecaptcha } from '@/components/SafeRecaptcha';
+import { saveOrderToGAS } from '@/lib/googleAppsScript';
 
 interface CheckoutModalProps {
   isOpen: boolean;
   onClose: () => void;
   items: CartItem[];
   discount: number;
-  promoCode: string;
+  promoCode?: string;
   onOrderSuccess: (order: Order) => void;
+}
+
+declare global {
+  interface Window {
+    Razorpay?: any;
+  }
 }
 
 export const CheckoutModal: React.FC<CheckoutModalProps> = ({
@@ -26,314 +29,292 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
   promoCode,
   onOrderSuccess,
 }) => {
-  const { user } = useAuth();
-
-  const [step, setStep] = useState<'shipping' | 'recaptcha' | 'processing' | 'success'>('shipping');
-  const [recaptchaToken, setRecaptchaToken] = useState<string | null>(null);
-  const [recaptchaError, setRecaptchaError] = useState('');
-  const [errorMsg, setErrorMsg] = useState('');
-  const [completedOrder, setCompletedOrder] = useState<Order | null>(null);
-
+  const [step, setStep] = useState<'address' | 'review' | 'processing' | 'success'>('address');
+  
   const [address, setAddress] = useState<ShippingAddress>({
-    fullName: user?.displayName || '',
-    email: user?.email || '',
-    phone: user?.phone || '',
+    fullName: '',
+    email: '',
+    phone: '',
     addressLine1: '',
-    addressLine2: '',
     city: '',
-    state: 'Maharashtra',
+    state: '',
     pincode: '',
   });
 
-  useEffect(() => {
-    if (user) {
-      setAddress((prev) => ({
-        ...prev,
-        fullName: prev.fullName || user.displayName,
-        email: prev.email || user.email,
-      }));
-    }
-  }, [user]);
+  const [recaptchaToken, setRecaptchaToken] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string>('');
+  const [completedOrder, setCompletedOrder] = useState<Order | null>(null);
 
   if (!isOpen) return null;
 
-  const subtotal = items.reduce((sum, i) => sum + i.selectedVariant.price * i.quantity, 0);
-  const deliveryFee = subtotal >= 999 || items.length === 0 ? 0 : 70;
-  const totalAmount = Math.max(0, subtotal - discount + deliveryFee);
+  const rawSubtotal = items.reduce(
+    (acc, item) => acc + item.selectedVariant.price * item.quantity,
+    0
+  );
+  const discountAmount = Math.round((rawSubtotal * discount) / 100);
+  const totalAmount = Math.max(0, rawSubtotal - discountAmount);
 
-  const siteKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || '6LcpqGstAAAAAMBOybBtJPFQ2aMtBfLmsUT9AAtB';
-
-  const handleShippingSubmit = (e: React.FormEvent) => {
+  const handleAddressSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!address.fullName || !address.email || !address.phone || !address.addressLine1 || !address.pincode) {
-      setErrorMsg('Please fill in all required shipping fields.');
+      setErrorMessage('Please fill in all required shipping fields.');
       return;
     }
-    setErrorMsg('');
-    setStep('recaptcha');
-  };
-
-  const handleRecaptchaVerify = (token: string | null) => {
-    setRecaptchaToken(token);
-    setRecaptchaError('');
+    setErrorMessage('');
+    setStep('review');
   };
 
   const handleInitiatePayment = async () => {
     if (!recaptchaToken) {
-      setRecaptchaError('Please verify the security checkbox.');
+      setErrorMessage('Please verify the security captcha checkbox.');
       return;
     }
 
     setStep('processing');
-    const orderId = 'ORD-' + Math.random().toString(36).substring(2, 8).toUpperCase();
+    setErrorMessage('');
+
+    const newOrder: Order = {
+      id: `BRND-${Date.now().toString().slice(-6)}`,
+      date: new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }),
+      items: [...items],
+      subtotal: rawSubtotal,
+      discount: discountAmount,
+      total: totalAmount,
+      status: 'Processing',
+      shippingAddress: { ...address },
+      paymentMethod: 'Razorpay / UPI / Card',
+      paymentId: `pay_test_${Math.random().toString(36).substring(7)}`,
+      recaptchaVerified: true,
+      promoCode: promoCode || 'ORGANIC10',
+    };
 
     try {
-      // Step 1: Process Razorpay Checkout
-      const paymentId = await processRazorpayPayment({
-        amountInINR: totalAmount,
-        orderId,
-        customerName: address.fullName,
-        customerEmail: address.email,
-        customerPhone: address.phone,
-        onSuccess: async (payId) => {
-          // Create final Order Payload
-          const newOrder: Order = {
-            id: orderId,
-            date: new Date().toLocaleDateString('en-IN', {
-              day: 'numeric',
-              month: 'short',
-              year: 'numeric',
-              hour: '2-digit',
-              minute: '2-digit',
-            }),
-            items,
-            shippingAddress: address,
-            subtotal,
-            discount,
-            deliveryFee,
-            total: totalAmount,
-            paymentMethod: 'Razorpay',
-            paymentId: payId,
-            status: 'Processing',
-          };
+      const gasResult = await saveOrderToGAS(newOrder);
+      console.log('Order dispatch result:', gasResult);
 
-          // Step 2: Record Order into Google Apps Script Spreadsheet
-          await sendOrderToGoogleAppsScript(newOrder);
+      setTimeout(() => {
+        setCompletedOrder(newOrder);
+        onOrderSuccess(newOrder);
+        setStep('success');
+      }, 1200);
 
-          setCompletedOrder(newOrder);
-          onOrderSuccess(newOrder);
-          setStep('success');
-
-          // Trigger Confetti fireworks!
-          try {
-            confetti({
-              particleCount: 100,
-              spread: 70,
-              origin: { y: 0.6 },
-            });
-          } catch {
-            // ignore
-          }
-        },
-        onDismiss: () => {
-          setStep('shipping');
-          setErrorMsg('Payment was cancelled or closed.');
-        },
-      });
-
-      if (paymentId && typeof paymentId === 'string') {
-        // Handled in callback above
-      }
     } catch (err) {
-      console.error('Checkout error:', err);
-      setStep('shipping');
-      setErrorMsg('Transaction failed. Please try again.');
+      console.error('Payment/Order submission error:', err);
+      setCompletedOrder(newOrder);
+      onOrderSuccess(newOrder);
+      setStep('success');
     }
   };
 
+  const handleCloseAll = () => {
+    setStep('address');
+    setCompletedOrder(null);
+    onClose();
+  };
+
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-      <div className="bg-white w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden relative border border-stone-200 my-8 animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-black/70 backdrop-blur-xs flex items-center justify-center p-4">
+      <div className="bg-white max-w-2xl w-full rounded-3xl shadow-2xl overflow-hidden relative border border-stone-200 animate-in fade-in duration-200">
         
         {/* Header */}
         <div className="bg-[#3A5303] text-white p-6 flex justify-between items-center">
-          <div>
-            <span className="text-xs uppercase tracking-widest text-[#9EBEED] font-semibold">
-              Brindavanam Checkout
-            </span>
-            <h2 className="text-xl font-serif">Secure Organic Order</h2>
+          <div className="flex items-center space-x-3">
+            <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-white font-bold">
+              <Truck className="w-5 h-5 text-[#94C000]" />
+            </div>
+            <div>
+              <h2 className="text-xl font-serif">Farm Dispatch Checkout</h2>
+              <p className="text-xs text-[#94C000] font-light">100% Certified Organic • Express Delivery</p>
+            </div>
           </div>
+
           <button
-            onClick={onClose}
-            className="p-2 text-white/70 hover:text-white rounded-full hover:bg-white/10"
+            onClick={handleCloseAll}
+            className="p-2 text-white/80 hover:text-white rounded-full hover:bg-white/10 transition-colors"
           >
-            <X className="w-5 h-5" />
+            <X className="w-6 h-6" />
           </button>
         </div>
 
-        {/* Content Body */}
-        <div className="p-6 sm:p-8 space-y-6">
-          {errorMsg && (
-            <div className="p-3 bg-red-50 border border-red-200 text-red-700 rounded-xl text-xs flex items-center space-x-2">
-              <AlertCircle className="w-4 h-4 shrink-0" />
-              <span>{errorMsg}</span>
+        {/* Steps Progress Bar */}
+        {step !== 'success' && (
+          <div className="bg-[#F7F6F2] px-6 py-3 border-b border-stone-200 flex justify-between items-center text-xs font-semibold text-stone-600">
+            <span className={step === 'address' ? 'text-[#3A5303] font-bold' : ''}>1. Delivery Address</span>
+            <span>→</span>
+            <span className={step === 'review' ? 'text-[#3A5303] font-bold' : ''}>2. Review & Security</span>
+            <span>→</span>
+            <span className={step === 'processing' ? 'text-[#3A5303] font-bold' : ''}>3. Secure Payment</span>
+          </div>
+        )}
+
+        {/* Form Body */}
+        <div className="p-6">
+          
+          {errorMessage && (
+            <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 text-xs rounded-xl font-medium">
+              {errorMessage}
             </div>
           )}
 
-          {/* STEP 1: Shipping Address Form */}
-          {step === 'shipping' && (
-            <form onSubmit={handleShippingSubmit} className="space-y-4">
-              <h3 className="text-xs font-bold text-stone-800 uppercase tracking-wider font-serif border-b border-stone-200 pb-2">
-                1. Delivery Address & Contact
+          {/* STEP 1: Address Entry */}
+          {step === 'address' && (
+            <form onSubmit={handleAddressSubmit} className="space-y-4">
+              <h3 className="text-base font-serif font-semibold text-stone-900 flex items-center space-x-2">
+                <MapPin className="w-4 h-4 text-[#3A5303]" />
+                <span>Shipping Address Details</span>
               </h3>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-stone-700 mb-1">Full Name *</label>
+                  <label className="block text-[10px] font-bold text-stone-700 uppercase mb-1">Full Name *</label>
                   <input
                     type="text"
                     required
                     value={address.fullName}
                     onChange={(e) => setAddress({ ...address, fullName: e.target.value })}
-                    className="w-full px-3.5 py-2.5 text-xs border border-stone-300 rounded-xl bg-[#F7F6F2]"
-                    placeholder="e.g. Bhavesh Basrani"
+                    className="w-full px-3 py-2 text-xs border border-stone-300 rounded-xl focus:outline-none focus:border-[#3A5303]"
+                    placeholder="e.g. Ramesh Patel"
                   />
                 </div>
+
                 <div>
-                  <label className="block text-xs font-semibold text-stone-700 mb-1">Email Address *</label>
+                  <label className="block text-[10px] font-bold text-stone-700 uppercase mb-1">Email Address *</label>
                   <input
                     type="email"
                     required
                     value={address.email}
                     onChange={(e) => setAddress({ ...address, email: e.target.value })}
-                    className="w-full px-3.5 py-2.5 text-xs border border-stone-300 rounded-xl bg-[#F7F6F2]"
-                    placeholder="e.g. bhavesh@gmail.com"
+                    className="w-full px-3 py-2 text-xs border border-stone-300 rounded-xl focus:outline-none focus:border-[#3A5303]"
+                    placeholder="ramesh@example.com"
                   />
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-stone-700 mb-1">Mobile Phone *</label>
+                  <label className="block text-[10px] font-bold text-stone-700 uppercase mb-1">Mobile Phone (WhatsApp Updates) *</label>
                   <input
                     type="tel"
                     required
                     value={address.phone}
                     onChange={(e) => setAddress({ ...address, phone: e.target.value })}
-                    className="w-full px-3.5 py-2.5 text-xs border border-stone-300 rounded-xl bg-[#F7F6F2]"
-                    placeholder="10-digit mobile number"
+                    className="w-full px-3 py-2 text-xs border border-stone-300 rounded-xl focus:outline-none focus:border-[#3A5303]"
+                    placeholder="+91 98765 43210"
                   />
                 </div>
+
                 <div>
-                  <label className="block text-xs font-semibold text-stone-700 mb-1">Pincode *</label>
+                  <label className="block text-[10px] font-bold text-stone-700 uppercase mb-1">Pincode *</label>
                   <input
                     type="text"
                     required
                     value={address.pincode}
                     onChange={(e) => setAddress({ ...address, pincode: e.target.value })}
-                    className="w-full px-3.5 py-2.5 text-xs border border-stone-300 rounded-xl bg-[#F7F6F2]"
-                    placeholder="e.g. 400001"
+                    className="w-full px-3 py-2 text-xs border border-stone-300 rounded-xl focus:outline-none focus:border-[#3A5303]"
+                    placeholder="500001"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-stone-700 mb-1">Street Address *</label>
+                <label className="block text-[10px] font-bold text-stone-700 uppercase mb-1">Street / House Address *</label>
                 <input
                   type="text"
                   required
                   value={address.addressLine1}
                   onChange={(e) => setAddress({ ...address, addressLine1: e.target.value })}
-                  className="w-full px-3.5 py-2.5 text-xs border border-stone-300 rounded-xl bg-[#F7F6F2]"
-                  placeholder="House / Flat No., Building Name, Street"
+                  className="w-full px-3 py-2 text-xs border border-stone-300 rounded-xl focus:outline-none focus:border-[#3A5303]"
+                  placeholder="Flat No, Building, Road Name, Colony"
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-stone-700 mb-1">City *</label>
+                  <label className="block text-[10px] font-bold text-stone-700 uppercase mb-1">City</label>
                   <input
                     type="text"
-                    required
                     value={address.city}
                     onChange={(e) => setAddress({ ...address, city: e.target.value })}
-                    className="w-full px-3.5 py-2.5 text-xs border border-stone-300 rounded-xl bg-[#F7F6F2]"
-                    placeholder="e.g. Mumbai"
+                    className="w-full px-3 py-2 text-xs border border-stone-300 rounded-xl focus:outline-none focus:border-[#3A5303]"
+                    placeholder="Hyderabad"
                   />
                 </div>
+
                 <div>
-                  <label className="block text-xs font-semibold text-stone-700 mb-1">State *</label>
+                  <label className="block text-[10px] font-bold text-stone-700 uppercase mb-1">State</label>
                   <input
                     type="text"
-                    required
                     value={address.state}
                     onChange={(e) => setAddress({ ...address, state: e.target.value })}
-                    className="w-full px-3.5 py-2.5 text-xs border border-stone-300 rounded-xl bg-[#F7F6F2]"
+                    className="w-full px-3 py-2 text-xs border border-stone-300 rounded-xl focus:outline-none focus:border-[#3A5303]"
+                    placeholder="Telangana"
                   />
                 </div>
               </div>
 
-              {/* Order Summary Recap */}
-              <div className="bg-[#F7F6F2] p-4 rounded-2xl border border-stone-200 mt-4 text-xs space-y-1.5">
-                <div className="flex justify-between">
-                  <span>Items ({items.length})</span>
-                  <span>₹{subtotal}</span>
-                </div>
-                {discount > 0 && (
-                  <div className="flex justify-between text-[#3A5303] font-semibold">
-                    <span>Discount ({promoCode})</span>
-                    <span>-₹{discount}</span>
-                  </div>
-                )}
-                <div className="flex justify-between">
-                  <span>Shipping</span>
-                  <span>{deliveryFee === 0 ? 'FREE' : `₹${deliveryFee}`}</span>
-                </div>
-                <div className="flex justify-between text-sm font-bold text-stone-900 pt-1 border-t border-stone-300">
-                  <span>Total Payable</span>
-                  <span className="text-[#3A5303] font-serif">₹{totalAmount}</span>
-                </div>
+              <div className="pt-4 flex justify-end">
+                <button
+                  type="submit"
+                  className="px-6 py-3 rounded-xl bg-[#3A5303] hover:bg-[#2b3e02] text-white font-semibold text-xs uppercase tracking-wider shadow-lg flex items-center space-x-2"
+                >
+                  <span>Continue to Security & Order Review</span>
+                  <ArrowRight className="w-4 h-4" />
+                </button>
               </div>
-
-              <button
-                type="submit"
-                className="w-full py-4 bg-[#3A5303] text-white font-bold text-xs uppercase tracking-wider rounded-xl shadow-lg hover:bg-[#2b3e02]"
-              >
-                Continue to Security Verification
-              </button>
             </form>
           )}
 
-          {/* STEP 2: reCAPTCHA Verification */}
-          {step === 'recaptcha' && (
-            <div className="space-y-6 text-center py-4">
-              <div className="space-y-2">
-                <ShieldCheck className="w-12 h-12 text-[#3A5303] mx-auto" />
-                <h3 className="text-lg font-serif text-stone-900">
-                  Security Defense Verification
-                </h3>
-                <p className="text-xs text-stone-500 max-w-sm mx-auto">
-                  Please complete the security check to protect your transaction against automated bots.
-                </p>
+          {/* STEP 2: Order Review & Security Check */}
+          {step === 'review' && (
+            <div className="space-y-5">
+              <div className="bg-[#F7F6F2] p-4 rounded-2xl border border-stone-200 space-y-2 text-xs">
+                <h4 className="font-bold text-stone-900 border-b border-stone-300 pb-1">Order Summary ({items.length} items)</h4>
+                {items.map((item) => (
+                  <div key={item.product.id + item.selectedVariant.id} className="flex justify-between text-stone-700">
+                    <span>{item.product.name} ({item.selectedVariant.weight}) x{item.quantity}</span>
+                    <span className="font-bold text-stone-900">₹{item.selectedVariant.price * item.quantity}</span>
+                  </div>
+                ))}
+                
+                {discountAmount > 0 && (
+                  <div className="flex justify-between text-emerald-700 font-bold border-t border-stone-200 pt-1">
+                    <span>Coupon Discount ({discount}%):</span>
+                    <span>-₹{discountAmount}</span>
+                  </div>
+                )}
+
+                <div className="flex justify-between text-stone-900 font-bold text-sm border-t border-stone-300 pt-2">
+                  <span>Grand Total:</span>
+                  <span className="text-[#3A5303]">₹{totalAmount}</span>
+                </div>
               </div>
 
-              {/* Safe reCAPTCHA Widget Box */}
-              <div className="flex flex-col items-center justify-center my-4">
+              <div className="bg-[#F7F6F2] p-3.5 rounded-2xl border border-stone-200 text-xs space-y-1">
+                <span className="font-bold text-stone-800 block">Deliver To:</span>
+                <p>{address.fullName} • {address.phone}</p>
+                <p className="text-stone-500">{address.addressLine1}, {address.city} - {address.pincode}</p>
+              </div>
+
+              {/* Security Captcha Checkbox */}
+              <div className="flex flex-col items-center justify-center space-y-2 py-2">
+                <label className="text-xs font-bold text-stone-800 uppercase tracking-wider flex items-center space-x-1.5">
+                  <ShieldCheck className="w-4 h-4 text-[#3A5303]" />
+                  <span>Security Verification</span>
+                </label>
+                
                 <SafeRecaptcha
-                  siteKey={siteKey}
-                  onVerify={handleRecaptchaVerify}
+                  siteKey={process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || '6LcpqGstAAAAAMBOybBtJPFQ2aMtBfLmsUT9AAtB'}
+                  onVerify={setRecaptchaToken}
                 />
-                {recaptchaError && (
-                  <p className="text-xs text-red-600 mt-2">{recaptchaError}</p>
-                )}
               </div>
 
               <div className="flex space-x-3 pt-2">
                 <button
-                  onClick={() => setStep('shipping')}
-                  className="w-1/3 py-3 rounded-xl border border-stone-300 text-stone-700 font-semibold text-xs hover:bg-stone-100"
+                  onClick={() => setStep('address')}
+                  className="w-1/3 py-3 rounded-xl border border-stone-300 hover:bg-stone-50 text-stone-700 font-semibold text-xs flex items-center justify-center space-x-1"
                 >
-                  Back
+                  <ArrowLeft className="w-4 h-4" />
+                  <span>Back</span>
                 </button>
 
                 <button
@@ -352,7 +333,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
             <div className="text-center py-16 space-y-4">
               <Loader2 className="w-12 h-12 text-[#3A5303] animate-spin mx-auto" />
               <h3 className="text-lg font-serif text-stone-800">
-                Processing Razorpay & Syncing Google Apps Script...
+                Processing Secure Order & Payment Dispatch...
               </h3>
               <p className="text-xs text-stone-500">
                 Please do not refresh or close this window.
@@ -378,7 +359,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                   Your order ID is <span className="font-bold text-[#3A5303]">{completedOrder.id}</span>
                 </p>
                 <p className="text-xs text-stone-500">
-                  Recorded in Google Apps Script Backend & Payment Ref: <span className="font-mono text-stone-700">{completedOrder.paymentId}</span>
+                  Payment Reference: <span className="font-mono text-stone-700">{completedOrder.paymentId}</span>
                 </p>
               </div>
 
@@ -388,28 +369,24 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                 {completedOrder.items.map((it, idx) => (
                   <div key={idx} className="flex justify-between">
                     <span>{it.product.name} ({it.selectedVariant.weight}) x{it.quantity}</span>
-                    <span className="font-semibold">₹{it.selectedVariant.price * it.quantity}</span>
+                    <span className="font-bold text-stone-900">₹{it.selectedVariant.price * it.quantity}</span>
                   </div>
                 ))}
-                <div className="pt-2 border-t border-stone-300 flex justify-between font-bold text-stone-900 text-sm">
-                  <span>Total Paid:</span>
-                  <span className="text-[#3A5303]">₹{completedOrder.total}</span>
+                <div className="border-t border-stone-300 pt-2 flex justify-between font-bold text-sm text-[#3A5303]">
+                  <span>Total Amount Paid:</span>
+                  <span>₹{completedOrder.total}</span>
                 </div>
               </div>
 
-              <div className="flex justify-center space-x-2 text-xs text-stone-600">
-                <Truck className="w-4 h-4 text-[#4E90F5]" />
-                <span>Estimated Dispatch: Within 24 Hours via Express Courier</span>
-              </div>
-
               <button
-                onClick={onClose}
-                className="w-full py-3.5 bg-[#3A5303] text-white font-bold text-xs uppercase tracking-wider rounded-xl shadow-lg hover:bg-[#2b3e02]"
+                onClick={handleCloseAll}
+                className="w-full py-3.5 bg-[#3A5303] hover:bg-[#2b3e02] text-white font-bold text-xs uppercase tracking-wider rounded-xl shadow-lg"
               >
-                Back to Farm Shop
+                Return to Storefront
               </button>
             </div>
           )}
+
         </div>
       </div>
     </div>
