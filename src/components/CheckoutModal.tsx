@@ -1,13 +1,13 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import ReCAPTCHA from 'react-google-recaptcha';
 import confetti from 'canvas-confetti';
 import { X, ShieldCheck, CreditCard, Truck, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
 import { CartItem, Order, ShippingAddress } from '@/types/store';
 import { processRazorpayPayment } from '@/lib/razorpay';
 import { sendOrderToGoogleAppsScript } from '@/lib/googleAppsScript';
 import { useAuth } from '@/context/AuthContext';
+import { SafeRecaptcha } from '@/components/SafeRecaptcha';
 
 interface CheckoutModalProps {
   isOpen: boolean;
@@ -61,7 +61,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
   const deliveryFee = subtotal >= 999 || items.length === 0 ? 0 : 70;
   const totalAmount = Math.max(0, subtotal - discount + deliveryFee);
 
-  const siteKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || '6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI';
+  const siteKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || '6LcpqGstAAAAAMBOybBtJPFQ2aMtBfLmsUT9AAtB';
 
   const handleShippingSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -79,9 +79,8 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
   };
 
   const handleInitiatePayment = async () => {
-    // In test/demo environment or when recaptcha key is fallback, token check passes smoothly
-    if (!recaptchaToken && !siteKey.includes('6LeIxAc')) {
-      setRecaptchaError('Please verify the reCAPTCHA security checkbox.');
+    if (!recaptchaToken) {
+      setRecaptchaError('Please verify the security checkbox.');
       return;
     }
 
@@ -133,7 +132,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
               origin: { y: 0.6 },
             });
           } catch {
-            // ignore fallback
+            // ignore
           }
         },
         onDismiss: () => {
@@ -143,7 +142,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
       });
 
       if (paymentId && typeof paymentId === 'string') {
-        // Mock fallback resolution caught in handler above
+        // Handled in callback above
       }
     } catch (err) {
       console.error('Checkout error:', err);
@@ -157,12 +156,12 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
       <div className="bg-white w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden relative border border-stone-200 my-8 animate-in fade-in duration-200">
         
         {/* Header */}
-        <div className="bg-[#4B6B03] text-white p-6 flex justify-between items-center">
+        <div className="bg-[#3A5303] text-white p-6 flex justify-between items-center">
           <div>
             <span className="text-xs uppercase tracking-widest text-[#9EBEED] font-semibold">
               Brindavanam Checkout
             </span>
-            <h2 className="text-xl font-bold font-serif">Secure Organic Order</h2>
+            <h2 className="text-xl font-serif">Secure Organic Order</h2>
           </div>
           <button
             onClick={onClose}
@@ -184,7 +183,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
           {/* STEP 1: Shipping Address Form */}
           {step === 'shipping' && (
             <form onSubmit={handleShippingSubmit} className="space-y-4">
-              <h3 className="text-sm font-bold text-stone-800 uppercase tracking-wider font-serif border-b border-stone-200 pb-2">
+              <h3 className="text-xs font-bold text-stone-800 uppercase tracking-wider font-serif border-b border-stone-200 pb-2">
                 1. Delivery Address & Contact
               </h3>
 
@@ -196,7 +195,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                     required
                     value={address.fullName}
                     onChange={(e) => setAddress({ ...address, fullName: e.target.value })}
-                    className="w-full px-3.5 py-2.5 text-xs border border-stone-300 rounded-xl bg-[#F3F6F3]"
+                    className="w-full px-3.5 py-2.5 text-xs border border-stone-300 rounded-xl bg-[#F7F6F2]"
                     placeholder="e.g. Bhavesh Basrani"
                   />
                 </div>
@@ -207,7 +206,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                     required
                     value={address.email}
                     onChange={(e) => setAddress({ ...address, email: e.target.value })}
-                    className="w-full px-3.5 py-2.5 text-xs border border-stone-300 rounded-xl bg-[#F3F6F3]"
+                    className="w-full px-3.5 py-2.5 text-xs border border-stone-300 rounded-xl bg-[#F7F6F2]"
                     placeholder="e.g. bhavesh@gmail.com"
                   />
                 </div>
@@ -221,7 +220,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                     required
                     value={address.phone}
                     onChange={(e) => setAddress({ ...address, phone: e.target.value })}
-                    className="w-full px-3.5 py-2.5 text-xs border border-stone-300 rounded-xl bg-[#F3F6F3]"
+                    className="w-full px-3.5 py-2.5 text-xs border border-stone-300 rounded-xl bg-[#F7F6F2]"
                     placeholder="10-digit mobile number"
                   />
                 </div>
@@ -232,7 +231,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                     required
                     value={address.pincode}
                     onChange={(e) => setAddress({ ...address, pincode: e.target.value })}
-                    className="w-full px-3.5 py-2.5 text-xs border border-stone-300 rounded-xl bg-[#F3F6F3]"
+                    className="w-full px-3.5 py-2.5 text-xs border border-stone-300 rounded-xl bg-[#F7F6F2]"
                     placeholder="e.g. 400001"
                   />
                 </div>
@@ -245,7 +244,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                   required
                   value={address.addressLine1}
                   onChange={(e) => setAddress({ ...address, addressLine1: e.target.value })}
-                  className="w-full px-3.5 py-2.5 text-xs border border-stone-300 rounded-xl bg-[#F3F6F3]"
+                  className="w-full px-3.5 py-2.5 text-xs border border-stone-300 rounded-xl bg-[#F7F6F2]"
                   placeholder="House / Flat No., Building Name, Street"
                 />
               </div>
@@ -258,7 +257,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                     required
                     value={address.city}
                     onChange={(e) => setAddress({ ...address, city: e.target.value })}
-                    className="w-full px-3.5 py-2.5 text-xs border border-stone-300 rounded-xl bg-[#F3F6F3]"
+                    className="w-full px-3.5 py-2.5 text-xs border border-stone-300 rounded-xl bg-[#F7F6F2]"
                     placeholder="e.g. Mumbai"
                   />
                 </div>
@@ -269,19 +268,19 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                     required
                     value={address.state}
                     onChange={(e) => setAddress({ ...address, state: e.target.value })}
-                    className="w-full px-3.5 py-2.5 text-xs border border-stone-300 rounded-xl bg-[#F3F6F3]"
+                    className="w-full px-3.5 py-2.5 text-xs border border-stone-300 rounded-xl bg-[#F7F6F2]"
                   />
                 </div>
               </div>
 
               {/* Order Summary Recap */}
-              <div className="bg-[#F3F6F3] p-4 rounded-2xl border border-stone-200 mt-4 text-xs space-y-1.5">
+              <div className="bg-[#F7F6F2] p-4 rounded-2xl border border-stone-200 mt-4 text-xs space-y-1.5">
                 <div className="flex justify-between">
                   <span>Items ({items.length})</span>
                   <span>₹{subtotal}</span>
                 </div>
                 {discount > 0 && (
-                  <div className="flex justify-between text-emerald-700 font-semibold">
+                  <div className="flex justify-between text-[#3A5303] font-semibold">
                     <span>Discount ({promoCode})</span>
                     <span>-₹{discount}</span>
                   </div>
@@ -292,37 +291,37 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                 </div>
                 <div className="flex justify-between text-sm font-bold text-stone-900 pt-1 border-t border-stone-300">
                   <span>Total Payable</span>
-                  <span className="text-[#4B6B03] font-serif">₹{totalAmount}</span>
+                  <span className="text-[#3A5303] font-serif">₹{totalAmount}</span>
                 </div>
               </div>
 
               <button
                 type="submit"
-                className="w-full py-4 bg-[#4B6B03] text-white font-bold text-sm rounded-xl shadow-lg hover:bg-[#385002]"
+                className="w-full py-4 bg-[#3A5303] text-white font-bold text-xs uppercase tracking-wider rounded-xl shadow-lg hover:bg-[#2b3e02]"
               >
                 Continue to Security Verification
               </button>
             </form>
           )}
 
-          {/* STEP 2: Google reCAPTCHA Verification */}
+          {/* STEP 2: reCAPTCHA Verification */}
           {step === 'recaptcha' && (
             <div className="space-y-6 text-center py-4">
               <div className="space-y-2">
-                <ShieldCheck className="w-12 h-12 text-[#4E90F5] mx-auto" />
-                <h3 className="text-lg font-bold font-serif text-stone-900">
-                  Google reCAPTCHA Security Defense
+                <ShieldCheck className="w-12 h-12 text-[#3A5303] mx-auto" />
+                <h3 className="text-lg font-serif text-stone-900">
+                  Security Defense Verification
                 </h3>
                 <p className="text-xs text-stone-500 max-w-sm mx-auto">
-                  Please complete the quick reCAPTCHA security verification to protect your transaction against automated bots.
+                  Please complete the security check to protect your transaction against automated bots.
                 </p>
               </div>
 
-              {/* reCAPTCHA Widget Box */}
+              {/* Safe reCAPTCHA Widget Box */}
               <div className="flex flex-col items-center justify-center my-4">
-                <ReCAPTCHA
-                  sitekey={siteKey}
-                  onChange={handleRecaptchaVerify}
+                <SafeRecaptcha
+                  siteKey={siteKey}
+                  onVerify={handleRecaptchaVerify}
                 />
                 {recaptchaError && (
                   <p className="text-xs text-red-600 mt-2">{recaptchaError}</p>
@@ -332,14 +331,14 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
               <div className="flex space-x-3 pt-2">
                 <button
                   onClick={() => setStep('shipping')}
-                  className="w-1/3 py-3 rounded-xl border border-stone-300 text-stone-700 font-bold text-xs hover:bg-stone-100"
+                  className="w-1/3 py-3 rounded-xl border border-stone-300 text-stone-700 font-semibold text-xs hover:bg-stone-100"
                 >
                   Back
                 </button>
 
                 <button
                   onClick={handleInitiatePayment}
-                  className="w-2/3 py-3 rounded-xl bg-[#4B6B03] hover:bg-[#385002] text-white font-bold text-xs shadow-lg flex items-center justify-center space-x-2"
+                  className="w-2/3 py-3 rounded-xl bg-[#3A5303] hover:bg-[#2b3e02] text-white font-semibold text-xs uppercase tracking-wider shadow-lg flex items-center justify-center space-x-2"
                 >
                   <CreditCard className="w-4 h-4 text-[#94C000]" />
                   <span>Pay ₹{totalAmount} via Razorpay</span>
@@ -351,8 +350,8 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
           {/* STEP 3: Processing Loader */}
           {step === 'processing' && (
             <div className="text-center py-16 space-y-4">
-              <Loader2 className="w-12 h-12 text-[#4B6B03] animate-spin mx-auto" />
-              <h3 className="text-lg font-bold font-serif text-stone-800">
+              <Loader2 className="w-12 h-12 text-[#3A5303] animate-spin mx-auto" />
+              <h3 className="text-lg font-serif text-stone-800">
                 Processing Razorpay & Syncing Google Apps Script...
               </h3>
               <p className="text-xs text-stone-500">
@@ -364,19 +363,19 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
           {/* STEP 4: Success Screen */}
           {step === 'success' && completedOrder && (
             <div className="text-center py-6 space-y-6">
-              <div className="w-16 h-16 bg-emerald-100 text-[#4B6B03] rounded-full flex items-center justify-center mx-auto">
+              <div className="w-16 h-16 bg-emerald-100 text-[#3A5303] rounded-full flex items-center justify-center mx-auto">
                 <CheckCircle2 className="w-10 h-10" />
               </div>
 
               <div className="space-y-2">
-                <span className="text-xs uppercase tracking-widest text-[#94C000] font-bold">
+                <span className="text-xs uppercase tracking-widest text-[#3A5303] font-bold">
                   Order Successfully Placed!
                 </span>
-                <h3 className="text-2xl font-bold font-serif text-stone-900">
+                <h3 className="text-2xl font-serif text-stone-900">
                   Thank You, {address.fullName}!
                 </h3>
                 <p className="text-xs text-stone-500">
-                  Your order ID is <span className="font-bold text-[#4B6B03]">{completedOrder.id}</span>
+                  Your order ID is <span className="font-bold text-[#3A5303]">{completedOrder.id}</span>
                 </p>
                 <p className="text-xs text-stone-500">
                   Recorded in Google Apps Script Backend & Payment Ref: <span className="font-mono text-stone-700">{completedOrder.paymentId}</span>
@@ -384,17 +383,17 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
               </div>
 
               {/* Order Items Recap */}
-              <div className="bg-[#F3F6F3] p-4 rounded-2xl border border-stone-200 text-left text-xs space-y-2">
+              <div className="bg-[#F7F6F2] p-4 rounded-2xl border border-stone-200 text-left text-xs space-y-2">
                 <p className="font-bold text-stone-800 border-b border-stone-300 pb-1">Items Ordered:</p>
                 {completedOrder.items.map((it, idx) => (
                   <div key={idx} className="flex justify-between">
                     <span>{it.product.name} ({it.selectedVariant.weight}) x{it.quantity}</span>
-                    <span className="font-bold">₹{it.selectedVariant.price * it.quantity}</span>
+                    <span className="font-semibold">₹{it.selectedVariant.price * it.quantity}</span>
                   </div>
                 ))}
                 <div className="pt-2 border-t border-stone-300 flex justify-between font-bold text-stone-900 text-sm">
                   <span>Total Paid:</span>
-                  <span className="text-[#4B6B03]">₹{completedOrder.total}</span>
+                  <span className="text-[#3A5303]">₹{completedOrder.total}</span>
                 </div>
               </div>
 
@@ -405,7 +404,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
 
               <button
                 onClick={onClose}
-                className="w-full py-3.5 bg-[#4B6B03] text-white font-bold text-sm rounded-xl shadow-lg hover:bg-[#385002]"
+                className="w-full py-3.5 bg-[#3A5303] text-white font-bold text-xs uppercase tracking-wider rounded-xl shadow-lg hover:bg-[#2b3e02]"
               >
                 Back to Farm Shop
               </button>

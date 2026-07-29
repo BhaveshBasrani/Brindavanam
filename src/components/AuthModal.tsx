@@ -1,9 +1,9 @@
 'use client';
 
 import React, { useState } from 'react';
-import ReCAPTCHA from 'react-google-recaptcha';
-import { X, Lock, Mail, User as UserIcon, ShieldCheck, AlertCircle, Sparkles } from 'lucide-react';
+import { X, Lock, Mail, User as UserIcon, AlertCircle, Sparkles } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
+import { SafeRecaptcha } from '@/components/SafeRecaptcha';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -19,14 +19,18 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
   const [name, setName] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
   const [loading, setLoading] = useState(false);
-  const [recaptchaVerified, setRecaptchaVerified] = useState(false);
+  const [recaptchaToken, setRecaptchaToken] = useState<string | null>(null);
 
   if (!isOpen) return null;
 
-  const siteKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || '6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI';
+  const siteKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || '6LcpqGstAAAAAMBOybBtJPFQ2aMtBfLmsUT9AAtB';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!recaptchaToken) {
+      setErrorMsg('Please complete the security verification checkbox');
+      return;
+    }
     setErrorMsg('');
     setLoading(true);
 
@@ -62,7 +66,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
       <div className="bg-white w-full max-w-md rounded-3xl shadow-2xl overflow-hidden relative border border-stone-200 animate-in fade-in duration-200">
         
         {/* Header */}
-        <div className="bg-[#4B6B03] text-white p-6 relative">
+        <div className="bg-[#3A5303] text-white p-6 relative">
           <button
             onClick={onClose}
             className="absolute top-4 right-4 text-white/70 hover:text-white p-2 rounded-full hover:bg-white/10"
@@ -73,7 +77,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
             <span className="text-xs uppercase tracking-widest text-[#94C000] font-bold">
               Firebase Authentication
             </span>
-            <h2 className="text-2xl font-bold font-serif">
+            <h2 className="text-2xl font-serif">
               {isSignUp ? 'Join Brindavanam' : 'Welcome Back'}
             </h2>
             <p className="text-xs text-stone-200 font-light">
@@ -97,7 +101,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
               demoLogin('user.organic@gmail.com', 'Bhavesh Basrani');
               onClose();
             }}
-            className="w-full py-2.5 px-4 bg-[#F3F6F3] border border-stone-300 rounded-xl text-stone-800 text-xs font-semibold hover:bg-emerald-50 hover:border-[#4B6B03] flex items-center justify-center space-x-2 transition-colors"
+            className="w-full py-2.5 px-4 bg-[#F7F6F2] border border-stone-300 rounded-xl text-stone-800 text-xs font-semibold hover:bg-emerald-50 hover:border-[#3A5303] flex items-center justify-center space-x-2 transition-colors"
           >
             <Sparkles className="w-4 h-4 text-[#94C000]" />
             <span>Instant Demo Login (One-Click Test)</span>
@@ -136,7 +140,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
                     required
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    className="w-full pl-9 pr-3 py-2 text-xs border border-stone-300 rounded-xl bg-[#F3F6F3]"
+                    className="w-full pl-9 pr-3 py-2 text-xs border border-stone-300 rounded-xl bg-[#F7F6F2]"
                     placeholder="e.g. Bhavesh Basrani"
                   />
                   <UserIcon className="w-4 h-4 text-stone-400 absolute left-3 top-2.5" />
@@ -152,7 +156,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full pl-9 pr-3 py-2 text-xs border border-stone-300 rounded-xl bg-[#F3F6F3]"
+                  className="w-full pl-9 pr-3 py-2 text-xs border border-stone-300 rounded-xl bg-[#F7F6F2]"
                   placeholder="name@example.com"
                 />
                 <Mail className="w-4 h-4 text-stone-400 absolute left-3 top-2.5" />
@@ -167,25 +171,25 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full pl-9 pr-3 py-2 text-xs border border-stone-300 rounded-xl bg-[#F3F6F3]"
+                  className="w-full pl-9 pr-3 py-2 text-xs border border-stone-300 rounded-xl bg-[#F7F6F2]"
                   placeholder="••••••••"
                 />
                 <Lock className="w-4 h-4 text-stone-400 absolute left-3 top-2.5" />
               </div>
             </div>
 
-            {/* reCAPTCHA Security Check */}
+            {/* Safe reCAPTCHA Security Check */}
             <div className="pt-2 flex flex-col items-center">
-              <ReCAPTCHA
-                sitekey={siteKey}
-                onChange={() => setRecaptchaVerified(true)}
+              <SafeRecaptcha
+                siteKey={siteKey}
+                onVerify={setRecaptchaToken}
               />
             </div>
 
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3 bg-[#4B6B03] hover:bg-[#385002] text-white font-bold text-xs rounded-xl shadow-md transition-colors"
+              className="w-full py-3 bg-[#3A5303] hover:bg-[#2b3e02] text-white font-bold text-xs uppercase tracking-wider rounded-xl shadow-md transition-colors"
             >
               {loading ? 'Authenticating...' : isSignUp ? 'Create Organic Account' : 'Sign In'}
             </button>
@@ -199,7 +203,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
                 <button
                   type="button"
                   onClick={() => setIsSignUp(false)}
-                  className="font-bold text-[#4B6B03] underline"
+                  className="font-bold text-[#3A5303] underline"
                 >
                   Sign In here
                 </button>
@@ -210,7 +214,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
                 <button
                   type="button"
                   onClick={() => setIsSignUp(true)}
-                  className="font-bold text-[#4B6B03] underline"
+                  className="font-bold text-[#3A5303] underline"
                 >
                   Create one now
                 </button>

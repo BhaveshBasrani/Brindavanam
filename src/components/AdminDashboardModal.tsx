@@ -1,9 +1,9 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import ReCAPTCHA from 'react-google-recaptcha';
-import { X, ShieldAlert, RefreshCw, Truck, CheckCircle2, DollarSign, Package, Mail, Search, Lock, Filter } from 'lucide-react';
+import { X, ShieldAlert, RefreshCw, Package, Mail, Search, Lock, Filter, DollarSign } from 'lucide-react';
 import { Order } from '@/types/store';
+import { SafeRecaptcha } from '@/components/SafeRecaptcha';
 
 interface AdminDashboardModalProps {
   isOpen: boolean;
@@ -19,7 +19,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
   const [authenticated, setAuthenticated] = useState(false);
   const [passcode, setPasscode] = useState('');
   const [authError, setAuthError] = useState('');
-  const [recaptchaVerified, setRecaptchaVerified] = useState(false);
+  const [recaptchaToken, setRecaptchaToken] = useState<string | null>(null);
 
   const [gasOrders, setGasOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(false);
@@ -27,9 +27,8 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
   const [statusFilter, setStatusFilter] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
 
-  const siteKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || '6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI';
+  const siteKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || '6LcpqGstAAAAAMBOybBtJPFQ2aMtBfLmsUT9AAtB';
 
-  // Fetch orders from Google Apps Script endpoint or fallback to local orders
   const fetchOrdersFromGAS = async () => {
     setLoading(true);
     try {
@@ -59,6 +58,10 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
 
   const handleAdminAuth = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!recaptchaToken) {
+      setAuthError('Please verify the security checkbox.');
+      return;
+    }
     if (passcode === 'admin123' || passcode === 'brindavanam') {
       setAuthenticated(true);
       setAuthError('');
@@ -82,7 +85,6 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
       });
       await response.json();
       
-      // Update state locally
       setGasOrders((prev) =>
         prev.map((o) => (o.id === orderId ? { ...o, status: newStatus } : o))
       );
@@ -113,14 +115,14 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
         {/* Header */}
         <div className="bg-[#1c260b] text-white p-6 flex justify-between items-center border-b border-stone-800">
           <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 rounded-xl bg-[#4B6B03] flex items-center justify-center text-white font-bold">
+            <div className="w-10 h-10 rounded-xl bg-[#3A5303] flex items-center justify-center text-white font-bold">
               <ShieldAlert className="w-5 h-5 text-[#94C000]" />
             </div>
             <div>
               <span className="text-xs uppercase tracking-widest text-[#94C000] font-bold">
                 Google Apps Script Integrated
               </span>
-              <h2 className="text-xl font-bold font-serif">Store Admin Dashboard</h2>
+              <h2 className="text-xl font-serif">Store Admin Dashboard</h2>
             </div>
           </div>
           <button
@@ -134,11 +136,11 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
         {/* STEP 1: Admin Passcode + reCAPTCHA Authentication */}
         {!authenticated ? (
           <div className="p-8 max-w-md mx-auto text-center space-y-6">
-            <div className="w-16 h-16 bg-[#F3F6F3] rounded-full flex items-center justify-center mx-auto text-[#4B6B03]">
+            <div className="w-16 h-16 bg-[#F7F6F2] rounded-full flex items-center justify-center mx-auto text-[#3A5303]">
               <Lock className="w-8 h-8" />
             </div>
             <div className="space-y-1">
-              <h3 className="text-lg font-bold font-serif text-stone-900">Admin Security Portal</h3>
+              <h3 className="text-lg font-serif text-stone-900">Admin Security Portal</h3>
               <p className="text-xs text-stone-500">
                 Enter your store manager passcode to access live Google Apps Script orders and email logs.
               </p>
@@ -157,21 +159,21 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                   required
                   value={passcode}
                   onChange={(e) => setPasscode(e.target.value)}
-                  className="w-full px-4 py-3 border border-stone-300 rounded-xl text-xs text-center font-bold tracking-widest bg-[#F3F6F3]"
+                  className="w-full px-4 py-3 border border-stone-300 rounded-xl text-xs text-center font-bold tracking-widest bg-[#F7F6F2]"
                   placeholder="Enter Passcode (e.g. admin123)"
                 />
               </div>
 
               <div className="flex flex-col items-center justify-center py-2">
-                <ReCAPTCHA
-                  sitekey={siteKey}
-                  onChange={() => setRecaptchaVerified(true)}
+                <SafeRecaptcha
+                  siteKey={siteKey}
+                  onVerify={setRecaptchaToken}
                 />
               </div>
 
               <button
                 type="submit"
-                className="w-full py-3.5 bg-[#4B6B03] hover:bg-[#385002] text-white font-bold text-xs rounded-xl shadow-md"
+                className="w-full py-3.5 bg-[#3A5303] hover:bg-[#2b3e02] text-white font-bold text-xs uppercase tracking-wider rounded-xl shadow-md"
               >
                 Authenticate Admin Access
               </button>
@@ -182,27 +184,27 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
           <div className="p-6 space-y-6">
             {/* Analytics Stats */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div className="bg-[#F3F6F3] p-4 rounded-2xl border border-stone-200 flex items-center space-x-3">
-                <div className="w-10 h-10 rounded-xl bg-[#4B6B03] text-white flex items-center justify-center">
+              <div className="bg-[#F7F6F2] p-4 rounded-2xl border border-stone-200 flex items-center space-x-3">
+                <div className="w-10 h-10 rounded-xl bg-[#3A5303] text-white flex items-center justify-center">
                   <DollarSign className="w-5 h-5 text-[#94C000]" />
                 </div>
                 <div>
                   <p className="text-[11px] text-stone-500 font-semibold uppercase">Total Revenue</p>
-                  <p className="text-xl font-bold font-serif text-[#4B6B03]">₹{totalRevenue}</p>
+                  <p className="text-xl font-serif text-[#3A5303]">₹{totalRevenue}</p>
                 </div>
               </div>
 
-              <div className="bg-[#F3F6F3] p-4 rounded-2xl border border-stone-200 flex items-center space-x-3">
+              <div className="bg-[#F7F6F2] p-4 rounded-2xl border border-stone-200 flex items-center space-x-3">
                 <div className="w-10 h-10 rounded-xl bg-[#4E90F5] text-white flex items-center justify-center">
                   <Package className="w-5 h-5" />
                 </div>
                 <div>
                   <p className="text-[11px] text-stone-500 font-semibold uppercase">Total Orders</p>
-                  <p className="text-xl font-bold font-serif text-stone-900">{combinedOrders.length}</p>
+                  <p className="text-xl font-serif text-stone-900">{combinedOrders.length}</p>
                 </div>
               </div>
 
-              <div className="bg-[#F3F6F3] p-4 rounded-2xl border border-stone-200 flex items-center space-x-3">
+              <div className="bg-[#F7F6F2] p-4 rounded-2xl border border-stone-200 flex items-center space-x-3">
                 <div className="w-10 h-10 rounded-xl bg-[#94C000] text-[#1c260b] flex items-center justify-center">
                   <Mail className="w-5 h-5" />
                 </div>
@@ -243,7 +245,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                 <button
                   onClick={fetchOrdersFromGAS}
                   disabled={loading}
-                  className="px-3 py-2 bg-[#4B6B03] text-white text-xs font-bold rounded-xl flex items-center space-x-1"
+                  className="px-3 py-2 bg-[#3A5303] text-white text-xs font-bold rounded-xl flex items-center space-x-1"
                 >
                   <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
                   <span className="hidden sm:inline">Refresh</span>
@@ -254,7 +256,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
             {/* Orders Table */}
             <div className="bg-white rounded-2xl border border-stone-200 overflow-hidden max-h-[380px] overflow-y-auto">
               <table className="w-full text-left text-xs">
-                <thead className="bg-[#4B6B03] text-white font-bold sticky top-0">
+                <thead className="bg-[#3A5303] text-white font-bold sticky top-0">
                   <tr>
                     <th className="p-3">Order ID & Date</th>
                     <th className="p-3">Customer Details</th>
@@ -274,7 +276,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                     filteredOrders.map((ord) => (
                       <tr key={ord.id} className="hover:bg-stone-50 transition-colors">
                         <td className="p-3">
-                          <span className="font-bold text-[#4B6B03] block">{ord.id}</span>
+                          <span className="font-bold text-[#3A5303] block">{ord.id}</span>
                           <span className="text-[10px] text-stone-400">{ord.date}</span>
                         </td>
                         <td className="p-3">
@@ -294,7 +296,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                         </td>
                         <td className="p-3">
                           <div className="flex items-center space-x-1.5">
-                            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-[#4B6B03]">
+                            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-[#3A5303]">
                               {ord.status}
                             </span>
                             
