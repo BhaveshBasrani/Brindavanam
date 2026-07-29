@@ -39,8 +39,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             photoURL: firebaseUser.photoURL || undefined
           });
         } else {
-          // Check local storage for mock user if firebase environment is in dev fallback
-          const savedMockUser = localStorage.getItem('brindavanam_mock_user');
+          const savedMockUser = typeof window !== 'undefined' ? localStorage.getItem('brindavanam_mock_user') : null;
           if (savedMockUser) {
             try {
               setUser(JSON.parse(savedMockUser));
@@ -52,14 +51,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           }
         }
         setLoading(false);
-      }, (error) => {
-        console.warn('Firebase Auth state listener notice:', error);
+      }, () => {
         setLoading(false);
       });
 
       return () => unsubscribe();
-    } catch (err) {
-      console.warn('Firebase Auth initialization error, using local auth session:', err);
+    } catch {
       setLoading(false);
     }
   }, []);
@@ -67,8 +64,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const loginWithEmail = async (email: string, pass: string) => {
     try {
       await signInWithEmailAndPassword(auth, email, pass);
-    } catch (err) {
-      console.warn('Firebase Sign In notice:', err);
+    } catch {
       demoLogin(email, email.split('@')[0]);
     }
   };
@@ -76,8 +72,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const signUpWithEmail = async (email: string, pass: string, name: string) => {
     try {
       await createUserWithEmailAndPassword(auth, email, pass);
-    } catch (err) {
-      console.warn('Firebase Sign Up notice:', err);
+    } catch {
       demoLogin(email, name);
     }
   };
@@ -85,8 +80,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const loginWithGoogle = async () => {
     try {
       await signInWithPopup(auth, googleProvider);
-    } catch (err) {
-      console.warn('Firebase Google Auth notice, logging in with demo profile:', err);
+    } catch {
       demoLogin('user.organic@gmail.com', 'Bhavesh Basrani');
     }
   };
@@ -99,7 +93,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       photoURL: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80'
     };
     setUser(mockProfile);
-    localStorage.setItem('brindavanam_mock_user', JSON.stringify(mockProfile));
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('brindavanam_mock_user', JSON.stringify(mockProfile));
+    }
   };
 
   const logout = async () => {
@@ -109,7 +105,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // ignore
     }
     setUser(null);
-    localStorage.removeItem('brindavanam_mock_user');
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('brindavanam_mock_user');
+    }
   };
 
   return (

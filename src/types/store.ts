@@ -61,6 +61,10 @@ export interface Order {
   paymentMethod: 'Razorpay' | 'Cash on Delivery';
   paymentId?: string;
   status: 'Processing' | 'Shipped' | 'Delivered' | 'Cancelled';
+  customerName?: string;
+  customerEmail?: string;
+  customerPhone?: string;
+  itemsSummary?: string;
 }
 
 export interface UserProfile {
