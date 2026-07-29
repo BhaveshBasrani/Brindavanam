@@ -65,6 +65,7 @@ export interface Order {
   customerEmail?: string;
   customerPhone?: string;
   itemsSummary?: string;
+  city?: string;
 }
 
 export interface UserProfile {
