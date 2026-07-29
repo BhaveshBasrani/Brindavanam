@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { 
   X, ShieldAlert, RefreshCw, Package, Mail, Search, Lock, Filter, 
   DollarSign, Users, TrendingUp, ChevronRight, CheckCircle2, Truck, 
-  AlertCircle, ExternalLink, BarChart3, Database, Phone, MapPin 
+  BarChart3, Database 
 } from 'lucide-react';
 import { Order } from '@/types/store';
 import { SafeRecaptcha } from '@/components/SafeRecaptcha';
@@ -34,12 +34,12 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
   const [selectedOrderDetails, setSelectedOrderDetails] = useState<Order | null>(null);
 
   const siteKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || '6LcpqGstAAAAAMBOybBtJPFQ2aMtBfLmsUT9AAtB';
-  const gasUrl = process.env.NEXT_PUBLIC_GAS_WEB_APP_URL || '';
+  const gasUrl = process.env.NEXT_PUBLIC_GAS_WEB_APP_URL || 'https://script.google.com/macros/s/AKfycbwqHEdFL5zR_cCPSUkvb91nudf72H9K1CdFYPEyHgP_XInRSaHQU0TiZEtadcYHpQPS/exec';
 
   const fetchOrdersFromGAS = async () => {
     setLoading(true);
     try {
-      const response = await fetch('/api/gas-order?action=get_orders');
+      const response = await fetch(gasUrl);
       const data = await response.json();
       if (data.status === 'success' && Array.isArray(data.orders) && data.orders.length > 0) {
         setGasOrders(data.orders);
@@ -81,9 +81,9 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
   const handleUpdateStatus = async (orderId: string, newStatus: Order['status']) => {
     setUpdatingId(orderId);
     try {
-      const response = await fetch('/api/gas-order', {
+      const response = await fetch(gasUrl, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify({
           action: 'update_status',
           orderId,
@@ -119,7 +119,6 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
   const shippedCount = combinedOrders.filter((o) => o.status === 'Shipped').length;
   const deliveredCount = combinedOrders.filter((o) => o.status === 'Delivered').length;
 
-  // Extract Unique CRM Customers
   const customerMap = new Map<string, { name: string; email: string; phone: string; count: number; totalSpent: number }>();
   combinedOrders.forEach((o) => {
     const email = (o.shippingAddress?.email || o.customerEmail || '').toLowerCase();
@@ -545,7 +544,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                 <div className="bg-white p-4 rounded-xl border border-stone-200 space-y-2">
                   <p className="font-bold text-stone-800">Deployment Endpoint URL:</p>
                   <p className="font-mono text-stone-600 text-[11px] break-all bg-[#F7F6F2] p-2 rounded border border-stone-200">
-                    {gasUrl || 'https://script.google.com/macros/s/AKfycbwqHEdFL5zR_cCPSUkvb91nudf72H9K1CdFYPEyHgP_XInRSaHQU0TiZEtadcYHpQPS/exec'}
+                    {gasUrl}
                   </p>
                 </div>
 
