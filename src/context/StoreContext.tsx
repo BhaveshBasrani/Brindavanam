@@ -31,32 +31,46 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [userOrders, setUserOrders] = useState<Order[]>([]);
   const [appliedDiscount, setAppliedDiscount] = useState<number>(0);
   const [appliedPromoCode, setAppliedPromoCode] = useState<string>('');
+  const [isLoaded, setIsLoaded] = useState<boolean>(false);
 
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [isOrdersOpen, setIsOrdersOpen] = useState(false);
   const [isAdminOpen, setIsAdminOpen] = useState(false);
 
-  // Load saved cart from localStorage on mount
+  // Load saved cart from localStorage on initial client mount FIRST
   useEffect(() => {
     try {
       const savedCart = localStorage.getItem('brindavanam_cart');
-      if (savedCart) setCartItems(JSON.parse(savedCart));
+      if (savedCart) {
+        const parsed = JSON.parse(savedCart);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setCartItems(parsed);
+        }
+      }
       const savedOrders = localStorage.getItem('brindavanam_orders');
-      if (savedOrders) setUserOrders(JSON.parse(savedOrders));
-    } catch {
-      // fallback
+      if (savedOrders) {
+        const parsedOrders = JSON.parse(savedOrders);
+        if (Array.isArray(parsedOrders)) {
+          setUserOrders(parsedOrders);
+        }
+      }
+    } catch (e) {
+      console.warn('Store Context localStorage load error:', e);
+    } finally {
+      setIsLoaded(true);
     }
   }, []);
 
-  // Sync cart changes to localStorage
+  // Sync cart changes to localStorage ONLY after initial load completes
   useEffect(() => {
+    if (!isLoaded) return;
     try {
       localStorage.setItem('brindavanam_cart', JSON.stringify(cartItems));
-    } catch {
-      // ignore
+    } catch (e) {
+      console.warn('Store Context localStorage save error:', e);
     }
-  }, [cartItems]);
+  }, [cartItems, isLoaded]);
 
   const addToCart = (product: Product, variant: ProductVariant, quantity: number) => {
     setCartItems((prev) => {
@@ -65,7 +79,10 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       );
       if (existingIdx > -1) {
         const updated = [...prev];
-        updated[existingIdx].quantity += quantity;
+        updated[existingIdx] = {
+          ...updated[existingIdx],
+          quantity: updated[existingIdx].quantity + quantity,
+        };
         return updated;
       }
       return [...prev, { product, selectedVariant: variant, quantity }];
@@ -79,7 +96,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
     setCartItems((prev) => {
       const updated = [...prev];
-      updated[index].quantity = newQty;
+      updated[index] = { ...updated[index], quantity: newQty };
       return updated;
     });
   };

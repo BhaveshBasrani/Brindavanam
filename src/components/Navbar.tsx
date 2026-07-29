@@ -20,6 +20,7 @@ interface NavbarProps {
 
 export const Navbar: React.FC<NavbarProps> = ({
   cartCount,
+  onOpenCart,
   onOpenAuth,
   onOpenOrders,
   onOpenAdmin,
@@ -114,7 +115,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               </Link>
             </div>
 
-            {/* Center: Desktop Navigation Links - STRICT SINGLE LINE & COMPACT */}
+            {/* Center: Desktop Navigation Links */}
             <nav className="hidden lg:flex items-center space-x-1 bg-[#F7F6F2] px-2 py-1 rounded-full border border-stone-200/80 text-[11px] uppercase tracking-wider font-semibold whitespace-nowrap shrink">
               {categories.map((cat) => (
                 <button
@@ -131,7 +132,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               ))}
             </nav>
 
-            {/* Right: Actions & Profile - GUARANTEED PADDING FOR CART BAG */}
+            {/* Right: Actions & Profile */}
             <div className="flex items-center space-x-1.5 sm:space-x-2.5 shrink-0 pr-1">
               
               {/* Mobile Search Button */}
@@ -189,7 +190,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                               className="w-10 h-10 rounded-full object-cover ring-2 ring-[#3A5303]"
                             />
                           ) : (
-                            <div className="w-10 h-10 rounded-full bg-[#3A5303] text-white flex items-center justify-center font-bold text-sm">
+                            <div className="w-10 h-10 rounded-full bg-[#3A5303] text-[#1c260b] flex items-center justify-center font-bold text-sm">
                               {user.displayName.charAt(0).toUpperCase()}
                             </div>
                           )}
@@ -246,11 +247,11 @@ export const Navbar: React.FC<NavbarProps> = ({
                 )}
               </div>
 
-              {/* Shopping Cart Link Trigger - ALWAYS SAFELY INSIDE WITH PADDING */}
-              <Link
-                href="/cart"
-                className="relative p-2 sm:p-2.5 rounded-full bg-[#3A5303] text-white hover:bg-[#2b3e02] transition-transform active:scale-95 shadow-xs flex items-center justify-center shrink-0"
-                title="Shopping Cart"
+              {/* Shopping Cart Button Trigger - OPENS SLIDE-OUT CART DRAWER DIRECTLY */}
+              <button
+                onClick={onOpenCart}
+                className="relative p-2 sm:p-2.5 rounded-full bg-[#3A5303] hover:bg-[#2b3e02] text-white transition-transform active:scale-95 shadow-xs flex items-center justify-center shrink-0"
+                title="Shopping Bag"
               >
                 <ShoppingBag className="w-4 h-4" />
                 {cartCount > 0 && (
@@ -258,7 +259,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                     {cartCount}
                   </span>
                 )}
-              </Link>
+              </button>
 
             </div>
           </motion.div>
