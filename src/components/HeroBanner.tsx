@@ -38,7 +38,7 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({ onShopNow }) => {
 
   return (
     <div 
-      className="relative bg-[#F7F6F2] overflow-hidden py-10 sm:py-16 border-b border-stone-200"
+      className="relative bg-[#F7F6F2] overflow-hidden pt-28 sm:pt-36 pb-16 sm:pb-24 border-b border-stone-200"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
