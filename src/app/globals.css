@@ -1,0 +1,51 @@
+@import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap');
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --babypowder: #F7F6F2;
+    --jordyblue: #9EBEED;
+    --chefchaouen: #4E90F5;
+    --applegreen: #94C000;
+    --darkmoss: #3A5303;
+  }
+}
+
+body {
+  background-color: #F7F6F2;
+  color: #1a220b;
+  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.font-serif {
+  font-family: 'Instrument Serif', Georgia, serif !important;
+  font-weight: 400;
+}
+
+.font-sans {
+  font-family: 'Plus Jakarta Sans', sans-serif !important;
+}
+
+/* Subtle, refined custom colors */
+.bg-babypowder { background-color: #F7F6F2; }
+.bg-darkmoss { background-color: #3A5303; }
+.text-darkmoss { color: #3A5303; }
+.border-darkmoss { border-color: #3A5303; }
+
+/* Custom smooth scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #F7F6F2;
+}
+::-webkit-scrollbar-thumb {
+  background: #c3cbab;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #3A5303;
+}
