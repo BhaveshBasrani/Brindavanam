@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ShoppingBag, User, Search, Menu, X, ShieldAlert, LogOut, Package, Leaf } from 'lucide-react';
+import { ShoppingBag, User, Search, Menu, X, LogOut, Package, Leaf } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 
 interface NavbarProps {
@@ -41,6 +41,18 @@ export const Navbar: React.FC<NavbarProps> = ({
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  // Secret shortcut for Store Owner: Ctrl + Shift + A opens Admin Panel
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'a') {
+        e.preventDefault();
+        onOpenAdmin();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [onOpenAdmin]);
+
   const categories = [
     { id: 'all', label: 'All Produce' },
     { id: 'ghee', label: 'A2 Bilona Ghee' },
@@ -53,9 +65,9 @@ export const Navbar: React.FC<NavbarProps> = ({
       {/* Dynamic Header Wrapper */}
       <div className="fixed top-0 left-0 right-0 z-50 flex flex-col items-center pointer-events-none">
         
-        {/* Top Announcement Bar */}
+        {/* Top Editorial Announcement Bar */}
         {!isScrolled && (
-          <div className="w-full bg-[#3A5303] text-stone-100 text-[11px] font-medium tracking-wider uppercase py-2 px-4 pointer-events-auto transition-all duration-200 shadow-xs">
+          <div className="w-full bg-[#3A5303] text-stone-100 text-[11px] font-medium tracking-wider uppercase py-2.5 px-4 pointer-events-auto transition-all duration-200 shadow-xs">
             <div className="max-w-7xl mx-auto flex justify-between items-center px-2">
               <div className="flex items-center space-x-4 overflow-x-auto whitespace-nowrap scrollbar-none py-0.5 text-stone-200">
                 <span>Traditional Wood-Pressed & A2 Certified</span>
@@ -63,14 +75,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 <span className="hidden md:inline">Complimentary Shipping Over ₹999</span>
               </div>
               <div className="flex items-center space-x-3">
-                <span className="hidden sm:inline text-[#94C000] font-mono text-[10px] font-bold">CODE: ORGANIC10</span>
-                <button
-                  onClick={onOpenAdmin}
-                  className="bg-[#1c260b] hover:bg-[#2b3e02] text-white hover:text-[#94C000] text-[10px] tracking-widest uppercase font-bold px-2.5 py-1 rounded-md flex items-center space-x-1 border border-white/20 transition-all active:scale-95 shadow-xs"
-                >
-                  <ShieldAlert className="w-3 h-3 text-[#94C000]" />
-                  <span>Admin Desk</span>
-                </button>
+                <span className="text-[#94C000] font-mono text-[10px] font-bold">CODE: ORGANIC10</span>
               </div>
             </div>
           </div>
@@ -138,17 +143,6 @@ export const Navbar: React.FC<NavbarProps> = ({
                 <Search className="w-3.5 h-3.5 text-stone-400 absolute left-2" />
               </div>
 
-              {/* Admin Desk Trigger inside Scrolled Dynamic Island */}
-              {isScrolled && (
-                <button
-                  onClick={onOpenAdmin}
-                  className="bg-[#1c260b] hover:bg-[#3A5303] text-white p-2 rounded-full shadow-xs transition-colors"
-                  title="Store Admin Desk"
-                >
-                  <ShieldAlert className="w-4 h-4 text-[#94C000]" />
-                </button>
-              )}
-
               {/* User Profile PFP Avatar */}
               <div className="relative">
                 {user ? (
@@ -202,17 +196,6 @@ export const Navbar: React.FC<NavbarProps> = ({
                         >
                           <Package className="w-4 h-4 text-[#3A5303]" />
                           <span>Customer Dashboard & Orders</span>
-                        </button>
-
-                        <button
-                          onClick={() => {
-                            setUserDropdownOpen(false);
-                            onOpenAdmin();
-                          }}
-                          className="w-full text-left px-4 py-2.5 text-xs text-[#3A5303] hover:bg-[#F7F6F2] font-bold flex items-center space-x-2 transition-colors"
-                        >
-                          <ShieldAlert className="w-4 h-4 text-[#3A5303]" />
-                          <span>Store Admin Operations Desk</span>
                         </button>
 
                         <button
@@ -295,17 +278,6 @@ export const Navbar: React.FC<NavbarProps> = ({
                   {cat.label}
                 </button>
               ))}
-
-              <button
-                onClick={() => {
-                  setMobileMenuOpen(false);
-                  onOpenAdmin();
-                }}
-                className="text-left py-2.5 px-3 rounded-xl text-xs uppercase font-bold bg-[#1c260b] text-[#94C000] flex items-center space-x-2 mt-2"
-              >
-                <ShieldAlert className="w-4 h-4" />
-                <span>Open Admin Operations Desk</span>
-              </button>
             </div>
           </motion.div>
         )}

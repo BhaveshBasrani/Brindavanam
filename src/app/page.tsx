@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { AuthProvider } from '@/context/AuthContext';
 import { StoreProvider, useStore } from '@/context/StoreContext';
 import { Navbar } from '@/components/Navbar';
@@ -42,6 +42,22 @@ function HomePageContent() {
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
   const [isCartDrawerOpen, setIsCartDrawerOpen] = useState(false);
+
+  // Secret Admin Listener: Check if URL contains #admin or ?admin=true
+  useEffect(() => {
+    const checkAdminHash = () => {
+      if (typeof window !== 'undefined') {
+        const hash = window.location.hash;
+        const search = window.location.search;
+        if (hash === '#admin' || search.includes('admin=true')) {
+          setIsAdminOpen(true);
+        }
+      }
+    };
+    checkAdminHash();
+    window.addEventListener('hashchange', checkAdminHash);
+    return () => window.removeEventListener('hashchange', checkAdminHash);
+  }, [setIsAdminOpen]);
 
   // Product filtering
   const filteredProducts = PRODUCTS.filter((product) => {
