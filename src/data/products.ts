@@ -3,7 +3,7 @@ import { Product } from '@/types/store';
 export const PRODUCTS: Product[] = [
   {
     id: 'a2-bilona-ghee',
-    name: 'A2 Desi Gir Cow Bilona Ghee',
+    name: 'A2 Desi Cow Bilona Ghee',
     subtitle: 'Hand-Churned in Clay Pots over Low Wood-Fire',
     category: 'ghee',
     description: 'Authentic A2 Bilona Ghee crafted from the pure milk of free-grazing Gir Cows. Prepared using the traditional 5-step Vedic Bilona method: boiled over slow wood-fire, cultured into curd, hand-churned with bi-directional wooden bilona, and gently heated to golden perfection in earthen pots.',
@@ -18,8 +18,7 @@ export const PRODUCTS: Product[] = [
     rating: 4.9,
     reviewsCount: 148,
     images: [
-      'https://images.unsplash.com/photo-1608686207856-001b95cf60ca?auto=format&fit=crop&w=800&q=80',
-      'https://images.unsplash.com/photo-1589927986089-35812388d1f4?auto=format&fit=crop&w=800&q=80'
+      'https://images.pexels.com/photos/20689447/pexels-photo-20689447.jpeg?_gl=1*qqa97x*_ga*MTI2MzM2MDI2Ni4xNzg1MzQ0OTYz*_ga_8JE65Q40S6*czE3ODUzNDQ5NjIkbzEkZzEkdDE3ODUzNDUwMjEkajEkbDAkaDA.'
     ],
     variants: [
       { id: 'ghee-500ml', weight: '500 ml Glass Jar', price: 1450, originalPrice: 1650, inStock: true },
@@ -55,7 +54,7 @@ export const PRODUCTS: Product[] = [
   },
   {
     id: 'wood-pressed-groundnut-oil',
-    name: 'Cold-Pressed Wood-Pressed Groundnut Oil',
+    name: 'Wood-Pressed Groundnut Oil',
     subtitle: 'Zero-Heat Marachekku Kachi Ghani Extraction',
     category: 'oil',
     description: 'Pure, unrefined Wood-Pressed Groundnut Oil extracted from naturally dried native bold peanuts using slow-revolving wooden mortars (Marachekku). Zero heat generation ensures original nutty flavor, natural antioxidants, and essential nutrients remain 100% intact.',
@@ -70,8 +69,7 @@ export const PRODUCTS: Product[] = [
     rating: 4.8,
     reviewsCount: 96,
     images: [
-      'https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?auto=format&fit=crop&w=800&q=80',
-      'https://images.unsplash.com/photo-1541256942802-7b29531f0df8?auto=format&fit=crop&w=800&q=80'
+      'https://images.pexels.com/photos/209345/pexels-photo-209345.jpeg?_gl=1*lg6nef*_ga*MTI2MzM2MDI2Ni4xNzg1MzQ0OTYz*_ga_8JE65Q40S6*czE3ODUzNDQ5NjIkbzEkZzEkdDE3ODUzNDQ5OTQkajI4JGwwJGgw'
     ],
     variants: [
       { id: 'peanut-1l', weight: '1 Litre Glass Bottle', price: 420, originalPrice: 480, inStock: true },
@@ -97,7 +95,7 @@ export const PRODUCTS: Product[] = [
   },
   {
     id: 'cold-pressed-coconut-oil',
-    name: 'Pure Cold-Pressed Virgin Coconut Oil',
+    name: 'Cold-Pressed Coconut Oil',
     subtitle: 'Extracted from Sun-Dried Kerala Farm Copra',
     category: 'oil',
     description: 'Raw, unrefined Extra Virgin Coconut Oil extracted from fresh sun-dried coconuts harvested from coastal organic groves. Retains natural lauric acid, tropical coconut fragrance, and crystal-clear purity for culinary, hair, and ayurvedic skin care.',
@@ -112,8 +110,7 @@ export const PRODUCTS: Product[] = [
     rating: 4.9,
     reviewsCount: 112,
     images: [
-      'https://images.unsplash.com/photo-1598440947619-2c35fc9aa908?auto=format&fit=crop&w=800&q=80',
-      'https://images.unsplash.com/photo-1615485290382-441e4d049cb5?auto=format&fit=crop&w=800&q=80'
+      'https://images.pexels.com/photos/11809347/pexels-photo-11809347.jpeg?_gl=1*1y4fvrj*_ga*MTI2MzM2MDI2Ni4xNzg1MzQ0OTYz*_ga_8JE65Q40S6*czE3ODUzNDQ5NzEkajUxJGwwJGgw'
     ],
     variants: [
       { id: 'coco-500ml', weight: '500 ml Glass Jar', price: 380, originalPrice: 440, inStock: true },
@@ -138,7 +135,7 @@ export const PRODUCTS: Product[] = [
   },
   {
     id: 'kusuma-safflower-oil',
-    name: 'Cold-Pressed Kusuma (Safflower) Oil',
+    name: 'Wood-Pressed Kusuma Oil',
     subtitle: 'Rich in Linoleic Acid for Cardiovascular Wellness',
     category: 'oil',
     description: 'Heritage Kusuma (Safflower) Oil slow-pressed from native safflower seeds harvested in dryland organic farms. Famous in traditional Ayurveda for balancing cholesterol levels and promoting vibrant skin health with lightweight non-greasy absorption.',
@@ -153,8 +150,7 @@ export const PRODUCTS: Product[] = [
     rating: 4.7,
     reviewsCount: 64,
     images: [
-      'https://images.unsplash.com/photo-1546554137-f86b9593a222?auto=format&fit=crop&w=800&q=80',
-      'https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?auto=format&fit=crop&w=800&q=80'
+      'https://tse3.mm.bing.net/th/id/OIP.09Qp1tlNXtMleUEKK11rlQHaHa?r=0&rs=1&pid=ImgDetMain&o=7&rm=3'
     ],
     variants: [
       { id: 'kusuma-1l', weight: '1 Litre Glass Bottle', price: 460, originalPrice: 520, inStock: true },
@@ -179,7 +175,7 @@ export const PRODUCTS: Product[] = [
   },
   {
     id: 'artisanal-desi-paneer',
-    name: 'Farm Fresh Artisanal Desi Paneer',
+    name: 'Fresh Artisanal Desi Paneer',
     subtitle: 'Handmade Daily from Pure Organic Cow & Buffalo Whole Milk',
     category: 'paneer',
     description: 'Melt-in-your-mouth soft Artisanal Desi Paneer crafted fresh every morning on our estate farm. Prepared by curdling pure unadulterated whole milk with natural lemon whey, gently pressed in muslin cloth without synthetic starch or chemical coagulants.',
@@ -194,8 +190,7 @@ export const PRODUCTS: Product[] = [
     rating: 5.0,
     reviewsCount: 182,
     images: [
-      'https://images.unsplash.com/photo-1567188040759-fb8a883dc6d8?auto=format&fit=crop&w=800&q=80',
-      'https://images.unsplash.com/photo-1559561853-08451507cbe7?auto=format&fit=crop&w=800&q=80'
+      'https://images.unsplash.com/photo-1589647363585-f4a7d3877b10?q=80&w=1172&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'
     ],
     variants: [
       { id: 'paneer-250g', weight: '250g Fresh Vacuum Pack', price: 140, originalPrice: 160, inStock: true },
