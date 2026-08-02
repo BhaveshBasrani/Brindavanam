@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { X, Package, Clock, Truck, CheckCircle2, RefreshCw, ShieldCheck, MapPin, CreditCard } from 'lucide-react';
+import { X, Package, Clock, Truck, CheckCircle2, RefreshCw, ShieldCheck, MapPin, CreditCard, Star } from 'lucide-react';
 import { Order } from '@/types/store';
 import { useAuth } from '@/context/AuthContext';
 
@@ -55,6 +55,12 @@ export const UserOrdersModal: React.FC<UserOrdersModalProps> = ({
     (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
   );
 
+  const handleReviewClick = () => {
+    onClose();
+    const el = document.getElementById('reviews');
+    if (el) el.scrollIntoView({ behavior: 'smooth' });
+  };
+
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto bg-black/70 backdrop-blur-xs flex items-center justify-center p-4">
       <div className="bg-white w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden relative border border-stone-200 animate-in fade-in duration-200">
@@ -75,7 +81,7 @@ export const UserOrdersModal: React.FC<UserOrdersModalProps> = ({
 
           <button
             onClick={onClose}
-            className="p-2 text-white/80 hover:text-white rounded-full hover:bg-white/10 transition-colors"
+            className="p-2 text-white/80 hover:text-white rounded-full hover:bg-white/10 transition-colors cursor-pointer"
           >
             <X className="w-6 h-6" />
           </button>
@@ -104,7 +110,7 @@ export const UserOrdersModal: React.FC<UserOrdersModalProps> = ({
                 <button
                   onClick={fetchUserOrdersFromGAS}
                   disabled={loading}
-                  className="text-xs text-[#3A5303] hover:underline flex items-center space-x-1 font-semibold"
+                  className="text-xs text-[#3A5303] hover:underline flex items-center space-x-1 font-semibold cursor-pointer"
                 >
                   <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
                   <span>Refresh History</span>
@@ -169,7 +175,7 @@ export const UserOrdersModal: React.FC<UserOrdersModalProps> = ({
                     )}
                   </div>
 
-                  {/* Address & Payment Info */}
+                  {/* Address, Payment Info & Leave Review Button */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-[11px] text-stone-600 bg-white/60 p-3 rounded-xl border border-stone-200">
                     <div className="space-y-0.5">
                       <span className="font-bold text-stone-800 flex items-center">
@@ -180,13 +186,23 @@ export const UserOrdersModal: React.FC<UserOrdersModalProps> = ({
                       {ord.shippingAddress?.pincode && <p>{ord.shippingAddress?.state} - {ord.shippingAddress?.pincode}</p>}
                     </div>
 
-                    <div className="space-y-0.5 sm:border-l border-stone-200 sm:pl-3">
-                      <span className="font-bold text-stone-800 flex items-center">
-                        <CreditCard className="w-3 h-3 mr-1 text-[#3A5303]" /> Payment Details:
-                      </span>
-                      <p className="font-semibold text-stone-900">Method: {ord.paymentMethod || 'Razorpay'}</p>
-                      {ord.paymentId && <p className="font-mono text-[10px] text-stone-500">Ref: {ord.paymentId}</p>}
-                      <p className="font-bold text-sm text-[#3A5303] pt-1">Total Paid: ₹{ord.total}</p>
+                    <div className="space-y-1 sm:border-l border-stone-200 sm:pl-3 flex flex-col justify-between">
+                      <div>
+                        <span className="font-bold text-stone-800 flex items-center">
+                          <CreditCard className="w-3 h-3 mr-1 text-[#3A5303]" /> Payment Details:
+                        </span>
+                        <p className="font-semibold text-stone-900">Method: {ord.paymentMethod || 'Razorpay'}</p>
+                        {ord.paymentId && <p className="font-mono text-[10px] text-stone-500">Ref: {ord.paymentId}</p>}
+                        <p className="font-bold text-sm text-[#3A5303] pt-0.5">Total Paid: ₹{ord.total}</p>
+                      </div>
+
+                      <button
+                        onClick={handleReviewClick}
+                        className="w-full py-1.5 bg-[#94C000] text-[#1c260b] font-bold text-[10px] uppercase rounded-lg shadow-xs hover:bg-[#85ad00] flex items-center justify-center space-x-1 cursor-pointer transition-colors"
+                      >
+                        <Star className="w-3 h-3 fill-[#1c260b]" />
+                        <span>Leave Review For Order</span>
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -203,7 +219,7 @@ export const UserOrdersModal: React.FC<UserOrdersModalProps> = ({
           </span>
           <button
             onClick={onClose}
-            className="px-6 py-2.5 bg-[#3A5303] text-white font-bold text-xs uppercase rounded-xl hover:bg-[#2b3e02]"
+            className="px-6 py-2.5 bg-[#3A5303] text-white font-bold text-xs uppercase rounded-xl hover:bg-[#2b3e02] cursor-pointer"
           >
             Close Dashboard
           </button>

@@ -4,8 +4,8 @@ import './globals.css';
 
 export const metadata: Metadata = {
   title: 'Brindavanam Organic | 100% Wood-Pressed Oils & A2 Bilona Ghee',
-  description: 'Authentic organic farm produce inspired by Two Brothers Organic Farms and Organic India. Hand-churned A2 Gir Cow Bilona Ghee, zero-heat Kachi Ghani oils, and organic Desi Paneer.',
-  keywords: ['A2 Bilona Ghee', 'Wood Pressed Groundnut Oil', 'Virgin Coconut Oil', 'Kusuma Safflower Oil', 'Organic Paneer', 'Brindavan Farm Hyd'],
+  description: 'Authentic organic farm produce from Brindavanam Nature Centre. Hand-churned A2 Gir Cow Bilona Ghee, zero-heat Kachi Ghani oils, and organic Desi Paneer.',
+  keywords: ['A2 Bilona Ghee', 'Wood Pressed Groundnut Oil', 'Virgin Coconut Oil', 'Kusuma Safflower Oil', 'Organic Paneer', 'Brindavanam Nature Centre'],
   icons: {
     icon: [
       { url: './favicon.svg', type: 'image/svg+xml' },

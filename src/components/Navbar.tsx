@@ -57,10 +57,10 @@ export const Navbar: React.FC<NavbarProps> = ({
 
   const categories = [
     { id: 'all', label: 'All Products' },
-    { id: 'milk', label: 'Pure Desi Cow Milk' },
+    { id: 'milk', label: 'Desi Cow Milk' },
     { id: 'ghee', label: 'A2 Bilona Ghee' },
     { id: 'oil', label: 'Wood-Pressed Oils' },
-    { id: 'paneer', label: 'Pure Desi Cow Paneer' },
+    { id: 'paneer', label: 'Desi Cow Paneer' },
     { id: 'eggs', label: 'Farm Fresh Eggs' },
   ];
 
@@ -87,21 +87,21 @@ export const Navbar: React.FC<NavbarProps> = ({
         )}
 
         {/* Floating Dynamic Island Bar */}
-        <div className="w-full flex justify-center px-2 sm:px-6 pointer-events-none">
+        <div className="w-full flex justify-center px-2 sm:px-4 lg:px-6 pointer-events-none">
           <motion.div
             layout
             transition={{ type: 'spring', stiffness: 350, damping: 25 }}
-            className={`pointer-events-auto transition-all duration-300 flex items-center justify-between gap-1.5 sm:gap-3 select-none w-full relative ${
+            className={`pointer-events-auto transition-all duration-300 flex items-center justify-between gap-1.5 sm:gap-2 lg:gap-3 select-none w-full relative ${
               isScrolled
-                ? 'mt-3 px-3 sm:px-6 py-2 sm:py-2.5 rounded-full border border-stone-300/80 bg-white/95 backdrop-blur-xl shadow-2xl max-w-6xl'
-                : 'mt-2.5 px-3 sm:px-6 py-2.5 sm:py-3 rounded-2xl border border-stone-200/80 bg-white/95 backdrop-blur-md max-w-7xl shadow-lg'
+                ? 'mt-3 px-3 sm:px-5 py-2 sm:py-2.5 rounded-full border border-stone-300/80 bg-white/95 backdrop-blur-xl shadow-2xl max-w-7xl'
+                : 'mt-2.5 px-3 sm:px-5 py-2.5 sm:py-3 rounded-2xl border border-stone-200/80 bg-white/95 backdrop-blur-md max-w-7xl shadow-lg'
             }`}
           >
             {/* Left: Mobile Menu & Logo */}
             <div className="flex items-center space-x-1.5 sm:space-x-2 shrink-0">
               <button
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="lg:hidden p-1.5 text-stone-800 hover:text-[#3A5303] rounded-lg hover:bg-stone-100 transition-colors"
+                className="xl:hidden p-1.5 text-stone-800 hover:text-[#3A5303] rounded-lg hover:bg-stone-100 transition-colors"
                 aria-label="Toggle Menu"
               >
                 {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
@@ -121,8 +121,8 @@ export const Navbar: React.FC<NavbarProps> = ({
               </Link>
             </div>
 
-            {/* Center: Desktop Navigation Links */}
-            <nav className="hidden lg:flex items-center space-x-1 bg-[#F7F6F2] px-2 py-1 rounded-full border border-stone-200/80 text-[11px] font-semibold whitespace-nowrap shrink overflow-x-auto scrollbar-none">
+            {/* Center: Desktop Navigation Links (Clean 100% Fit) */}
+            <nav className="hidden xl:flex items-center space-x-1 bg-[#F7F6F2] px-2 py-1 rounded-full border border-stone-200/80 text-[11px] font-semibold whitespace-nowrap shrink-0">
               <button
                 onClick={() => {
                   setSelectedCategory('all');
@@ -142,7 +142,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 <button
                   key={cat.id}
                   onClick={() => setSelectedCategory(cat.id)}
-                  className={`px-3 py-1 rounded-full transition-all whitespace-nowrap shrink-0 ${
+                  className={`px-2.5 py-1 rounded-full transition-all whitespace-nowrap shrink-0 ${
                     selectedCategory === cat.id
                       ? 'bg-[#3A5303] text-white font-bold shadow-xs'
                       : 'text-stone-600 hover:text-stone-900'
@@ -154,7 +154,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             </nav>
 
             {/* Right: Actions & Profile */}
-            <div className="flex items-center space-x-1.5 sm:space-x-2.5 shrink-0 pr-1">
+            <div className="flex items-center space-x-1.5 sm:space-x-2 shrink-0 pr-1">
               
               {/* Mobile Search Button */}
               <button
@@ -172,7 +172,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                   placeholder="Search produce..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-24 xl:w-36 pl-7 pr-2 py-1 text-xs border-b border-stone-300 bg-transparent text-stone-800 focus:outline-none focus:border-[#3A5303] transition-all"
+                  className="w-24 md:w-28 lg:w-32 xl:w-36 pl-7 pr-2 py-1 text-xs border-b border-stone-300 bg-transparent text-stone-800 focus:outline-none focus:border-[#3A5303] transition-all"
                 />
                 <Search className="w-3.5 h-3.5 text-stone-400 absolute left-1.5" />
               </div>
@@ -196,7 +196,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                           {user.displayName.charAt(0).toUpperCase()}
                         </div>
                       )}
-                      <span className="hidden xl:inline text-xs font-bold text-stone-800">
+                      <span className="hidden 2xl:inline text-xs font-bold text-stone-800">
                         {user.displayName.split(' ')[0]}
                       </span>
                     </button>
@@ -320,7 +320,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
-              className="w-full px-4 pb-4 lg:hidden pointer-events-auto max-h-[85vh] overflow-y-auto"
+              className="w-full px-4 pb-4 xl:hidden pointer-events-auto max-h-[85vh] overflow-y-auto"
             >
               <div className="p-5 rounded-3xl bg-white border border-stone-200 shadow-2xl space-y-4">
                 <div className="flex items-center justify-between border-b border-stone-100 pb-3">

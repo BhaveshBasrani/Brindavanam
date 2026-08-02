@@ -59,9 +59,16 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
     }
   };
 
-  const freeShippingThreshold = 999;
+  // Thresholds per Changes.pdf Page 5:
+  // 1. Free Delivery ONLY after ₹2000 shopping
+  // 2. At ₹5000 shopping, automatic 10% discount
+  const freeShippingThreshold = 2000;
+  const bulkDiscount = rawSubtotal >= 5000 ? Math.round(rawSubtotal * 0.10) : 0;
+  const effectiveDiscount = Math.max(discountAmount, bulkDiscount);
+  const effectivePromoLabel = discountAmount >= bulkDiscount && discountAmount > 0 ? (appliedCode || '') : (bulkDiscount > 0 ? 'AUTO 10% BULK DISCOUNT' : '');
+
   const deliveryFee = rawSubtotal >= freeShippingThreshold || items.length === 0 ? 0 : 70;
-  const finalTotal = Math.max(0, rawSubtotal - discountAmount + deliveryFee);
+  const finalTotal = Math.max(0, rawSubtotal - effectiveDiscount + deliveryFee);
   const progressToFreeShipping = Math.min(100, Math.round((rawSubtotal / freeShippingThreshold) * 100));
 
   return (
@@ -94,15 +101,15 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
               </button>
             </div>
 
-            {/* Free Shipping Progress Indicator */}
+            {/* Free Shipping Progress Indicator (₹2000 Min) */}
             <div className="mt-4 bg-white p-3 rounded-xl border border-stone-200 text-xs">
               {rawSubtotal >= freeShippingThreshold ? (
                 <p className="text-emerald-700 font-bold flex items-center">
-                  <Truck className="w-4 h-4 mr-1.5 text-[#3A5303]" /> 🎉 Congratulations! You qualify for Free Delivery
+                  <Truck className="w-4 h-4 mr-1.5 text-[#3A5303]" /> 🎉 Congratulations! You qualify for FREE Delivery
                 </p>
               ) : (
                 <p className="text-stone-600 font-medium">
-                  Add <span className="font-bold text-[#3A5303]">₹{freeShippingThreshold - rawSubtotal}</span> more for <span className="font-bold text-emerald-700">FREE Shipping</span>
+                  Add <span className="font-bold text-[#3A5303]">₹{freeShippingThreshold - rawSubtotal}</span> more for <span className="font-bold text-emerald-700">FREE Shipping (₹2000 Min)</span>
                 </p>
               )}
               <div className="w-full bg-stone-200 h-2 rounded-full mt-2 overflow-hidden">
@@ -112,6 +119,14 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                 />
               </div>
             </div>
+
+            {/* Automatic 10% Bulk Discount Banner */}
+            {rawSubtotal >= 5000 && (
+              <div className="mt-2 bg-emerald-50 p-2.5 rounded-xl border border-emerald-200 text-xs text-emerald-900 flex items-center space-x-1.5 font-bold">
+                <Sparkles className="w-4 h-4 text-emerald-700 shrink-0" />
+                <span>🎉 Order above ₹5000! Automatic 10% Bulk Discount (₹{bulkDiscount}) applied!</span>
+              </div>
+            )}
           </div>
 
           {/* Drawer Items List */}
@@ -222,10 +237,10 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                   <span>Subtotal</span>
                   <span>₹{rawSubtotal}</span>
                 </div>
-                {discountAmount > 0 && (
+                {effectiveDiscount > 0 && (
                   <div className="flex justify-between text-emerald-700 font-semibold">
-                    <span>Discount Coupon</span>
-                    <span>-₹{discountAmount}</span>
+                    <span>Discount ({effectivePromoLabel || 'Special Discount'})</span>
+                    <span>-₹{effectiveDiscount}</span>
                   </div>
                 )}
                 <div className="flex justify-between">
@@ -241,7 +256,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
               {/* Checkout Trigger */}
               <button
                 onClick={() => {
-                  onCheckout(discountAmount, appliedCode || '');
+                  onCheckout(effectiveDiscount, effectivePromoLabel || '');
                   onClose();
                 }}
                 className="w-full py-4 bg-[#3A5303] hover:bg-[#2b3e02] text-white font-bold text-sm rounded-xl shadow-xl flex items-center justify-center space-x-2 transition-transform active:scale-98"

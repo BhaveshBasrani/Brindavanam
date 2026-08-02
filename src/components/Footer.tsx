@@ -44,7 +44,7 @@ export const Footer: React.FC = () => {
           <div className="space-y-3">
             <h4 className="text-xs uppercase tracking-[0.2em] font-bold text-white font-sans">Farm Location</h4>
             <div className="space-y-1.5 text-xs text-stone-400 font-light">
-              <p className="font-bold text-white">Brindavan Farm Hyd</p>
+              <p className="font-bold text-white">Brindavanam Nature Centre</p>
               <p>Hyderabad, Telangana, India</p>
               <p className="font-mono text-stone-300">brindavanam1902@gmail.com</p>
             </div>
@@ -54,7 +54,7 @@ export const Footer: React.FC = () => {
 
         {/* Bottom copyright & branding line */}
         <div className="pt-8 border-t border-stone-800 flex flex-col sm:flex-row items-center justify-between text-[11px] text-stone-400 font-light gap-2">
-          <p>© 2026 Brindavanam Organic Farms. All rights reserved.</p>
+          <p>© 2026 Brindavanam Nature Centre. All rights reserved.</p>
           <div className="flex items-center space-x-1.5 text-xs font-semibold text-[#94C000]">
             <span className="text-stone-400">Powered By</span>
             <span className="tracking-wider uppercase font-bold text-[#94C000] bg-[#94C000]/10 px-2.5 py-0.5 rounded border border-[#94C000]/20">

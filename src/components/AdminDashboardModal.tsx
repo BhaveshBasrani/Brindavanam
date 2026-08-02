@@ -5,7 +5,7 @@ import {
   X, ShieldAlert, RefreshCw, Package, Search, Lock, 
   DollarSign, Users, BarChart3, Database, Printer, Clock,
   Tag, Plus, Trash2, ToggleLeft, ToggleRight, Phone, Mail, Edit3, Save,
-  ShoppingCart, Leaf
+  ShoppingCart, Leaf, Star, MessageSquare
 } from 'lucide-react';
 import { Order, Product, ShippingAddress } from '@/types/store';
 import { useStore } from '@/context/StoreContext';
@@ -33,8 +33,9 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
   const [authError, setAuthError] = useState('');
   const [recaptchaToken, setRecaptchaToken] = useState<string | null>(null);
 
-  const [activeTab, setActiveTab] = useState<'orders' | 'products' | 'promos' | 'crm' | 'analytics' | 'gas'>('orders');
+  const [activeTab, setActiveTab] = useState<'orders' | 'products' | 'promos' | 'reviews' | 'crm' | 'analytics' | 'gas'>('orders');
   const [gasOrders, setGasOrders] = useState<Order[]>([]);
+  const [gasReviews, setGasReviews] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [statusFilter, setStatusFilter] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
@@ -50,9 +51,6 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
   const [editStatus, setEditStatus] = useState<Order['status']>('Processing');
   const [isSavingDetails, setIsSavingDetails] = useState(false);
 
-  // Print Invoice Modal State
-  const [printingOrder, setPrintingOrder] = useState<Order | null>(null);
-
   // New Promo Code Form Inputs
   const [newPromoCode, setNewPromoCode] = useState('');
   const [newPromoDiscount, setNewPromoDiscount] = useState<number>(15);
@@ -61,12 +59,20 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
   // New Product Form Inputs
   const [newProdName, setNewProdName] = useState('');
   const [newProdSubtitle, setNewProdSubtitle] = useState('');
-  const [newProdCategory, setNewProdCategory] = useState<'ghee' | 'oil' | 'paneer'>('ghee');
+  const [newProdCategory, setNewProdCategory] = useState<'ghee' | 'oil' | 'paneer' | 'milk' | 'eggs'>('ghee');
   const [newProdDescription, setNewProdDescription] = useState('');
   const [newProdPrice, setNewProdPrice] = useState<number>(950);
   const [newProdWeight, setNewProdWeight] = useState('500 ml Glass Jar');
   const [newProdImage, setNewProdImage] = useState('');
   const [newProdBadge, setNewProdBadge] = useState('100% Organic Farm Fresh');
+
+  // New Admin Review Form
+  const [adminRevAuthor, setAdminRevAuthor] = useState('');
+  const [adminRevLocation, setAdminRevLocation] = useState('Hyderabad');
+  const [adminRevRating, setAdminRevRating] = useState(5);
+  const [adminRevProduceTag, setAdminRevProduceTag] = useState('ghee');
+  const [adminRevHeadline, setAdminRevHeadline] = useState('');
+  const [adminRevComment, setAdminRevComment] = useState('');
 
   const siteKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || '6LcpqGstAAAAAMBOybBtJPFQ2aMtBfLmsUT9AAtB';
   const gasUrl = process.env.NEXT_PUBLIC_GAS_WEB_APP_URL || 'https://script.google.com/macros/s/AKfycbwqHEdFL5zR_cCPSUkvb91nudf72H9K1CdFYPEyHgP_XInRSaHQU0TiZEtadcYHpQPS/exec';
@@ -88,9 +94,22 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
     }
   };
 
+  const fetchReviewsFromGAS = async () => {
+    try {
+      const response = await fetch(`${gasUrl}?action=getReviews`);
+      const data = await response.json();
+      if (data.status === 'success' && Array.isArray(data.reviews)) {
+        setGasReviews(data.reviews);
+      }
+    } catch (err) {
+      console.warn('Reviews fetch error:', err);
+    }
+  };
+
   useEffect(() => {
     if (isOpen && authenticated) {
       fetchOrdersFromGAS();
+      fetchReviewsFromGAS();
     } else {
       setGasOrders(localOrders);
     }
@@ -108,12 +127,13 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
       setAuthenticated(true);
       setAuthError('');
       fetchOrdersFromGAS();
+      fetchReviewsFromGAS();
     } else {
       setAuthError('Invalid Admin Security Passcode. Default is: admin123');
     }
   };
 
-  // High-Resolution Standalone Print Window Trigger (100% Reliable across browsers)
+  // High-Resolution Standalone Print Window Trigger
   const triggerDirectPrint = (order: Order) => {
     const printWin = window.open('', '_blank', 'width=800,height=950');
     if (!printWin) {
@@ -143,7 +163,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
       <!DOCTYPE html>
       <html>
         <head>
-          <title>Official Invoice #${order.id} - Brindavanam Organic Farms</title>
+          <title>Official Invoice #${order.id} - Brindavanam Nature Centre</title>
           <style>
             @page { size: A4; margin: 12mm; }
             body { font-family: 'Helvetica Neue', Arial, sans-serif; color: #1c260b; margin: 0; padding: 24px; background: #ffffff; }
@@ -164,8 +184,8 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
         <body>
           <div class="header">
             <div>
-              <div class="brand">Brindavanam Organic Farms</div>
-              <div class="subbrand">Brindavan Farm Hyd • Hyderabad, Telangana, India</div>
+              <div class="brand">Brindavanam Nature Centre</div>
+              <div class="subbrand">Hyderabad, Telangana, India</div>
               <div style="font-size: 11px; color: #555; margin-top: 4px;">Official Contact: brindavanam1902@gmail.com</div>
             </div>
             <div style="text-align: right;">
@@ -217,7 +237,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
           </div>
 
           <div class="footer">
-            <div>Brindavanam Organic Farms • Brindavan Farm Hyd</div>
+            <div>Brindavanam Nature Centre • Hyderabad</div>
             <div style="font-weight: bold; color: #94C000;">Powered By Rendervoid</div>
           </div>
 
@@ -286,6 +306,49 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
     if (inspectingOrder?.id === orderId) setInspectingOrder(null);
   };
 
+  const handleDeleteReviewClick = async (reviewId: string) => {
+    if (!window.confirm(`Are you sure you want to delete Review #${reviewId}?`)) return;
+    try {
+      await fetch(gasUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ action: 'deleteReview', reviewId }),
+      });
+      setGasReviews((prev) => prev.filter((r) => r.id !== reviewId));
+    } catch (err) {
+      console.warn('Delete review err:', err);
+    }
+  };
+
+  const handleAddAdminReview = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!adminRevAuthor.trim() || !adminRevComment.trim()) return;
+
+    const newRev = {
+      name: adminRevAuthor,
+      location: adminRevLocation || 'Hyderabad',
+      rating: adminRevRating,
+      produceTag: adminRevProduceTag,
+      produceName: adminRevProduceTag === 'ghee' ? 'A2 Desi Cow Bilona Ghee' : adminRevProduceTag === 'oil' ? 'Wood-Pressed Oils' : 'Fresh Paneer',
+      headline: adminRevHeadline || 'Authentic Farm Fresh Quality!',
+      review: adminRevComment,
+    };
+
+    try {
+      await fetch(gasUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ action: 'submitReview', review: newRev }),
+      });
+      fetchReviewsFromGAS();
+      setAdminRevAuthor('');
+      setAdminRevHeadline('');
+      setAdminRevComment('');
+    } catch (err) {
+      console.warn('Admin review submit err:', err);
+    }
+  };
+
   const handleCreatePromoCode = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newPromoCode.trim()) return;
@@ -303,7 +366,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
       name: newProdName,
       subtitle: newProdSubtitle || 'Fresh Organic Farm Harvest',
       category: newProdCategory,
-      description: newProdDescription || 'Handcrafted at Brindavan Farm Hyd with traditional Vedic methods.',
+      description: newProdDescription || 'Handcrafted at Brindavanam Nature Centre with traditional Vedic methods.',
       healthBenefits: ['100% Pure Organic', 'Zero Preservatives', 'Rich in essential nutrients'],
       extractionMethod: 'Traditional Marachekku Wood Pressed / Hand-Churned Bilona',
       badge: newProdBadge,
@@ -372,7 +435,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto bg-black/80 backdrop-blur-sm flex items-center justify-center p-2 sm:p-6">
       
-      {/* Sleek Floating Enterprise Window Container */}
+      {/* Floating Enterprise Window Container */}
       <div className="bg-white w-full max-w-6xl rounded-3xl shadow-2xl overflow-hidden relative border border-stone-200 animate-in fade-in duration-200 h-[92vh] flex flex-col my-auto">
         
         {/* Top Header */}
@@ -384,7 +447,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
             <div>
               <div className="flex items-center space-x-2">
                 <span className="text-[10px] uppercase tracking-[0.2em] text-[#94C000] font-bold block">
-                  Brindavan Farm Operations
+                  Brindavanam Nature Centre
                 </span>
                 <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
               </div>
@@ -435,7 +498,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
 
               <button
                 type="submit"
-                className="w-full py-3.5 bg-[#3A5303] hover:bg-[#2b3e02] text-white font-bold text-xs uppercase tracking-wider rounded-xl shadow-lg transition-all active:scale-98"
+                className="w-full py-3.5 bg-[#3A5303] hover:bg-[#2b3e02] text-white font-bold text-xs uppercase tracking-wider rounded-xl shadow-lg transition-all active:scale-98 cursor-pointer"
               >
                 Authenticate Access
               </button>
@@ -450,7 +513,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
               <div className="flex items-center space-x-1.5 overflow-x-auto whitespace-nowrap scrollbar-none bg-[#F7F6F2] p-1.5 rounded-2xl border border-stone-200 text-xs font-semibold">
                 <button
                   onClick={() => setActiveTab('orders')}
-                  className={`px-3.5 py-2 rounded-xl transition-all flex items-center space-x-1.5 shrink-0 ${
+                  className={`px-3.5 py-2 rounded-xl transition-all flex items-center space-x-1.5 shrink-0 cursor-pointer ${
                     activeTab === 'orders' ? 'bg-[#3A5303] text-white shadow-md font-bold' : 'text-stone-600 hover:text-stone-900'
                   }`}
                 >
@@ -460,17 +523,27 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
 
                 <button
                   onClick={() => setActiveTab('products')}
-                  className={`px-3.5 py-2 rounded-xl transition-all flex items-center space-x-1.5 shrink-0 ${
+                  className={`px-3.5 py-2 rounded-xl transition-all flex items-center space-x-1.5 shrink-0 cursor-pointer ${
                     activeTab === 'products' ? 'bg-[#3A5303] text-white shadow-md font-bold' : 'text-stone-600 hover:text-stone-900'
                   }`}
                 >
                   <ShoppingCart className="w-3.5 h-3.5 text-[#94C000]" />
-                  <span>Catalog Products ({products.length})</span>
+                  <span>Catalog ({products.length})</span>
+                </button>
+
+                <button
+                  onClick={() => setActiveTab('reviews')}
+                  className={`px-3.5 py-2 rounded-xl transition-all flex items-center space-x-1.5 shrink-0 cursor-pointer ${
+                    activeTab === 'reviews' ? 'bg-[#3A5303] text-white shadow-md font-bold' : 'text-stone-600 hover:text-stone-900'
+                  }`}
+                >
+                  <MessageSquare className="w-3.5 h-3.5 text-amber-400" />
+                  <span>Reviews ({gasReviews.length})</span>
                 </button>
                 
                 <button
                   onClick={() => setActiveTab('promos')}
-                  className={`px-3.5 py-2 rounded-xl transition-all flex items-center space-x-1.5 shrink-0 ${
+                  className={`px-3.5 py-2 rounded-xl transition-all flex items-center space-x-1.5 shrink-0 cursor-pointer ${
                     activeTab === 'promos' ? 'bg-[#3A5303] text-white shadow-md font-bold' : 'text-stone-600 hover:text-stone-900'
                   }`}
                 >
@@ -480,7 +553,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
 
                 <button
                   onClick={() => setActiveTab('crm')}
-                  className={`px-3.5 py-2 rounded-xl transition-all flex items-center space-x-1.5 shrink-0 ${
+                  className={`px-3.5 py-2 rounded-xl transition-all flex items-center space-x-1.5 shrink-0 cursor-pointer ${
                     activeTab === 'crm' ? 'bg-[#3A5303] text-white shadow-md font-bold' : 'text-stone-600 hover:text-stone-900'
                   }`}
                 >
@@ -490,7 +563,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
 
                 <button
                   onClick={() => setActiveTab('analytics')}
-                  className={`px-3.5 py-2 rounded-xl transition-all flex items-center space-x-1.5 shrink-0 ${
+                  className={`px-3.5 py-2 rounded-xl transition-all flex items-center space-x-1.5 shrink-0 cursor-pointer ${
                     activeTab === 'analytics' ? 'bg-[#3A5303] text-white shadow-md font-bold' : 'text-stone-600 hover:text-stone-900'
                   }`}
                 >
@@ -500,7 +573,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
 
                 <button
                   onClick={() => setActiveTab('gas')}
-                  className={`px-3.5 py-2 rounded-xl transition-all flex items-center space-x-1.5 shrink-0 ${
+                  className={`px-3.5 py-2 rounded-xl transition-all flex items-center space-x-1.5 shrink-0 cursor-pointer ${
                     activeTab === 'gas' ? 'bg-[#3A5303] text-white shadow-md font-bold' : 'text-stone-600 hover:text-stone-900'
                   }`}
                 >
@@ -510,9 +583,12 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
               </div>
 
               <button
-                onClick={fetchOrdersFromGAS}
+                onClick={() => {
+                  fetchOrdersFromGAS();
+                  fetchReviewsFromGAS();
+                }}
                 disabled={loading}
-                className="w-full sm:w-auto px-4 py-2 bg-[#F7F6F2] hover:bg-stone-200 border border-stone-300 text-stone-800 text-xs font-semibold rounded-xl flex items-center justify-center space-x-2 transition-colors shrink-0"
+                className="w-full sm:w-auto px-4 py-2 bg-[#F7F6F2] hover:bg-stone-200 border border-stone-300 text-stone-800 text-xs font-semibold rounded-xl flex items-center justify-center space-x-2 transition-colors shrink-0 cursor-pointer"
               >
                 <RefreshCw className={`w-3.5 h-3.5 text-[#3A5303] ${loading ? 'animate-spin' : ''}`} />
                 <span>Sync Order Stream</span>
@@ -534,9 +610,9 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
               </div>
 
               <div className="bg-[#F7F6F2] p-4 rounded-2xl border border-stone-200 space-y-1">
-                <span className="text-[10px] font-bold uppercase tracking-widest text-stone-500">In Transit</span>
-                <p className="text-2xl font-serif text-[#4E90F5] font-bold">{shippedCount}</p>
-                <p className="text-[10px] text-stone-400">Courier transit</p>
+                <span className="text-[10px] font-bold uppercase tracking-widest text-stone-500">Patron Reviews</span>
+                <p className="text-2xl font-serif text-amber-500 font-bold">{gasReviews.length}</p>
+                <p className="text-[10px] text-stone-400">Saved in Apps Script</p>
               </div>
 
               <div className="bg-[#F7F6F2] p-4 rounded-2xl border border-stone-200 space-y-1">
@@ -632,21 +708,21 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                               <td className="p-3.5 text-right space-x-1">
                                 <button
                                   onClick={() => openOrderInspector(ord)}
-                                  className="px-2.5 py-1.5 bg-[#3A5303] text-white font-bold rounded-lg text-[10px] hover:bg-[#2b3e02] shadow-xs inline-flex items-center space-x-1"
+                                  className="px-2.5 py-1.5 bg-[#3A5303] text-white font-bold rounded-lg text-[10px] hover:bg-[#2b3e02] shadow-xs inline-flex items-center space-x-1 cursor-pointer"
                                 >
                                   <Edit3 className="w-3 h-3" />
                                   <span>Inspect & Edit</span>
                                 </button>
                                 <button
                                   onClick={() => triggerDirectPrint(ord)}
-                                  className="p-1.5 text-stone-600 hover:text-[#3A5303] rounded-lg border border-stone-200 hover:bg-stone-100"
-                                  title="Print Amazing Invoice"
+                                  className="p-1.5 text-stone-600 hover:text-[#3A5303] rounded-lg border border-stone-200 hover:bg-stone-100 cursor-pointer"
+                                  title="Print Invoice"
                                 >
                                   <Printer className="w-3.5 h-3.5" />
                                 </button>
                                 <button
                                   onClick={() => handleDeleteOrderClick(ord.id)}
-                                  className="p-1.5 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg border border-red-200"
+                                  className="p-1.5 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg border border-red-200 cursor-pointer"
                                   title="Delete Order"
                                 >
                                   <Trash2 className="w-3.5 h-3.5" />
@@ -657,44 +733,6 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                         )}
                       </tbody>
                     </table>
-                  </div>
-
-                  {/* Mobile View */}
-                  <div className="block sm:hidden p-3 space-y-3">
-                    {filteredOrders.map((ord) => (
-                      <div key={ord.id} className="bg-stone-50 rounded-2xl p-4 border border-stone-200 space-y-2 text-xs">
-                        <div className="flex justify-between items-start">
-                          <div>
-                            <span className="font-bold text-[#3A5303] text-sm block">{ord.id}</span>
-                            <span className="text-[10px] text-stone-400">{ord.date}</span>
-                          </div>
-                          <span className="font-bold text-stone-900 text-sm">₹{ord.total}</span>
-                        </div>
-                        <p className="font-bold text-stone-900">{ord.shippingAddress?.fullName || ord.customerName}</p>
-                        <p className="text-stone-600 text-[11px] line-clamp-2">{ord.itemsSummary || ord.items?.map((i) => i.product.name).join(', ')}</p>
-                        
-                        <div className="pt-2 flex items-center justify-between border-t border-stone-200">
-                          <button
-                            onClick={() => openOrderInspector(ord)}
-                            className="px-3 py-1.5 bg-[#3A5303] text-white rounded-lg font-bold text-[10px]"
-                          >
-                            Inspect & Edit Details
-                          </button>
-                          <button
-                            onClick={() => triggerDirectPrint(ord)}
-                            className="p-1.5 text-stone-700 hover:text-[#3A5303]"
-                          >
-                            <Printer className="w-4 h-4" />
-                          </button>
-                          <button
-                            onClick={() => handleDeleteOrderClick(ord.id)}
-                            className="p-1 text-red-600"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </div>
-                    ))}
                   </div>
                 </div>
               </div>
@@ -729,9 +767,11 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                         onChange={(e) => setNewProdCategory(e.target.value as any)}
                         className="w-full px-3 py-2 text-xs border border-stone-300 rounded-xl bg-white focus:outline-none focus:border-[#3A5303]"
                       >
+                        <option value="milk">Pure Desi Cow Milk</option>
                         <option value="ghee">A2 Bilona Ghee</option>
                         <option value="oil">Wood-Pressed Oil</option>
                         <option value="paneer">Fresh Paneer</option>
+                        <option value="eggs">Farm Fresh Eggs</option>
                       </select>
                     </div>
 
@@ -785,7 +825,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
 
                   <button
                     type="submit"
-                    className="px-6 py-2.5 bg-[#3A5303] hover:bg-[#2b3e02] text-white font-bold text-xs uppercase rounded-xl shadow-md flex items-center space-x-1.5"
+                    className="px-6 py-2.5 bg-[#3A5303] hover:bg-[#2b3e02] text-white font-bold text-xs uppercase rounded-xl shadow-md flex items-center space-x-1.5 cursor-pointer"
                   >
                     <Plus className="w-4 h-4" />
                     <span>Publish Produce to Store Catalog</span>
@@ -804,7 +844,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                       </div>
                       <button
                         onClick={() => deleteProduct(p.id)}
-                        className="p-2 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg shrink-0"
+                        className="p-2 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg shrink-0 cursor-pointer"
                         title="Delete Product"
                       >
                         <Trash2 className="w-4 h-4" />
@@ -815,7 +855,123 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
               </div>
             )}
 
-            {/* TAB 3: Promo Codes Manager */}
+            {/* TAB 3: Reviews Manager */}
+            {activeTab === 'reviews' && (
+              <div className="space-y-5">
+                <form onSubmit={handleAddAdminReview} className="bg-[#F7F6F2] p-4 sm:p-5 rounded-2xl border border-stone-200 space-y-3">
+                  <h3 className="text-xs font-serif font-bold text-stone-900 flex items-center space-x-1.5">
+                    <Plus className="w-4 h-4 text-[#3A5303]" />
+                    <span>Add Official Verified Patron Review</span>
+                  </h3>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+                    <div>
+                      <label className="block text-[10px] font-bold text-stone-700 uppercase mb-1">Author Name *</label>
+                      <input
+                        type="text"
+                        required
+                        value={adminRevAuthor}
+                        onChange={(e) => setAdminRevAuthor(e.target.value)}
+                        className="w-full px-3 py-2 border border-stone-300 rounded-xl bg-white focus:outline-none focus:border-[#3A5303]"
+                        placeholder="e.g. Dr. Rajesh Reddy"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-[10px] font-bold text-stone-700 uppercase mb-1">Location</label>
+                      <input
+                        type="text"
+                        value={adminRevLocation}
+                        onChange={(e) => setAdminRevLocation(e.target.value)}
+                        className="w-full px-3 py-2 border border-stone-300 rounded-xl bg-white focus:outline-none focus:border-[#3A5303]"
+                        placeholder="Jubilee Hills, Hyderabad"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-[10px] font-bold text-stone-700 uppercase mb-1">Produce Tag</label>
+                      <select
+                        value={adminRevProduceTag}
+                        onChange={(e) => setAdminRevProduceTag(e.target.value)}
+                        className="w-full px-3 py-2 border border-stone-300 rounded-xl bg-white focus:outline-none focus:border-[#3A5303]"
+                      >
+                        <option value="ghee">A2 Desi Cow Bilona Ghee</option>
+                        <option value="oil">Wood-Pressed Oil</option>
+                        <option value="paneer">Fresh Desi Paneer</option>
+                        <option value="milk">Pure A2 Desi Milk</option>
+                        <option value="eggs">Farm Eggs</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                    <div>
+                      <label className="block text-[10px] font-bold text-stone-700 uppercase mb-1">Headline Quote</label>
+                      <input
+                        type="text"
+                        value={adminRevHeadline}
+                        onChange={(e) => setAdminRevHeadline(e.target.value)}
+                        className="w-full px-3 py-2 border border-stone-300 rounded-xl bg-white focus:outline-none focus:border-[#3A5303]"
+                        placeholder="e.g. Authentic Danedar Ghee!"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-[10px] font-bold text-stone-700 uppercase mb-1">Review Body *</label>
+                      <input
+                        type="text"
+                        required
+                        value={adminRevComment}
+                        onChange={(e) => setAdminRevComment(e.target.value)}
+                        className="w-full px-3 py-2 border border-stone-300 rounded-xl bg-white focus:outline-none focus:border-[#3A5303]"
+                        placeholder="Detailed customer review..."
+                      />
+                    </div>
+                  </div>
+
+                  <button
+                    type="submit"
+                    className="px-5 py-2 bg-[#3A5303] text-white font-bold text-xs uppercase rounded-xl hover:bg-[#2b3e02] shadow-sm flex items-center space-x-1 cursor-pointer"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    <span>Save & Publish Review</span>
+                  </button>
+                </form>
+
+                {/* Reviews List */}
+                <div className="space-y-2">
+                  {gasReviews.length === 0 ? (
+                    <div className="text-center py-12 bg-stone-50 rounded-2xl border border-stone-200 text-stone-400 text-xs">
+                      No customer reviews saved in Apps Script yet.
+                    </div>
+                  ) : (
+                    gasReviews.map((r) => (
+                      <div key={r.id} className="bg-stone-50 p-4 rounded-2xl border border-stone-200 flex justify-between items-start text-xs space-x-3">
+                        <div className="space-y-1">
+                          <div className="flex items-center space-x-2">
+                            <span className="font-bold text-stone-900">{r.name}</span>
+                            <span className="text-[10px] text-stone-400">({r.location})</span>
+                            <span className="text-amber-500 font-bold">★ {r.rating}</span>
+                          </div>
+                          <p className="font-bold text-[#3A5303]">{r.headline}</p>
+                          <p className="text-stone-600 text-[11px] font-light">{r.review}</p>
+                          <span className="text-[9px] text-stone-400 block">{r.date}</span>
+                        </div>
+                        <button
+                          onClick={() => handleDeleteReviewClick(r.id)}
+                          className="p-1.5 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg shrink-0 cursor-pointer"
+                          title="Delete Review"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* TAB 4: Promo Codes Manager */}
             {activeTab === 'promos' && (
               <div className="space-y-4">
                 <form onSubmit={handleCreatePromoCode} className="bg-[#F7F6F2] p-4 rounded-2xl border border-stone-200 space-y-3">
@@ -864,7 +1020,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
 
                   <button
                     type="submit"
-                    className="px-5 py-2.5 bg-[#3A5303] text-white font-bold text-xs uppercase rounded-xl hover:bg-[#2b3e02] shadow-sm flex items-center space-x-1"
+                    className="px-5 py-2.5 bg-[#3A5303] text-white font-bold text-xs uppercase rounded-xl hover:bg-[#2b3e02] shadow-sm flex items-center space-x-1 cursor-pointer"
                   >
                     <Plus className="w-3.5 h-3.5" />
                     <span>Save Coupon Code</span>
@@ -885,10 +1041,10 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                         <span className="text-stone-500 text-[11px] block mt-0.5">{p.description}</span>
                       </div>
                       <div className="flex items-center space-x-2">
-                        <button onClick={() => togglePromoCode(p.code)} title="Toggle Active">
+                        <button onClick={() => togglePromoCode(p.code)} title="Toggle Active" className="cursor-pointer">
                           {p.active ? <ToggleRight className="w-7 h-7 text-[#3A5303]" /> : <ToggleLeft className="w-7 h-7 text-stone-400" />}
                         </button>
-                        <button onClick={() => deletePromoCode(p.code)} className="p-1 text-stone-400 hover:text-red-600" title="Delete Coupon">
+                        <button onClick={() => deletePromoCode(p.code)} className="p-1 text-stone-400 hover:text-red-600 cursor-pointer" title="Delete Coupon">
                           <Trash2 className="w-4 h-4" />
                         </button>
                       </div>
@@ -898,7 +1054,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
               </div>
             )}
 
-            {/* TAB 4: Customer CRM */}
+            {/* TAB 5: Customer CRM */}
             {activeTab === 'crm' && (
               <div className="space-y-3">
                 {customerList.map((c, i) => (
@@ -916,7 +1072,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
               </div>
             )}
 
-            {/* TAB 5: Sales Analytics */}
+            {/* TAB 6: Sales Analytics */}
             {activeTab === 'analytics' && (
               <div className="bg-[#F7F6F2] p-5 rounded-2xl border border-stone-200 space-y-3 text-xs">
                 <h3 className="text-sm font-serif font-bold text-stone-900">Store Financial Overview</h3>
@@ -925,7 +1081,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
               </div>
             )}
 
-            {/* TAB 6: Sync Monitor */}
+            {/* TAB 7: Sync Monitor */}
             {activeTab === 'gas' && (
               <div className="bg-[#F7F6F2] p-4 rounded-2xl border border-stone-200 space-y-2 text-xs">
                 <p className="font-bold text-stone-900">Apps Script Live Endpoint URL:</p>
@@ -949,7 +1105,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                   <h2 className="text-xl font-serif font-bold text-stone-900">{inspectingOrder.id}</h2>
                   <p className="text-xs text-stone-400">Placed on {inspectingOrder.date}</p>
                 </div>
-                <button onClick={() => setInspectingOrder(null)} className="p-1 text-stone-400 hover:text-stone-700">
+                <button onClick={() => setInspectingOrder(null)} className="p-1 text-stone-400 hover:text-stone-700 cursor-pointer">
                   <X className="w-6 h-6" />
                 </button>
               </div>
@@ -1057,7 +1213,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
               <div className="pt-2 flex justify-between items-center border-t border-stone-200">
                 <button
                   onClick={() => handleDeleteOrderClick(inspectingOrder.id)}
-                  className="px-4 py-2.5 bg-red-50 text-red-700 border border-red-200 rounded-xl hover:bg-red-100 font-bold text-xs flex items-center space-x-1"
+                  className="px-4 py-2.5 bg-red-50 text-red-700 border border-red-200 rounded-xl hover:bg-red-100 font-bold text-xs flex items-center space-x-1 cursor-pointer"
                 >
                   <Trash2 className="w-3.5 h-3.5" />
                   <span>Delete Order</span>
@@ -1066,7 +1222,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                 <div className="flex space-x-2">
                   <button
                     onClick={() => triggerDirectPrint(inspectingOrder)}
-                    className="px-4 py-2.5 bg-stone-100 border border-stone-300 text-stone-800 rounded-xl font-bold text-xs flex items-center space-x-1 hover:bg-stone-200"
+                    className="px-4 py-2.5 bg-stone-100 border border-stone-300 text-stone-800 rounded-xl font-bold text-xs flex items-center space-x-1 hover:bg-stone-200 cursor-pointer"
                   >
                     <Printer className="w-4 h-4 text-[#3A5303]" />
                     <span>Print Invoice</span>
@@ -1074,7 +1230,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
 
                   <button
                     onClick={() => setInspectingOrder(null)}
-                    className="px-4 py-2.5 border border-stone-300 text-stone-700 rounded-xl font-bold text-xs"
+                    className="px-4 py-2.5 border border-stone-300 text-stone-700 rounded-xl font-bold text-xs cursor-pointer"
                   >
                     Cancel
                   </button>
@@ -1082,7 +1238,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                   <button
                     onClick={handleSaveOrderDetails}
                     disabled={isSavingDetails}
-                    className="px-6 py-2.5 bg-[#3A5303] text-white font-bold text-xs uppercase rounded-xl hover:bg-[#2b3e02] shadow-md flex items-center space-x-1.5"
+                    className="px-6 py-2.5 bg-[#3A5303] text-white font-bold text-xs uppercase rounded-xl hover:bg-[#2b3e02] shadow-md flex items-center space-x-1.5 cursor-pointer"
                   >
                     <Save className="w-4 h-4" />
                     <span>{isSavingDetails ? 'Saving...' : 'Save Order Details & Update ETA'}</span>

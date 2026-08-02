@@ -1,501 +1,680 @@
 /**
- * Brindavanam Organic E-Commerce - Foolproof Master Backend & Email Engine
- * 
- * ADMIN EMAIL: brindavanam1902@gmail.com
- * FARM LOCATION: Brindavan Farm Hyd
- * 
- * Features:
- * 1. Self-Initializing Database: Auto-creates 'Orders', 'Customer_CRM', 'Promo_Codes', 'Custom_Products', & 'Analytics'.
- * 2. Wholesome Customer Emails: Beautiful HTML Invoice Receipt + Live Tracking & Estimated Date of Arrival (ETA) alerts.
- * 3. Complete Admin Order Control: Edit details, add private notes, set tracking URLs, update ETA, & delete orders.
- * 4. Custom Product Manager: Add, edit, & delete catalog produce directly from Admin Panel.
- * 5. REST API Endpoint: Full CORS & JSON support.
+ * BRINDAVANAM NATURE CENTRE - GOOGLE APPS SCRIPT BACKEND ENGINE
+ * Spreadsheet ID: 1j023yC9z_V6T_Bohb-t6Euh_fDInM_vSdrS3-H2sR8w
+ *
+ * EXACT COLUMN LAYOUT MATCHING USER SPREADSHEET (16 COLUMNS):
+ * A (1): Order ID
+ * B (2): Timestamp / Date
+ * C (3): Customer Name
+ * D (4): Customer Email
+ * E (5): Customer Phone
+ * F (6): Shipping Address
+ * G (7): City
+ * H (8): Pincode
+ * I (9): Items Purchased
+ * J (10): Total Amount (INR)
+ * K (11): Payment Method
+ * L (12): Payment ID / Ref
+ * M (13): Status
+ * N (14): Tracking URL
+ * O (15): ETA
+ * P (16): Admin Notes
  */
 
-var ADMIN_EMAIL = "brindavanam1902@gmail.com";
-
-/**
- * 1-Click Manual Setup Helper
- */
-function setupDatabase() {
+function doGet(e) {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
-  getOrCreateOrdersSheet(ss);
-  getOrCreateCustomerSheet(ss);
-  getOrCreatePromosSheet(ss);
-  getOrCreateProductsSheet(ss);
-  getOrCreateAnalyticsSheet(ss);
-  SpreadsheetApp.getUi().alert("✅ Brindavanam Master Database Successfully Initialized!");
-}
+  ensureAndRepairSheetStructure(ss); // Self-healing header & structure check
 
-/**
- * Add custom menu to Google Sheet UI
- */
-function onOpen() {
-  try {
-    var ui = SpreadsheetApp.getUi();
-    ui.createMenu("🌿 Brindavanam Admin")
-      .addItem("Initialize / Reset Sheets", "setupDatabase")
-      .addToUi();
-  } catch (e) {
-    // ignore
+  var action = e && e.parameter ? e.parameter.action : '';
+
+  if (action === 'repairSheets') {
+    return handleRepairSheets(ss);
   }
+
+  if (action === 'getPromos') {
+    return handleGetPromos(ss);
+  }
+
+  if (action === 'getProducts') {
+    return handleGetProducts(ss);
+  }
+
+  if (action === 'getReviews') {
+    return handleGetReviews(ss);
+  }
+
+  if (action === 'get_user_orders') {
+    var email = e.parameter.email || '';
+    return handleGetUserOrders(ss, email);
+  }
+
+  // Default: Get all orders
+  return handleGetOrders(ss);
 }
 
-/**
- * POST Endpoint Handler
- */
 function doPost(e) {
   var lock = LockService.getScriptLock();
-  try {
-    lock.waitLock(10000);
-  } catch (err) {
-    return jsonResponse({ status: "error", message: "Server busy lock timeout. Please retry." });
-  }
+  lock.tryLock(10000);
 
   try {
     var ss = SpreadsheetApp.getActiveSpreadsheet();
-    var ordersSheet = getOrCreateOrdersSheet(ss);
-    var customerSheet = getOrCreateCustomerSheet(ss);
+    ensureAndRepairSheetStructure(ss); // Self-healing header & structure check
 
-    if (!e || !e.postData || !e.postData.contents) {
-      return jsonResponse({ status: "error", message: "No post data payload received" });
+    var postData = JSON.parse(e.postData.contents);
+    var action = postData.action || 'saveOrder';
+
+    if (action === 'repairSheets') {
+      return handleRepairSheets(ss);
     }
 
-    var data = JSON.parse(e.postData.contents);
-    var action = data.action || "create_order";
-
-    if (action === "create_order") {
-      return handleCreateOrder(ordersSheet, customerSheet, data);
-    } else if (action === "update_status") {
-      return handleUpdateOrderStatus(ordersSheet, data);
-    } else if (action === "update_order_details") {
-      return handleUpdateOrderDetails(ordersSheet, data);
-    } else if (action === "delete_order") {
-      return handleDeleteOrder(ordersSheet, data);
-    } else if (action === "save_promos") {
-      return handleSavePromos(ss, data);
-    } else if (action === "save_products") {
-      return handleSaveProducts(ss, data);
-    } else {
-      return jsonResponse({ status: "error", message: "Invalid action parameter specified" });
+    if (action === 'updatePromos') {
+      return handleUpdatePromos(ss, postData.promos);
     }
-  } catch (error) {
-    return jsonResponse({ status: "error", message: error.toString() });
+
+    if (action === 'updateProducts') {
+      return handleUpdateProducts(ss, postData.products);
+    }
+
+    if (action === 'updateOrderDetails') {
+      return handleUpdateOrderDetails(ss, postData.orderId, postData.details);
+    }
+
+    if (action === 'deleteOrder') {
+      return handleDeleteOrder(ss, postData.orderId);
+    }
+
+    if (action === 'submitReview') {
+      return handleSubmitReview(ss, postData.review);
+    }
+
+    if (action === 'updateReviews') {
+      return handleUpdateReviews(ss, postData.reviews);
+    }
+
+    if (action === 'deleteReview') {
+      return handleDeleteReview(ss, postData.reviewId);
+    }
+
+    // Default: Save new customer order
+    return handleSaveOrder(ss, postData);
+
+  } catch (err) {
+    return ContentService.createTextOutput(JSON.stringify({
+      status: 'error',
+      message: err.toString()
+    })).setMimeType(ContentService.MimeType.JSON);
   } finally {
-    try { lock.releaseLock(); } catch (l) {}
+    lock.releaseLock();
   }
 }
 
 /**
- * GET Endpoint Handler
+ * SELF-HEALING ENGINE: Auto-Repair & Normalize Headers Without Data Loss
  */
-function doGet(e) {
+function ensureAndRepairSheetStructure(ss) {
+  var expectedOrdersHeaders = [
+    'Order ID', 'Timestamp', 'Customer Name', 'Customer Email', 'Customer Phone', 
+    'Shipping Address', 'City', 'Pincode', 'Items Purchased', 'Total Amount (INR)', 
+    'Payment Method', 'Payment ID / Ref', 'Status', 'Tracking URL', 'ETA', 'Admin Notes'
+  ];
+
+  // 1. Repair Orders Sheet Tab
+  var ordersSheet = ss.getSheetByName('Orders');
+  if (!ordersSheet) {
+    ordersSheet = ss.insertSheet('Orders');
+    ordersSheet.appendRow(expectedOrdersHeaders);
+    formatHeaderRow(ordersSheet, 16);
+  } else {
+    // Check if Row 1 headers match
+    var lastCol = Math.max(ordersSheet.getLastColumn(), 16);
+    var firstRow = ordersSheet.getRange(1, 1, 1, 16).getValues()[0];
+    var needsHeaderRepair = false;
+
+    for (var i = 0; i < expectedOrdersHeaders.length; i++) {
+      if (!firstRow[i] || firstRow[i].toString().trim().toLowerCase() !== expectedOrdersHeaders[i].toLowerCase()) {
+        needsHeaderRepair = true;
+        break;
+      }
+    }
+
+    if (needsHeaderRepair) {
+      ordersSheet.getRange(1, 1, 1, 16).setValues([expectedOrdersHeaders]);
+      formatHeaderRow(ordersSheet, 16);
+    }
+  }
+
+  // 2. Repair PromoCodes Sheet Tab
+  var promoSheet = ss.getSheetByName('PromoCodes');
+  if (!promoSheet) {
+    promoSheet = ss.insertSheet('PromoCodes');
+    promoSheet.appendRow(['Coupon Code', 'Discount Percent', 'Is Active', 'Description']);
+    formatHeaderRow(promoSheet, 4);
+  }
+
+  // 3. Repair Products Sheet Tab
+  var prodSheet = ss.getSheetByName('Products');
+  if (!prodSheet) {
+    prodSheet = ss.insertSheet('Products');
+    prodSheet.appendRow(['Product ID', 'Product JSON Payload', 'Name', 'Category']);
+    formatHeaderRow(prodSheet, 4);
+  }
+
+  // 4. Repair Reviews Sheet Tab
+  var revSheet = ss.getSheetByName('Reviews');
+  if (!revSheet) {
+    revSheet = ss.insertSheet('Reviews');
+    revSheet.appendRow(['Review ID', 'Author Name', 'Location', 'Rating', 'Produce Tag', 'Produce Name', 'Headline', 'Review Text', 'Is Verified', 'Date']);
+    formatHeaderRow(revSheet, 10);
+  }
+
+  // 5. Repair Customers Sheet Tab (CRM)
+  var custSheet = ss.getSheetByName('Customers');
+  if (!custSheet) {
+    custSheet = ss.insertSheet('Customers');
+    custSheet.appendRow(['Full Name', 'Email', 'Phone', 'City', 'Total Orders', 'First Registered Date']);
+    formatHeaderRow(custSheet, 6);
+  }
+}
+
+/**
+ * Format Sheet Header Row with Professional Olive Green Theme
+ */
+function formatHeaderRow(sheet, colCount) {
   try {
-    var ss = SpreadsheetApp.getActiveSpreadsheet();
-    var action = (e && e.parameter && e.parameter.action) ? e.parameter.action : "get_orders";
+    var range = sheet.getRange(1, 1, 1, colCount);
+    range.setBackground('#3A5303');
+    range.setFontColor('#FFFFFF');
+    range.setFontWeight('bold');
+    range.setFontFamily('Arial');
+    sheet.setRowHeight(1, 32);
+  } catch (e) {}
+}
 
-    if (action === "get_promos") {
-      return handleGetPromos(ss);
-    }
+/**
+ * Manual Repair Sheets Action Endpoint
+ */
+function handleRepairSheets(ss) {
+  ensureAndRepairSheetStructure(ss);
+  return ContentService.createTextOutput(JSON.stringify({
+    status: 'success',
+    message: 'All Google Sheet tabs and header columns have been repaired & normalized with ZERO data loss!'
+  })).setMimeType(ContentService.MimeType.JSON);
+}
 
-    if (action === "get_products") {
-      return handleGetProducts(ss);
-    }
+/**
+ * Fetch All Orders List (Exact 16-Column Match)
+ */
+function handleGetOrders(ss) {
+  var ordersSheet = ss.getSheetByName('Orders');
+  if (!ordersSheet) {
+    return ContentService.createTextOutput(JSON.stringify({ status: 'success', orders: [] })).setMimeType(ContentService.MimeType.JSON);
+  }
 
-    if (action === "get_user_orders") {
-      var userEmail = (e && e.parameter && e.parameter.email) ? e.parameter.email.toLowerCase() : "";
-      return handleGetUserOrders(ss, userEmail);
-    }
+  var data = ordersSheet.getDataRange().getValues();
+  var orders = [];
 
-    // Default: Get All Orders for Admin Dashboard
-    var sheet = getOrCreateOrdersSheet(ss);
-    var rows = sheet.getDataRange().getValues();
+  for (var i = 1; i < data.length; i++) {
+    var row = data[i];
+    if (!row[0]) continue; // Skip empty header/rows
 
-    if (rows.length <= 1) {
-      return jsonResponse({ status: "success", orders: [] });
-    }
+    var orderId = row[0].toString();
+    var timestamp = row[1] ? row[1].toString() : '';
+    var name = row[2] ? row[2].toString() : '';
+    var email = row[3] ? row[3].toString() : '';
+    var phone = row[4] ? row[4].toString() : '';
+    var addressStr = row[5] ? row[5].toString() : '';
+    var city = row[6] ? row[6].toString() : '';
+    var pincode = row[7] ? row[7].toString() : '';
+    var itemsSummary = row[8] ? row[8].toString() : '';
+    var totalAmount = parseFloat(row[9]) || 0;
+    var paymentMethod = row[10] ? row[10].toString() : 'Razorpay';
+    var paymentId = row[11] ? row[11].toString() : 'pay_online';
+    var status = row[12] ? row[12].toString() : 'Processing';
+    var trackingUrl = row[13] ? row[13].toString() : '';
+    var eta = row[14] ? row[14].toString() : '3-5 Business Days';
+    var adminNotes = row[15] ? row[15].toString() : '';
 
-    var orders = [];
-    for (var i = 1; i < rows.length; i++) {
-      var row = rows[i];
-      if (!row[0]) continue;
+    orders.push({
+      id: orderId,
+      date: timestamp,
+      customerName: name,
+      customerEmail: email,
+      customerPhone: phone,
+      itemsSummary: itemsSummary,
+      items: [],
+      subtotal: totalAmount,
+      discount: 0,
+      total: totalAmount,
+      status: status,
+      shippingAddress: {
+        fullName: name,
+        email: email,
+        phone: phone,
+        addressLine1: addressStr,
+        city: city,
+        state: 'Telangana',
+        pincode: pincode
+      },
+      paymentMethod: paymentMethod,
+      paymentId: paymentId,
+      city: city,
+      trackingUrl: trackingUrl,
+      estimatedArrival: eta,
+      adminNotes: adminNotes
+    });
+  }
+
+  return ContentService.createTextOutput(JSON.stringify({
+    status: 'success',
+    orders: orders.reverse()
+  })).setMimeType(ContentService.MimeType.JSON);
+}
+
+/**
+ * Fetch Specific User Orders By Email
+ */
+function handleGetUserOrders(ss, userEmail) {
+  if (!userEmail) return handleGetOrders(ss);
+
+  var ordersSheet = ss.getSheetByName('Orders');
+  if (!ordersSheet) {
+    return ContentService.createTextOutput(JSON.stringify({ status: 'success', orders: [] })).setMimeType(ContentService.MimeType.JSON);
+  }
+
+  var data = ordersSheet.getDataRange().getValues();
+  var orders = [];
+
+  for (var i = 1; i < data.length; i++) {
+    var row = data[i];
+    if (!row[0]) continue;
+    var rowEmail = row[3] ? row[3].toString().toLowerCase() : '';
+    
+    if (rowEmail === userEmail.toLowerCase()) {
       orders.push({
         id: row[0].toString(),
-        date: row[1] ? row[1].toString() : "",
-        customerName: row[2] ? row[2].toString() : "",
-        customerEmail: row[3] ? row[3].toString() : "",
-        customerPhone: row[4] ? row[4].toString() : "",
-        shippingAddress: row[5] ? row[5].toString() : "",
-        city: row[6] ? row[6].toString() : "",
-        pincode: row[7] ? row[7].toString() : "",
-        itemsSummary: row[8] ? row[8].toString() : "",
+        date: row[1] ? row[1].toString() : '',
+        customerName: row[2] ? row[2].toString() : '',
+        customerEmail: row[3] ? row[3].toString() : '',
+        customerPhone: row[4] ? row[4].toString() : '',
+        itemsSummary: row[8] ? row[8].toString() : '',
         total: parseFloat(row[9]) || 0,
-        paymentMethod: row[10] ? row[10].toString() : "Razorpay",
-        paymentId: row[11] ? row[11].toString() : "",
-        status: row[12] ? row[12].toString() : "Processing",
-        trackingUrl: row[13] ? row[13].toString() : "",
-        estimatedArrival: row[14] ? row[14].toString() : "",
-        adminNotes: row[15] ? row[15].toString() : ""
+        paymentMethod: row[10] ? row[10].toString() : 'Razorpay',
+        paymentId: row[11] ? row[11].toString() : '',
+        status: row[12] ? row[12].toString() : 'Processing',
+        trackingUrl: row[13] ? row[13].toString() : '',
+        estimatedArrival: row[14] ? row[14].toString() : '3-5 Business Days',
+        shippingAddress: {
+          fullName: row[2] ? row[2].toString() : '',
+          email: row[3] ? row[3].toString() : '',
+          phone: row[4] ? row[4].toString() : '',
+          addressLine1: row[5] ? row[5].toString() : '',
+          city: row[6] ? row[6].toString() : '',
+          state: 'Telangana',
+          pincode: row[7] ? row[7].toString() : ''
+        }
       });
     }
-
-    return jsonResponse({ status: "success", orders: orders });
-  } catch (err) {
-    return jsonResponse({ status: "error", message: err.toString() });
   }
+
+  return ContentService.createTextOutput(JSON.stringify({
+    status: 'success',
+    orders: orders.reverse()
+  })).setMimeType(ContentService.MimeType.JSON);
 }
 
 /**
- * Handle Create Order
+ * Save New Customer Order (Matching User's Google Sheet Headers)
  */
-function handleCreateOrder(ordersSheet, customerSheet, data) {
-  var itemsSummary = (data.items || []).map(function(item) {
-    return item.product.name + " (" + item.selectedVariant.weight + ") x" + item.quantity;
-  }).join(", ");
+function handleSaveOrder(ss, order) {
+  var ordersSheet = ss.getSheetByName('Orders');
+  
+  var itemsSummary = order.items && order.items.length > 0
+    ? order.items.map(function(item) {
+        return (item.product ? item.product.name : 'Produce') + ' (' + (item.selectedVariant ? item.selectedVariant.weight : '') + ') x' + item.quantity;
+      }).join(', ')
+    : (order.itemsSummary || 'Organic Produce Basket');
 
-  var timestamp = new Date().toLocaleString("en-IN", { timeZone: "Asia/Kolkata" });
-  var orderId = data.id || ("ORD-" + Date.now());
-  var custEmail = data.shippingAddress ? data.shippingAddress.email : (data.customerEmail || "");
-  var custName = data.shippingAddress ? data.shippingAddress.fullName : (data.customerName || "Valued Patron");
-  var custPhone = data.shippingAddress ? data.shippingAddress.phone : "";
-  var fullAddress = data.shippingAddress ? (data.shippingAddress.addressLine1 + ", " + (data.shippingAddress.addressLine2 || "")) : "";
-  var city = data.shippingAddress ? data.shippingAddress.city : "";
-  var pincode = data.shippingAddress ? data.shippingAddress.pincode : "";
-  var totalAmount = data.total || 0;
-  var trackingUrl = data.trackingUrl || "";
-  var eta = data.estimatedArrival || "3-5 Business Days";
-  var notes = data.adminNotes || "";
+  var fullName = order.shippingAddress ? order.shippingAddress.fullName : (order.customerName || 'Valued Patron');
+  var email = order.shippingAddress ? order.shippingAddress.email : (order.customerEmail || '');
+  var phone = order.shippingAddress ? order.shippingAddress.phone : (order.customerPhone || '');
+  var addressLine = order.shippingAddress ? order.shippingAddress.addressLine1 : '';
+  var city = order.shippingAddress ? order.shippingAddress.city : (order.city || 'Hyderabad');
+  var pincode = order.shippingAddress ? order.shippingAddress.pincode : '';
+
+  var orderId = order.id || ('BRND-' + Date.now().toString().slice(-6));
+  var timestamp = order.date || new Date().toLocaleString('en-IN');
 
   ordersSheet.appendRow([
     orderId,
     timestamp,
-    custName,
-    custEmail,
-    custPhone,
-    fullAddress,
+    fullName,
+    email,
+    phone,
+    addressLine,
     city,
     pincode,
     itemsSummary,
-    totalAmount,
-    data.paymentMethod || "Razorpay",
-    data.paymentId || "PAY-" + Date.now(),
-    data.status || "Processing",
-    trackingUrl,
-    eta,
-    notes
+    order.total || 0,
+    order.paymentMethod || 'Razorpay',
+    order.paymentId || 'pay_online',
+    order.status || 'Processing',
+    order.trackingUrl || '',
+    order.estimatedArrival || '3-5 Business Days',
+    order.adminNotes || ''
   ]);
 
-  logCustomerCRM(customerSheet, custName, custEmail, custPhone, city);
+  // Update CRM Records
+  updateCustomerCRMRecord(ss, fullName, email, phone, city);
 
-  // Send Wholesome Customer Invoice Email & Admin Alert
-  sendWholesomeInvoiceEmail(custEmail, custName, orderId, totalAmount, itemsSummary, fullAddress, eta);
-  sendAdminNotificationEmail(orderId, custName, custEmail, custPhone, totalAmount, itemsSummary);
+  // Send Wholesome Customer Email Invoice
+  if (email) {
+    sendWholesomeInvoiceEmail(email, fullName, orderId, order.total, itemsSummary, addressLine + ', ' + city, order.estimatedArrival || '3-5 Business Days');
+  }
 
-  return jsonResponse({
-    status: "success",
-    message: "Order #" + orderId + " recorded & Wholesome Invoice Email sent!",
-    orderId: orderId
-  });
+  // Send Instant Admin Alert Notification
+  sendAdminOrderNotificationEmail(fullName, email, phone, orderId, order.total, itemsSummary, addressLine + ', ' + city);
+
+  return ContentService.createTextOutput(JSON.stringify({
+    status: 'success',
+    message: 'Order #' + orderId + ' saved to sheet perfectly and invoice dispatched!'
+  })).setMimeType(ContentService.MimeType.JSON);
 }
 
 /**
- * Handle Update Order Status & Send ETA/Tracking Email
+ * Update Specific Order Details (Matching User's Google Sheet Headers)
  */
-function handleUpdateOrderStatus(ordersSheet, data) {
-  var targetOrderId = data.orderId;
-  var newStatus = data.newStatus;
-  var trackingUrl = data.trackingUrl || "";
-  var eta = data.estimatedArrival || "";
+function handleUpdateOrderDetails(ss, orderId, details) {
+  var ordersSheet = ss.getSheetByName('Orders');
+  if (!ordersSheet) {
+    return ContentService.createTextOutput(JSON.stringify({ status: 'error', message: 'Orders sheet not found' })).setMimeType(ContentService.MimeType.JSON);
+  }
 
-  var rows = ordersSheet.getDataRange().getValues();
+  var data = ordersSheet.getDataRange().getValues();
   var foundRow = -1;
-  var customerEmail = "";
-  var customerName = "";
 
-  for (var i = 1; i < rows.length; i++) {
-    if (rows[i][0].toString() === targetOrderId.toString()) {
-      foundRow = i + 1;
-      customerName = rows[i][2];
-      customerEmail = rows[i][3];
-      if (trackingUrl) ordersSheet.getRange(foundRow, 14).setValue(trackingUrl);
-      if (eta) ordersSheet.getRange(foundRow, 15).setValue(eta);
+  for (var i = 1; i < data.length; i++) {
+    if (data[i][0].toString() === orderId.toString()) {
+      foundRow = i + 1; // 1-indexed
       break;
     }
   }
 
-  if (foundRow > -1) {
-    ordersSheet.getRange(foundRow, 13).setValue(newStatus);
+  if (foundRow === -1) {
+    return ContentService.createTextOutput(JSON.stringify({ status: 'error', message: 'Order #' + orderId + ' not found' })).setMimeType(ContentService.MimeType.JSON);
+  }
 
-    if (customerEmail) {
-      sendStatusUpdateEmail(customerEmail, customerName, targetOrderId, newStatus, trackingUrl, eta);
+  // Column Index Mapping:
+  // C (3): Customer Name
+  // E (5): Phone
+  // F (6): Address
+  // M (13): Status
+  // N (14): Tracking URL
+  // O (15): ETA
+  // P (16): Admin Notes
+
+  if (details.customerName) ordersSheet.getRange(foundRow, 3).setValue(details.customerName);
+  if (details.customerPhone) ordersSheet.getRange(foundRow, 5).setValue(details.customerPhone);
+  if (details.shippingAddress && details.shippingAddress.addressLine1) ordersSheet.getRange(foundRow, 6).setValue(details.shippingAddress.addressLine1);
+  if (details.status) ordersSheet.getRange(foundRow, 13).setValue(details.status);
+  if (details.trackingUrl !== undefined) ordersSheet.getRange(foundRow, 14).setValue(details.trackingUrl);
+  if (details.estimatedArrival) ordersSheet.getRange(foundRow, 15).setValue(details.estimatedArrival);
+  if (details.adminNotes !== undefined) ordersSheet.getRange(foundRow, 16).setValue(details.adminNotes);
+
+  // Send status update email if status or tracking changed
+  var customerEmail = ordersSheet.getRange(foundRow, 4).getValue();
+  var customerName = ordersSheet.getRange(foundRow, 3).getValue();
+  var newStatus = details.status || ordersSheet.getRange(foundRow, 13).getValue();
+  var trackingUrl = details.trackingUrl || ordersSheet.getRange(foundRow, 14).getValue();
+  var eta = details.estimatedArrival || ordersSheet.getRange(foundRow, 15).getValue();
+
+  if (customerEmail && details.status) {
+    sendStatusUpdateEmail(customerEmail, customerName, orderId, newStatus, trackingUrl, eta);
+  }
+
+  return ContentService.createTextOutput(JSON.stringify({
+    status: 'success',
+    message: 'Order #' + orderId + ' details updated successfully in sheet!'
+  })).setMimeType(ContentService.MimeType.JSON);
+}
+
+/**
+ * Delete Order Record
+ */
+function handleDeleteOrder(ss, orderId) {
+  var ordersSheet = ss.getSheetByName('Orders');
+  if (!ordersSheet) {
+    return ContentService.createTextOutput(JSON.stringify({ status: 'error', message: 'Orders sheet not found' })).setMimeType(ContentService.MimeType.JSON);
+  }
+
+  var data = ordersSheet.getDataRange().getValues();
+  for (var i = 1; i < data.length; i++) {
+    if (data[i][0].toString() === orderId.toString()) {
+      ordersSheet.deleteRow(i + 1);
+      return ContentService.createTextOutput(JSON.stringify({
+        status: 'success',
+        message: 'Order #' + orderId + ' deleted permanently!'
+      })).setMimeType(ContentService.MimeType.JSON);
     }
+  }
 
-    return jsonResponse({
-      status: "success",
-      message: "Order " + targetOrderId + " status updated to " + newStatus
+  return ContentService.createTextOutput(JSON.stringify({
+    status: 'error',
+    message: 'Order #' + orderId + ' not found'
+  })).setMimeType(ContentService.MimeType.JSON);
+}
+
+/**
+ * Fetch Reviews List
+ */
+function handleGetReviews(ss) {
+  var revSheet = ss.getSheetByName('Reviews');
+  if (!revSheet) {
+    return ContentService.createTextOutput(JSON.stringify({ status: 'success', reviews: [] })).setMimeType(ContentService.MimeType.JSON);
+  }
+
+  var data = revSheet.getDataRange().getValues();
+  var reviews = [];
+  for (var i = 1; i < data.length; i++) {
+    if (!data[i][0]) continue;
+    reviews.push({
+      id: data[i][0].toString(),
+      name: data[i][1] ? data[i][1].toString() : 'Valued Patron',
+      location: data[i][2] ? data[i][2].toString() : 'Hyderabad',
+      rating: parseInt(data[i][3]) || 5,
+      produceTag: data[i][4] ? data[i][4].toString() : 'ghee',
+      produceName: data[i][5] ? data[i][5].toString() : 'A2 Desi Cow Bilona Ghee',
+      headline: data[i][6] ? data[i][6].toString() : '',
+      review: data[i][7] ? data[i][7].toString() : '',
+      verified: data[i][8] === true || data[i][8] === 'TRUE' || data[i][8] === 'true',
+      date: data[i][9] ? data[i][9].toString() : new Date().toLocaleDateString('en-IN')
     });
-  } else {
-    return jsonResponse({ status: "error", message: "Order ID " + targetOrderId + " not found" });
   }
+
+  return ContentService.createTextOutput(JSON.stringify({
+    status: 'success',
+    reviews: reviews.reverse()
+  })).setMimeType(ContentService.MimeType.JSON);
 }
 
 /**
- * Handle Full Order Details Edit (Tracking, ETA, Admin Notes)
+ * Submit New Customer Review
  */
-function handleUpdateOrderDetails(ordersSheet, data) {
-  var targetOrderId = data.orderId;
-  var rows = ordersSheet.getDataRange().getValues();
-  var foundRow = -1;
+function handleSubmitReview(ss, review) {
+  var revSheet = ss.getSheetByName('Reviews');
+  var revId = 'REV-' + Date.now();
+  var dateStr = new Date().toLocaleDateString('en-IN');
 
-  for (var i = 1; i < rows.length; i++) {
-    if (rows[i][0].toString() === targetOrderId.toString()) {
-      foundRow = i + 1;
-      break;
+  revSheet.appendRow([
+    revId,
+    review.name || 'Valued Patron',
+    review.location || 'Hyderabad',
+    review.rating || 5,
+    review.produceTag || 'ghee',
+    review.produceName || 'A2 Desi Cow Bilona Ghee',
+    review.headline || 'Excellent Produce!',
+    review.review || '',
+    true,
+    dateStr
+  ]);
+
+  return ContentService.createTextOutput(JSON.stringify({
+    status: 'success',
+    message: 'Thank you! Your review has been saved to Brindavanam Nature Centre!'
+  })).setMimeType(ContentService.MimeType.JSON);
+}
+
+/**
+ * Update Reviews List
+ */
+function handleUpdateReviews(ss, reviewsList) {
+  var revSheet = ss.getSheetByName('Reviews');
+
+  revSheet.clear();
+  revSheet.appendRow(['Review ID', 'Author Name', 'Location', 'Rating', 'Produce Tag', 'Produce Name', 'Headline', 'Review Text', 'Is Verified', 'Date']);
+  formatHeaderRow(revSheet, 10);
+
+  if (Array.isArray(reviewsList)) {
+    for (var i = 0; i < reviewsList.length; i++) {
+      var r = reviewsList[i];
+      revSheet.appendRow([r.id, r.name, r.location, r.rating, r.produceTag, r.produceName, r.headline, r.review, r.verified, r.date]);
     }
   }
 
-  if (foundRow > -1) {
-    if (data.customerName) ordersSheet.getRange(foundRow, 3).setValue(data.customerName);
-    if (data.customerPhone) ordersSheet.getRange(foundRow, 5).setValue(data.customerPhone);
-    if (data.shippingAddress) ordersSheet.getRange(foundRow, 6).setValue(data.shippingAddress);
-    if (data.status) ordersSheet.getRange(foundRow, 13).setValue(data.status);
-    if (data.trackingUrl !== undefined) ordersSheet.getRange(foundRow, 14).setValue(data.trackingUrl);
-    if (data.estimatedArrival !== undefined) ordersSheet.getRange(foundRow, 15).setValue(data.estimatedArrival);
-    if (data.adminNotes !== undefined) ordersSheet.getRange(foundRow, 16).setValue(data.adminNotes);
-
-    return jsonResponse({ status: "success", message: "Order #" + targetOrderId + " details updated!" });
-  } else {
-    return jsonResponse({ status: "error", message: "Order not found" });
-  }
+  return ContentService.createTextOutput(JSON.stringify({
+    status: 'success',
+    message: 'Reviews updated successfully!'
+  })).setMimeType(ContentService.MimeType.JSON);
 }
 
 /**
- * Handle Delete Order
+ * Delete Review
  */
-function handleDeleteOrder(ordersSheet, data) {
-  var targetOrderId = data.orderId;
-  var rows = ordersSheet.getDataRange().getValues();
-  var foundRow = -1;
+function handleDeleteReview(ss, reviewId) {
+  var revSheet = ss.getSheetByName('Reviews');
+  if (!revSheet) {
+    return ContentService.createTextOutput(JSON.stringify({ status: 'error', message: 'Reviews sheet not found' })).setMimeType(ContentService.MimeType.JSON);
+  }
 
-  for (var i = 1; i < rows.length; i++) {
-    if (rows[i][0].toString() === targetOrderId.toString()) {
-      foundRow = i + 1;
-      break;
+  var data = revSheet.getDataRange().getValues();
+  for (var i = 1; i < data.length; i++) {
+    if (data[i][0].toString() === reviewId.toString()) {
+      revSheet.deleteRow(i + 1);
+      return ContentService.createTextOutput(JSON.stringify({
+        status: 'success',
+        message: 'Review #' + reviewId + ' deleted permanently!'
+      })).setMimeType(ContentService.MimeType.JSON);
     }
   }
 
-  if (foundRow > -1) {
-    ordersSheet.deleteRow(foundRow);
-    return jsonResponse({ status: "success", message: "Order #" + targetOrderId + " deleted from database." });
-  } else {
-    return jsonResponse({ status: "error", message: "Order ID not found" });
-  }
+  return ContentService.createTextOutput(JSON.stringify({
+    status: 'error',
+    message: 'Review #' + reviewId + ' not found'
+  })).setMimeType(ContentService.MimeType.JSON);
 }
 
 /**
- * Promo Codes & Custom Products Sheet Logic
+ * Fetch Promo Coupons List
  */
 function handleGetPromos(ss) {
-  var promosSheet = getOrCreatePromosSheet(ss);
-  var rows = promosSheet.getDataRange().getValues();
-  if (rows.length <= 1) return jsonResponse({ status: "success", promos: [] });
+  var promoSheet = ss.getSheetByName('PromoCodes');
+  if (!promoSheet) {
+    return ContentService.createTextOutput(JSON.stringify({ status: 'success', promos: [] })).setMimeType(ContentService.MimeType.JSON);
+  }
 
+  var data = promoSheet.getDataRange().getValues();
   var promos = [];
-  for (var i = 1; i < rows.length; i++) {
-    var r = rows[i];
-    if (!r[0]) continue;
+  for (var i = 1; i < data.length; i++) {
+    if (!data[i][0]) continue;
     promos.push({
-      code: r[0].toString(),
-      discountPercent: parseFloat(r[1]) || 10,
-      active: (r[2] === true || r[2].toString().toLowerCase() === 'true'),
-      description: r[3] ? r[3].toString() : ""
+      code: data[i][0].toString(),
+      discountPercent: parseFloat(data[i][1]) || 10,
+      active: data[i][2] === true || data[i][2] === 'true' || data[i][2] === 'TRUE',
+      description: data[i][3] ? data[i][3].toString() : ''
     });
   }
-  return jsonResponse({ status: "success", promos: promos });
-}
 
-function handleSavePromos(ss, data) {
-  var promosSheet = getOrCreatePromosSheet(ss);
-  var promosList = data.promos || [];
-  var lastRow = promosSheet.getLastRow();
-  if (lastRow > 1) promosSheet.getRange(2, 1, lastRow - 1, 4).clearContent();
-
-  for (var i = 0; i < promosList.length; i++) {
-    var p = promosList[i];
-    promosSheet.appendRow([
-      p.code.toString().toUpperCase(),
-      p.discountPercent || 10,
-      p.active !== false,
-      p.description || ""
-    ]);
-  }
-  return jsonResponse({ status: "success", message: "Promos saved!" });
-}
-
-function handleGetProducts(ss) {
-  var productsSheet = getOrCreateProductsSheet(ss);
-  var rows = productsSheet.getDataRange().getValues();
-  if (rows.length <= 1) return jsonResponse({ status: "success", products: [] });
-
-  var products = [];
-  for (var i = 1; i < rows.length; i++) {
-    var r = rows[i];
-    if (!r[0]) continue;
-    try {
-      products.push(JSON.parse(r[1].toString()));
-    } catch (e) {}
-  }
-  return jsonResponse({ status: "success", products: products });
-}
-
-function handleSaveProducts(ss, data) {
-  var productsSheet = getOrCreateProductsSheet(ss);
-  var productsList = data.products || [];
-  var lastRow = productsSheet.getLastRow();
-  if (lastRow > 1) productsSheet.getRange(2, 1, lastRow - 1, 2).clearContent();
-
-  for (var i = 0; i < productsList.length; i++) {
-    var prod = productsList[i];
-    productsSheet.appendRow([prod.id, JSON.stringify(prod)]);
-  }
-  return jsonResponse({ status: "success", message: "Catalog products saved!" });
-}
-
-function handleGetUserOrders(ss, userEmail) {
-  var sheet = getOrCreateOrdersSheet(ss);
-  var rows = sheet.getDataRange().getValues();
-  var userOrders = [];
-
-  for (var i = 1; i < rows.length; i++) {
-    var row = rows[i];
-    var emailInRow = (row[3] || "").toString().toLowerCase();
-    if (emailInRow && emailInRow === userEmail) {
-      userOrders.push({
-        id: row[0].toString(),
-        date: row[1] ? row[1].toString() : "",
-        customerName: row[2] ? row[2].toString() : "",
-        customerEmail: row[3] ? row[3].toString() : "",
-        customerPhone: row[4] ? row[4].toString() : "",
-        shippingAddress: row[5] ? row[5].toString() : "",
-        city: row[6] ? row[6].toString() : "",
-        pincode: row[7] ? row[7].toString() : "",
-        itemsSummary: row[8] ? row[8].toString() : "",
-        total: parseFloat(row[9]) || 0,
-        paymentMethod: row[10] ? row[10].toString() : "Razorpay",
-        paymentId: row[11] ? row[11].toString() : "",
-        status: row[12] ? row[12].toString() : "Processing",
-        trackingUrl: row[13] ? row[13].toString() : "",
-        estimatedArrival: row[14] ? row[14].toString() : ""
-      });
-    }
-  }
-
-  return jsonResponse({ status: "success", orders: userOrders });
+  return ContentService.createTextOutput(JSON.stringify({ status: 'success', promos: promos })).setMimeType(ContentService.MimeType.JSON);
 }
 
 /**
- * Self-Initializing Sheet Creators
+ * Update Promo Coupons List
  */
-function getOrCreateOrdersSheet(ss) {
-  var sheet = ss.getSheetByName("Orders");
-  if (!sheet) sheet = ss.insertSheet("Orders");
+function handleUpdatePromos(ss, promosList) {
+  var promoSheet = ss.getSheetByName('PromoCodes');
 
-  if (sheet.getLastRow() === 0) {
-    var headers = [
-      "Order ID", "Timestamp", "Customer Name", "Customer Email", "Customer Phone",
-      "Shipping Address", "City", "Pincode", "Items Purchased", "Total Amount (INR)",
-      "Payment Method", "Payment ID / Ref", "Status", "Tracking URL", "Estimated Arrival (ETA)", "Admin Notes"
-    ];
-    sheet.appendRow(headers);
+  promoSheet.clear();
+  promoSheet.appendRow(['Coupon Code', 'Discount Percent', 'Is Active', 'Description']);
+  formatHeaderRow(promoSheet, 4);
 
-    var headerRange = sheet.getRange(1, 1, 1, headers.length);
-    headerRange.setFontWeight("bold")
-               .setBackground("#3A5303")
-               .setFontColor("#FFFFFF")
-               .setFontFamily("Arial")
-               .setFontSize(10)
-               .setVerticalAlignment("middle");
-
-    sheet.setRowHeight(1, 35);
-    sheet.setFrozenRows(1);
+  if (Array.isArray(promosList)) {
+    for (var i = 0; i < promosList.length; i++) {
+      var p = promosList[i];
+      promoSheet.appendRow([p.code, p.discountPercent, p.active, p.description || '']);
+    }
   }
-  return sheet;
+
+  return ContentService.createTextOutput(JSON.stringify({ status: 'success', message: 'Promo coupons updated successfully!' })).setMimeType(ContentService.MimeType.JSON);
 }
 
-function getOrCreatePromosSheet(ss) {
-  var sheet = ss.getSheetByName("Promo_Codes");
-  if (!sheet) sheet = ss.insertSheet("Promo_Codes");
-
-  if (sheet.getLastRow() === 0) {
-    var headers = ["Code", "Discount %", "Active", "Description"];
-    sheet.appendRow(headers);
-
-    var headerRange = sheet.getRange(1, 1, 1, headers.length);
-    headerRange.setFontWeight("bold")
-               .setBackground("#3A5303")
-               .setFontColor("#FFFFFF")
-               .setFontFamily("Arial")
-               .setFontSize(10);
-    sheet.setFrozenRows(1);
+/**
+ * Fetch Products Catalog
+ */
+function handleGetProducts(ss) {
+  var prodSheet = ss.getSheetByName('Products');
+  if (!prodSheet) {
+    return ContentService.createTextOutput(JSON.stringify({ status: 'success', products: [] })).setMimeType(ContentService.MimeType.JSON);
   }
-  return sheet;
+
+  var data = prodSheet.getDataRange().getValues();
+  var products = [];
+  for (var i = 1; i < data.length; i++) {
+    if (!data[i][0]) continue;
+    try {
+      var prodObj = JSON.parse(data[i][1]);
+      products.push(prodObj);
+    } catch (e) {}
+  }
+
+  return ContentService.createTextOutput(JSON.stringify({ status: 'success', products: products })).setMimeType(ContentService.MimeType.JSON);
 }
 
-function getOrCreateProductsSheet(ss) {
-  var sheet = ss.getSheetByName("Custom_Products");
-  if (!sheet) sheet = ss.insertSheet("Custom_Products");
+/**
+ * Update Products Catalog
+ */
+function handleUpdateProducts(ss, productsList) {
+  var prodSheet = ss.getSheetByName('Products');
 
-  if (sheet.getLastRow() === 0) {
-    var headers = ["Product ID", "JSON Data"];
-    sheet.appendRow(headers);
-    var headerRange = sheet.getRange(1, 1, 1, headers.length);
-    headerRange.setFontWeight("bold").setBackground("#3A5303").setFontColor("#FFFFFF");
-    sheet.setFrozenRows(1);
+  prodSheet.clear();
+  prodSheet.appendRow(['Product ID', 'Product JSON Payload', 'Name', 'Category']);
+  formatHeaderRow(prodSheet, 4);
+
+  if (Array.isArray(productsList)) {
+    for (var i = 0; i < productsList.length; i++) {
+      var p = productsList[i];
+      prodSheet.appendRow([p.id, JSON.stringify(p), p.name, p.category]);
+    }
   }
-  return sheet;
+
+  return ContentService.createTextOutput(JSON.stringify({ status: 'success', message: 'Products catalog updated successfully!' })).setMimeType(ContentService.MimeType.JSON);
 }
 
-function getOrCreateCustomerSheet(ss) {
-  var sheet = ss.getSheetByName("Customer_CRM");
-  if (!sheet) sheet = ss.insertSheet("Customer_CRM");
-
-  if (sheet.getLastRow() === 0) {
-    var headers = ["Customer Name", "Email Address", "Phone Number", "City", "Total Orders", "First Seen"];
-    sheet.appendRow(headers);
-    var headerRange = sheet.getRange(1, 1, 1, headers.length);
-    headerRange.setFontWeight("bold").setBackground("#3A5303").setFontColor("#FFFFFF");
-    sheet.setFrozenRows(1);
-  }
-  return sheet;
-}
-
-function getOrCreateAnalyticsSheet(ss) {
-  var sheet = ss.getSheetByName("Analytics");
-  if (!sheet) sheet = ss.insertSheet("Analytics");
-
-  if (sheet.getLastRow() === 0) {
-    var headers = ["Metric", "Value", "Last Updated"];
-    sheet.appendRow(headers);
-    var headerRange = sheet.getRange(1, 1, 1, headers.length);
-    headerRange.setFontWeight("bold").setBackground("#3A5303").setFontColor("#FFFFFF");
-    sheet.setFrozenRows(1);
-  }
-  return sheet;
-}
-
-function logCustomerCRM(customerSheet, name, email, phone, city) {
+/**
+ * Update CRM Record
+ */
+function updateCustomerCRMRecord(ss, name, email, phone, city) {
   if (!email) return;
-  var rows = customerSheet.getDataRange().getValues();
-  var foundRow = -1;
+  var customerSheet = ss.getSheetByName('Customers');
 
-  for (var i = 1; i < rows.length; i++) {
-    if (rows[i][1].toString().toLowerCase() === email.toLowerCase()) {
+  var data = customerSheet.getDataRange().getValues();
+  var foundRow = -1;
+  for (var i = 1; i < data.length; i++) {
+    if (data[i][1] && data[i][1].toString().toLowerCase() === email.toLowerCase()) {
       foundRow = i + 1;
       break;
     }
   }
 
-  var nowStr = new Date().toLocaleDateString("en-IN");
+  var nowStr = new Date().toLocaleDateString('en-IN');
   if (foundRow > -1) {
     var currentOrders = parseInt(customerSheet.getRange(foundRow, 5).getValue()) || 1;
     customerSheet.getRange(foundRow, 5).setValue(currentOrders + 1);
@@ -507,38 +686,43 @@ function logCustomerCRM(customerSheet, name, email, phone, city) {
 }
 
 /**
- * Wholesome Customer Invoice Email Template
+ * 1. BREATHTAKING WHOLESOME CUSTOMER INVOICE EMAIL TEMPLATE
  */
 function sendWholesomeInvoiceEmail(email, name, orderId, total, items, address, eta) {
   if (!email) return;
 
-  var subject = "🌸 Order Confirmed & Official Invoice #" + orderId + " - Brindavanam Organic Farms";
+  var subject = "🌸 Order Confirmed & Official Invoice #" + orderId + " - Brindavanam Nature Centre";
   var htmlBody = 
-    "<div style='font-family: Georgia, serif; max-width: 650px; margin: 0 auto; border: 1px solid #d4cfc5; border-radius: 20px; overflow: hidden; background-color: #faf9f6;'>" +
-      "<div style='background-color: #3A5303; padding: 32px 24px; text-align: center; color: white; border-bottom: 4px solid #94C000;'>" +
-        "<h1 style='font-family: Georgia, serif; margin: 0; font-size: 28px; font-weight: normal; letter-spacing: 0.5px;'>Brindavanam Organic Farms</h1>" +
-        "<p style='color: #94C000; font-size: 11px; margin-top: 6px; text-transform: uppercase; letter-spacing: 2px; font-family: sans-serif; font-weight: bold;'>Brindavan Farm Hyd • Handcrafted Vedic Produce</p>" +
+    "<div style='font-family: Georgia, serif; max-width: 650px; margin: 0 auto; border: 1px solid #d4cfc5; border-radius: 20px; overflow: hidden; background-color: #faf9f6; shadow: 0 10px 30px rgba(0,0,0,0.05);'>" +
+      "<div style='background-color: #3A5303; padding: 36px 24px; text-align: center; color: white; border-bottom: 5px solid #94C000;'>" +
+        "<span style='background-color: #94C000; color: #1c260b; font-size: 10px; font-weight: font-extrabold; padding: 4px 12px; border-radius: 20px; text-transform: uppercase; letter-spacing: 2px; font-family: sans-serif;'>Authentic Farm Produce</span>" +
+        "<h1 style='font-family: Georgia, serif; margin: 12px 0 4px 0; font-size: 30px; font-weight: normal; letter-spacing: 0.5px;'>Brindavanam Nature Centre</h1>" +
+        "<p style='color: #e2ded4; font-size: 12px; margin: 0; font-family: sans-serif; font-weight: 300;'>Pure • Natural • Honest — Direct from Hyderabad Farm</p>" +
       "</div>" +
-      "<div style='padding: 32px 28px; color: #2c2a29; font-size: 15px; line-height: 1.7;'>" +
-        "<p style='font-size: 18px; color: #3A5303; margin-top: 0;'>Namaste " + name + " 🙏</p>" +
-        "<p>Thank you for welcoming <strong>Brindavanam</strong> into your home. Your order has been registered at our native farm in Hyderabad and is being freshly prepared using traditional wood-fire hand-churning and zero-heat Marachekku pressing methods.</p>" +
+      "<div style='padding: 36px 30px; color: #2c2a29; font-size: 15px; line-height: 1.7;'>" +
+        "<p style='font-size: 20px; color: #3A5303; margin-top: 0; font-weight: normal;'>Namaste " + name + " 🙏</p>" +
+        "<p>Thank you for welcoming <strong>Brindavanam Nature Centre</strong> into your home. Your order has been registered at our native farm in Hyderabad and is being freshly prepared using traditional wood-fire hand-churning and zero-heat Marachekku pressing methods.</p>" +
         
-        "<div style='background-color: #ffffff; border: 1px solid #e2ded4; border-radius: 16px; padding: 24px; margin: 24px 0; box-shadow: 0 4px 12px rgba(0,0,0,0.03);'>" +
+        "<div style='background-color: #ffffff; border: 1px solid #e2ded4; border-radius: 16px; padding: 24px; margin: 28px 0; box-shadow: 0 4px 12px rgba(0,0,0,0.03);'>" +
           "<div style='display: flex; justify-content: space-between; border-bottom: 2px solid #3A5303; padding-bottom: 12px; margin-bottom: 16px;'>" +
-            "<span style='font-family: sans-serif; font-size: 12px; font-weight: bold; color: #3A5303; text-transform: uppercase;'>Official Invoice Receipt</span>" +
+            "<span style='font-family: sans-serif; font-size: 12px; font-weight: bold; color: #3A5303; text-transform: uppercase;'>Official Tax Invoice Receipt</span>" +
             "<span style='font-family: monospace; font-size: 13px; font-weight: bold; color: #3A5303;'>" + orderId + "</span>" +
           "</div>" +
-          "<p style='margin: 6px 0; font-size: 14px;'><strong>Items Purchased:</strong> " + items + "</p>" +
-          "<p style='margin: 6px 0; font-size: 14px;'><strong>Total Paid:</strong> <span style='color: #3A5303; font-weight: bold; font-size: 16px;'>₹" + total + "</span> (100% Tax Inclusive)</p>" +
-          "<p style='margin: 6px 0; font-size: 14px;'><strong>Delivery Address:</strong> " + address + "</p>" +
-          "<p style='margin: 6px 0; font-size: 14px;'><strong>Estimated Arrival (ETA):</strong> <span style='color: #2b3e02; font-weight: bold;'>" + eta + "</span></p>" +
+          "<p style='margin: 8px 0; font-size: 14px;'><strong>Items Purchased:</strong> " + items + "</p>" +
+          "<p style='margin: 8px 0; font-size: 14px;'><strong>Total Paid:</strong> <span style='color: #3A5303; font-weight: bold; font-size: 17px;'>₹" + total + "</span> (100% Tax Inclusive)</p>" +
+          "<p style='margin: 8px 0; font-size: 14px;'><strong>Delivery Address:</strong> " + address + "</p>" +
+          "<p style='margin: 8px 0; font-size: 14px;'><strong>Estimated Arrival (ETA):</strong> <span style='color: #2b3e02; font-weight: bold;'>" + eta + "</span></p>" +
         "</div>" +
 
-        "<p style='font-size: 13px; color: #5c5855; font-style: italic;'>\"Our Gir cows roam freely in native green pastures, and our wood-pressed oils are extracted with zero chemicals or bleach. Every glass jar carries the warmth of Vedic purity.\"</p>" +
-        "<p style='font-size: 13px; color: #5c5855;'>With warm farm blessings,<br><strong style='color: #3A5303;'>The Brindavanam Farm Team</strong><br><a href='mailto:brindavanam1902@gmail.com' style='color: #3A5303;'>brindavanam1902@gmail.com</a></p>" +
+        "<div style='background-color: #f0f4e8; border-left: 4px solid #3A5303; padding: 16px; border-radius: 8px; margin: 20px 0; font-size: 13px; color: #3A5303; font-style: italic;'>" +
+          "\"Our Gir cows roam freely in native green pastures, and our wood-pressed oils are extracted with zero chemicals or bleach. Every glass jar carries the warmth of Vedic purity.\"" +
+        "</div>" +
+
+        "<p style='font-size: 13px; color: #5c5855;'>With warm farm blessings,<br><strong style='color: #3A5303; font-size: 14px;'>Brindavanam Nature Centre Team</strong><br><a href='mailto:brindavanam1902@gmail.com' style='color: #3A5303; font-weight: bold;'>brindavanam1902@gmail.com</a></p>" +
       "</div>" +
-      "<div style='background-color: #1c260b; padding: 20px; text-align: center; color: #a39e93; font-size: 11px; font-family: sans-serif;'>" +
-        "© 2026 Brindavanam Organic Farms • Brindavan Farm Hyd • Powered By Rendervoid" +
+
+      "<div style='background-color: #1c260b; padding: 24px; text-align: center; color: #a39e93; font-size: 11px; font-family: sans-serif;'>" +
+        "© 2026 Brindavanam Nature Centre • Hyderabad, Telangana, India • Powered By Rendervoid" +
       "</div>" +
     "</div>";
 
@@ -554,26 +738,29 @@ function sendWholesomeInvoiceEmail(email, name, orderId, total, items, address, 
 }
 
 /**
- * Status Update Email with Live Tracking URL & ETA
+ * 2. REAL-TIME DISPATCH / TRACKING STATUS UPDATE EMAIL
  */
 function sendStatusUpdateEmail(email, name, orderId, newStatus, trackingUrl, eta) {
   if (!email) return;
 
-  var subject = "🚚 Order #" + orderId + " Update: " + newStatus + " - Brindavanam Organic";
+  var subject = "🚚 Order #" + orderId + " Update: " + newStatus + " - Brindavanam Nature Centre";
   var htmlBody = 
-    "<div style='font-family: Georgia, serif; max-width: 600px; margin: 0 auto; border: 1px solid #d4cfc5; border-radius: 16px; overflow: hidden; background-color: #ffffff;'>" +
-      "<div style='background-color: #3A5303; padding: 24px; text-align: center; color: white;'>" +
-        "<h2 style='margin: 0; font-weight: normal;'>Brindavanam Dispatch Update</h2>" +
+    "<div style='font-family: Georgia, serif; max-width: 600px; margin: 0 auto; border: 1px solid #d4cfc5; border-radius: 16px; overflow: hidden; background-color: #ffffff; shadow: 0 8px 24px rgba(0,0,0,0.04);'>" +
+      "<div style='background-color: #3A5303; padding: 28px; text-align: center; color: white; border-bottom: 4px solid #94C000;'>" +
+        "<h2 style='margin: 0; font-weight: normal; font-size: 24px;'>Brindavanam Dispatch Update</h2>" +
+        "<p style='color: #94C000; font-size: 11px; font-weight: bold; margin-top: 4px; text-transform: uppercase; font-family: sans-serif;'>Parcel Transit Notification</p>" +
       "</div>" +
-      "<div style='padding: 24px; color: #333; font-size: 14px; line-height: 1.6;'>" +
-        "<p>Hello <strong>" + name + "</strong>,</p>" +
-        "<p>Your order <strong>#" + orderId + "</strong> has been updated to: <span style='background-color: #3A5303; color: white; padding: 4px 12px; border-radius: 20px; font-family: sans-serif; font-size: 12px; font-weight: bold; text-transform: uppercase;'>" + newStatus + "</span></p>" +
-        (eta ? "<p style='background-color: #F7F6F2; padding: 12px; border-radius: 8px; border-left: 4px solid #3A5303;'>📅 <strong>Estimated Arrival Date (ETA):</strong> " + eta + "</p>" : "") +
-        (trackingUrl ? "<p style='margin-top: 16px;'><a href='" + trackingUrl + "' target='_blank' style='background-color: #3A5303; color: white; padding: 12px 24px; text-decoration: none; border-radius: 10px; font-family: sans-serif; font-weight: bold; font-size: 13px; display: inline-block;'>📍 Track Your Parcel Live</a></p>" : "") +
-        "<p style='margin-top: 24px; font-size: 12px; color: #666;'>For assistance, email us directly at <strong>brindavanam1902@gmail.com</strong>.</p>" +
+      "<div style='padding: 28px; color: #333; font-size: 14px; line-height: 1.7;'>" +
+        "<p style='font-size: 16px;'>Hello <strong>" + name + "</strong>,</p>" +
+        "<p>Your order <strong>#" + orderId + "</strong> has been updated to: <span style='background-color: #3A5303; color: white; padding: 5px 14px; border-radius: 20px; font-family: sans-serif; font-size: 12px; font-weight: bold; text-transform: uppercase; display: inline-block;'>" + newStatus + "</span></p>" +
+        
+        (trackingUrl ? "<div style='background-color: #F7F6F2; border: 1px solid #e0ddd5; border-radius: 12px; margin: 20px 0; padding: 16px;'><p style='margin: 0 0 6px 0; font-size: 12px; text-transform: uppercase; font-weight: bold; color: #3A5303;'>Live Parcel Tracking URL:</p><a href='" + trackingUrl + "' target='_blank' style='color: #3A5303; font-weight: bold; font-family: monospace; word-break: break-all; font-size: 13px;'>" + trackingUrl + "</a></div>" : "") +
+        (eta ? "<p style='font-size: 14px;'><strong>Approx Date of Arrival (ETA):</strong> <span style='color: #3A5303; font-weight: bold;'>" + eta + "</span></p>" : "") +
+
+        "<p style='margin-top: 24px; font-size: 12px; color: #666;'>If you have any questions about your parcel, reply to this mail or contact us at <a href='mailto:brindavanam1902@gmail.com' style='color: #3A5303; font-weight: bold;'>brindavanam1902@gmail.com</a>.</p>" +
       "</div>" +
-      "<div style='background-color: #1c260b; padding: 14px; text-align: center; color: #a39e93; font-size: 11px; font-family: sans-serif;'>" +
-        "Brindavan Farm Hyd • Powered By Rendervoid" +
+      "<div style='background-color: #1c260b; padding: 18px; text-align: center; color: #aaa; font-size: 10px; font-family: sans-serif;'>" +
+        "© 2026 Brindavanam Nature Centre • Hyderabad • Handcrafted Farm Produce" +
       "</div>" +
     "</div>";
 
@@ -584,34 +771,40 @@ function sendStatusUpdateEmail(email, name, orderId, newStatus, trackingUrl, eta
       htmlBody: htmlBody
     });
   } catch (e) {
-    console.warn("Status Email failed:", e);
+    console.warn("Status Update Email failed:", e);
   }
 }
 
-function sendAdminNotificationEmail(orderId, name, email, phone, total, items) {
-  var subject = "🚨 NEW ORDER #" + orderId + " (₹" + total + ") - Brindavanam Admin";
+/**
+ * 3. INSTANT ADMIN ORDER NOTIFICATION ALERT EMAIL
+ */
+function sendAdminOrderNotificationEmail(name, email, phone, orderId, total, items, address) {
+  var adminEmail = "brindavanam1902@gmail.com";
+  var subject = "🔔 NEW ORDER RECEIVED #" + orderId + " (₹" + total + ") - Brindavanam Nature";
   var htmlBody = 
-    "<div style='font-family: Arial, sans-serif; padding: 20px; border: 2px solid #3A5303; border-radius: 12px;'>" +
-      "<h2 style='color: #3A5303; margin-top: 0;'>New Order Dispatch Required!</h2>" +
-      "<p><strong>Order ID:</strong> " + orderId + "</p>" +
-      "<p><strong>Customer:</strong> " + name + " (" + email + " | Phone: " + phone + ")</p>" +
-      "<p><strong>Total Amount:</strong> ₹" + total + "</p>" +
-      "<p><strong>Items:</strong> " + items + "</p>" +
-      "<p style='margin-top: 20px;'><a href='https://bhaveshbasrani.github.io/Brindavanam/#admin' style='background-color: #3A5303; color: white; padding: 10px 20px; text-decoration: none; border-radius: 8px;'>Open Admin Operations Desk</a></p>" +
+    "<div style='font-family: sans-serif; max-width: 600px; margin: 0 auto; border: 2px solid #3A5303; border-radius: 16px; padding: 24px; background-color: #ffffff;'>" +
+      "<div style='background-color: #3A5303; color: white; padding: 16px; border-radius: 12px; text-align: center; margin-bottom: 20px;'>" +
+        "<h2 style='margin: 0;'>New Farm Order Received! 🎉</h2>" +
+        "<p style='margin: 4px 0 0 0; font-size: 12px; color: #94C000; font-weight: bold;'>Order ID: #" + orderId + "</p>" +
+      "</div>" +
+      "<p style='font-size: 14px;'><strong>Customer Name:</strong> " + name + "</p>" +
+      "<p style='font-size: 14px;'><strong>Email:</strong> " + email + "</p>" +
+      "<p style='font-size: 14px;'><strong>Phone:</strong> " + phone + "</p>" +
+      "<p style='font-size: 14px;'><strong>Items Purchased:</strong> " + items + "</p>" +
+      "<p style='font-size: 16px; color: #3A5303; font-weight: bold;'>Total Amount Paid: ₹" + total + "</p>" +
+      "<p style='font-size: 14px;'><strong>Delivery Address:</strong> " + address + "</p>" +
+      "<div style='margin-top: 20px; border-top: 1px solid #eee; pt-10; text-align: center; font-size: 11px; color: #777;'>" +
+        "Open your Admin Operations Desk to inspect and update ETA / Tracking info." +
+      "</div>" +
     "</div>";
 
   try {
     MailApp.sendEmail({
-      to: ADMIN_EMAIL,
+      to: adminEmail,
       subject: subject,
       htmlBody: htmlBody
     });
   } catch (e) {
-    console.warn("Admin Alert Email failed:", e);
+    console.warn("Admin Notification Email failed:", e);
   }
-}
-
-function jsonResponse(obj) {
-  return ContentService.createTextOutput(JSON.stringify(obj))
-    .setMimeType(ContentService.MimeType.JSON);
 }

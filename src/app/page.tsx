@@ -6,6 +6,7 @@ import { StoreProvider, useStore } from '@/context/StoreContext';
 import { Navbar } from '@/components/Navbar';
 import { HeroBanner } from '@/components/HeroBanner';
 import { BrindavanamNatureSection } from '@/components/BrindavanamNatureSection';
+import { TestimonialSection } from '@/components/TestimonialSection';
 import { FarmProcessSection } from '@/components/FarmProcessSection';
 import { ProductCard } from '@/components/ProductCard';
 import { ProductDetailModal } from '@/components/ProductDetailModal';
@@ -17,7 +18,7 @@ import { AdminDashboardModal } from '@/components/AdminDashboardModal';
 import { CoolLoadingScreen } from '@/components/CoolLoadingScreen';
 import { FloatingRecaptchaBadge } from '@/components/FloatingRecaptchaBadge';
 import { Footer } from '@/components/Footer';
-import { Product, ProductVariant } from '@/types/store';
+import { Product } from '@/types/store';
 
 function HomePageContent() {
   const {
@@ -37,7 +38,6 @@ function HomePageContent() {
     setIsAuthOpen,
     setIsOrdersOpen,
     setIsAdminOpen,
-    triggerCheckout,
     onOrderSuccess,
   } = useStore();
 
@@ -153,6 +153,9 @@ function HomePageContent() {
 
         {/* Brindavanam Nature Centre Section (Pure. Natural. Honest.) */}
         <BrindavanamNatureSection />
+
+        {/* Crazyyy Looking Testimonials Section */}
+        <TestimonialSection />
 
         {/* Standard of Integrity / Our Ancient Extraction Method (Placed at bottom per Changes.pdf Page 3) */}
         <FarmProcessSection />

@@ -36,6 +36,15 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({ onShopNow }) => {
     setCurrentIndex((prev) => (prev - 1 + PRODUCTS.length) % PRODUCTS.length);
   };
 
+  const handleScrollToNature = () => {
+    const el = document.getElementById('brindavanam-nature');
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth' });
+    } else {
+      onShopNow();
+    }
+  };
+
   return (
     <div 
       className="relative bg-[#F7F6F2] overflow-hidden pt-28 sm:pt-32 pb-12 sm:pb-16 border-b border-stone-200"
@@ -57,7 +66,7 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({ onShopNow }) => {
               <span>Artisanal Organic Produce • Native Heirloom Farms</span>
             </div>
 
-            {/* Compact Headline (Reduced 50-60% per Changes.pdf Page 4) */}
+            {/* Compact Headline */}
             <h1 className="text-2xl sm:text-3xl lg:text-4xl font-serif text-stone-900 leading-[1.2] font-normal">
               Pure Wood-Pressed Oils <br className="hidden sm:inline" />
               <span className="italic text-[#3A5303] font-normal">& A2 Desi Cow Bilona Ghee</span>
@@ -67,8 +76,11 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({ onShopNow }) => {
               Handcrafted in small batches using ancient Vedic methods. Slow wood-fire hand-churned Gir Cow Bilona Ghee, zero-heat Marachekku pressed oils, and fresh unadulterated Paneer.
             </p>
 
-            {/* Dynamic Product Spotlight Tag */}
-            <div className="bg-white/90 p-3 rounded-2xl border border-stone-200 shadow-xs max-w-lg mx-auto lg:mx-0">
+            {/* Dynamic Product Spotlight Tag (Clickable to jump to catalog) */}
+            <div 
+              onClick={onShopNow}
+              className="bg-white/90 p-3 rounded-2xl border border-stone-200 shadow-xs max-w-lg mx-auto lg:mx-0 cursor-pointer hover:border-[#3A5303] transition-all group"
+            >
               <AnimatePresence mode="wait">
                 <motion.div
                   key={currentProduct.id}
@@ -81,7 +93,7 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({ onShopNow }) => {
                   <div className="flex items-center space-x-3 text-left">
                     <span className="w-2.5 h-2.5 rounded-full bg-[#94C000] animate-pulse shrink-0" />
                     <div>
-                      <span className="font-bold text-stone-900 block">{currentProduct.name}</span>
+                      <span className="font-bold text-stone-900 group-hover:text-[#3A5303] block transition-colors">{currentProduct.name}</span>
                       <span className="text-[10px] text-stone-500 line-clamp-1">{currentProduct.subtitle}</span>
                     </div>
                   </div>
@@ -108,23 +120,20 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({ onShopNow }) => {
               </div>
             </div>
 
-            {/* Action Buttons (Dots removed per Changes.pdf Page 3) */}
+            {/* Action Buttons */}
             <div className="pt-2">
               <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-3">
                 <button
                   onClick={onShopNow}
-                  className="w-full sm:w-auto px-7 py-3 bg-[#3A5303] hover:bg-[#2b3e02] text-white font-bold text-xs uppercase tracking-wider rounded-2xl shadow-lg hover:shadow-xl transition-all active:scale-98 flex items-center justify-center space-x-2"
+                  className="w-full sm:w-auto px-7 py-3 bg-[#3A5303] hover:bg-[#2b3e02] text-white font-bold text-xs uppercase tracking-wider rounded-2xl shadow-lg hover:shadow-xl transition-all active:scale-98 flex items-center justify-center space-x-2 cursor-pointer"
                 >
                   <span>Shop Organic Lineup</span>
                   <ArrowRight className="w-4 h-4" />
                 </button>
 
                 <button
-                  onClick={() => {
-                    const el = document.getElementById('catalog');
-                    if (el) el.scrollIntoView({ behavior: 'smooth' });
-                  }}
-                  className="w-full sm:w-auto px-7 py-3 bg-white hover:bg-stone-50 text-stone-800 font-bold text-xs uppercase tracking-wider rounded-2xl border border-stone-300 shadow-xs transition-all active:scale-98 flex items-center justify-center space-x-2"
+                  onClick={handleScrollToNature}
+                  className="w-full sm:w-auto px-7 py-3 bg-white hover:bg-stone-50 text-stone-800 font-bold text-xs uppercase tracking-wider rounded-2xl border border-stone-300 shadow-xs transition-all active:scale-98 flex items-center justify-center space-x-2 cursor-pointer"
                 >
                   <Leaf className="w-4 h-4 text-[#3A5303]" />
                   <span>Our Vedic Process</span>
@@ -140,13 +149,16 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({ onShopNow }) => {
             {/* Prev Arrow */}
             <button
               onClick={handlePrev}
-              className="absolute left-0 sm:-left-4 z-20 p-2.5 rounded-full bg-white/90 shadow-md text-stone-700 hover:bg-[#3A5303] hover:text-white transition-colors"
+              className="absolute left-0 sm:-left-4 z-20 p-2.5 rounded-full bg-white/90 shadow-md text-stone-700 hover:bg-[#3A5303] hover:text-white transition-colors cursor-pointer"
               title="Previous Organic Produce"
             >
               <ChevronLeft className="w-5 h-5" />
             </button>
 
-            <div className="relative w-full max-w-md aspect-4/5 rounded-3xl overflow-hidden shadow-2xl border-4 border-white ring-1 ring-stone-200 group">
+            <div 
+              onClick={onShopNow}
+              className="relative w-full max-w-md aspect-4/5 rounded-3xl overflow-hidden shadow-2xl border-4 border-white ring-1 ring-stone-200 group cursor-pointer"
+            >
               <AnimatePresence mode="wait">
                 <motion.img
                   key={currentProduct.id}
@@ -179,7 +191,7 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({ onShopNow }) => {
             {/* Next Arrow */}
             <button
               onClick={handleNext}
-              className="absolute right-0 sm:-right-4 z-20 p-2.5 rounded-full bg-white/90 shadow-md text-stone-700 hover:bg-[#3A5303] hover:text-white transition-colors"
+              className="absolute right-0 sm:-right-4 z-20 p-2.5 rounded-full bg-white/90 shadow-md text-stone-700 hover:bg-[#3A5303] hover:text-white transition-colors cursor-pointer"
               title="Next Organic Produce"
             >
               <ChevronRight className="w-5 h-5" />

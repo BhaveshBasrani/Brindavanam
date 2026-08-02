@@ -18,7 +18,7 @@ export const PRODUCTS: Product[] = [
     rating: 5.0,
     reviewsCount: 215,
     images: [
-      'https://images.unsplash.com/photo-1550583724-b2692b85b150?q=80&w=1000&auto=format&fit=crop'
+      'https://i.pinimg.com/736x/0c/c1/32/0cc1327f65c7e4a0975a15ad399750ec.jpg'
     ],
     variants: [
       { id: 'milk-1l', weight: '1 Litre Glass Bottle', price: 130, originalPrice: 150, inStock: true },
@@ -139,7 +139,7 @@ export const PRODUCTS: Product[] = [
     rating: 4.9,
     reviewsCount: 88,
     images: [
-      'https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?q=80&w=1000&auto=format&fit=crop'
+      'https://i.pinimg.com/736x/a1/14/35/a114356e1d87a7b36c49bf5e200b4329.jpg'
     ],
     variants: [
       { id: 'sesame-1l', weight: '1 Litre Glass Bottle', price: 500, originalPrice: 560, inStock: true },
@@ -178,7 +178,7 @@ export const PRODUCTS: Product[] = [
     rating: 4.7,
     reviewsCount: 64,
     images: [
-      'https://tse3.mm.bing.net/th/id/OIP.09Qp1tlNXtMleUEKK11rlQHaHa?r=0&rs=1&pid=ImgDetMain&o=7&rm=3'
+      'https://i.pinimg.com/736x/7b/72/ec/7b72ec0a7388518616a22806131e3aae.jpg'
     ],
     variants: [
       { id: 'kusuma-1l', weight: '1 Litre Glass Bottle', price: 520, originalPrice: 580, inStock: true },
@@ -217,7 +217,7 @@ export const PRODUCTS: Product[] = [
     rating: 4.8,
     reviewsCount: 79,
     images: [
-      'https://images.unsplash.com/photo-1618160702438-9b02ab6515c9?q=80&w=1000&auto=format&fit=crop'
+      'https://i.pinimg.com/736x/13/18/8d/13188d1e419f405b39e9dc48669c823e.jpg'
     ],
     variants: [
       { id: 'mustard-1l', weight: '1 Litre Glass Bottle', price: 380, originalPrice: 430, inStock: true },
@@ -337,7 +337,7 @@ export const PRODUCTS: Product[] = [
     rating: 4.9,
     reviewsCount: 134,
     images: [
-      'https://images.unsplash.com/photo-1516467508483-a7212febe31a?q=80&w=1000&auto=format&fit=crop'
+      'https://i.pinimg.com/736x/7f/4f/82/7f4f8291d388e9ab37c955181c227f08.jpg'
     ],
     variants: [
       { id: 'eggs-6', weight: '6 Eggs Pack', price: 90, originalPrice: 115, inStock: true },
