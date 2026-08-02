@@ -52,14 +52,19 @@ export const Footer: React.FC = () => {
 
         </div>
 
-        {/* Bottom copyright & branding line */}
+        {/* Bottom copyright & branding link to rendervoid.xyz */}
         <div className="pt-8 border-t border-stone-800 flex flex-col sm:flex-row items-center justify-between text-[11px] text-stone-400 font-light gap-2">
           <p>© 2026 Brindavanam Nature Centre. All rights reserved.</p>
           <div className="flex items-center space-x-1.5 text-xs font-semibold text-[#94C000]">
             <span className="text-stone-400">Powered By</span>
-            <span className="tracking-wider uppercase font-bold text-[#94C000] bg-[#94C000]/10 px-2.5 py-0.5 rounded border border-[#94C000]/20">
+            <a
+              href="https://rendervoid.xyz"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="tracking-wider uppercase font-bold text-[#94C000] hover:text-white bg-[#94C000]/10 hover:bg-[#3A5303] px-2.5 py-0.5 rounded border border-[#94C000]/20 transition-all cursor-pointer inline-flex items-center"
+            >
               Rendervoid
-            </span>
+            </a>
           </div>
         </div>
       </div>
