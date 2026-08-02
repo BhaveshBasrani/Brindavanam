@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ShoppingBag, User, Search, Menu, X, LogOut, Package, Leaf } from 'lucide-react';
+import { ShoppingBag, User, Search, Menu, X, LogOut, Package, Leaf, Home as HomeIcon } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 
 interface NavbarProps {
@@ -56,15 +56,17 @@ export const Navbar: React.FC<NavbarProps> = ({
   }, [onOpenAdmin]);
 
   const categories = [
-    { id: 'all', label: 'All Produce' },
+    { id: 'all', label: 'All Products' },
+    { id: 'milk', label: 'Pure Desi Cow Milk' },
     { id: 'ghee', label: 'A2 Bilona Ghee' },
     { id: 'oil', label: 'Wood-Pressed Oils' },
-    { id: 'paneer', label: 'Fresh Paneer' },
+    { id: 'paneer', label: 'Pure Desi Cow Paneer' },
+    { id: 'eggs', label: 'Farm Fresh Eggs' },
   ];
 
   return (
     <>
-      {/* Dynamic Floating Header Wrapper - NO BACKGROUND BOX BEHIND IT */}
+      {/* Dynamic Floating Header Wrapper */}
       <header className="fixed top-0 left-0 right-0 z-50 flex flex-col items-center pointer-events-none">
         
         {/* Top Announcement Bar */}
@@ -73,7 +75,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             <div className="max-w-7xl mx-auto flex justify-between items-center">
               <div className="flex items-center space-x-2 truncate">
                 <span className="w-2 h-2 rounded-full bg-[#94C000] animate-pulse shrink-0" />
-                <span className="truncate">Traditional Wood-Pressed & A2 Certified</span>
+                <span className="truncate">Traditional Wood-Pressed & A2 Certified • Free Shipping Above ₹2000</span>
               </div>
               <div className="flex items-center space-x-2 shrink-0">
                 <span className="bg-[#94C000] text-[#1c260b] px-2 py-0.5 rounded text-[9px] font-extrabold tracking-wider">
@@ -84,28 +86,32 @@ export const Navbar: React.FC<NavbarProps> = ({
           </div>
         )}
 
-        {/* Floating Dynamic Island Bar - Freely floating over content (NO OVERFLOW-HIDDEN CLIPPING DROPDOWN) */}
-        <div className="w-full flex justify-center px-3 sm:px-6 pointer-events-none">
+        {/* Floating Dynamic Island Bar */}
+        <div className="w-full flex justify-center px-2 sm:px-6 pointer-events-none">
           <motion.div
             layout
             transition={{ type: 'spring', stiffness: 350, damping: 25 }}
-            className={`pointer-events-auto transition-all duration-300 flex items-center justify-between gap-2 sm:gap-3 select-none w-full relative ${
+            className={`pointer-events-auto transition-all duration-300 flex items-center justify-between gap-1.5 sm:gap-3 select-none w-full relative ${
               isScrolled
-                ? 'mt-3 px-4 sm:px-6 py-2 sm:py-2.5 rounded-full border border-stone-300/80 bg-white/95 backdrop-blur-xl shadow-2xl max-w-5xl'
-                : 'mt-2.5 px-4 sm:px-7 py-2.5 sm:py-3 rounded-2xl border border-stone-200/80 bg-white/95 backdrop-blur-md max-w-7xl shadow-lg'
+                ? 'mt-3 px-3 sm:px-6 py-2 sm:py-2.5 rounded-full border border-stone-300/80 bg-white/95 backdrop-blur-xl shadow-2xl max-w-6xl'
+                : 'mt-2.5 px-3 sm:px-6 py-2.5 sm:py-3 rounded-2xl border border-stone-200/80 bg-white/95 backdrop-blur-md max-w-7xl shadow-lg'
             }`}
           >
             {/* Left: Mobile Menu & Logo */}
             <div className="flex items-center space-x-1.5 sm:space-x-2 shrink-0">
               <button
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="md:hidden p-1.5 text-stone-800 hover:text-[#3A5303] rounded-lg hover:bg-stone-100 transition-colors"
+                className="lg:hidden p-1.5 text-stone-800 hover:text-[#3A5303] rounded-lg hover:bg-stone-100 transition-colors"
                 aria-label="Toggle Menu"
               >
                 {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
               </button>
               
-              <Link href="/" className="flex items-center space-x-1.5 group shrink-0">
+              <Link 
+                href="/" 
+                onClick={() => setSelectedCategory('all')}
+                className="flex items-center space-x-1.5 group shrink-0"
+              >
                 <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-[#3A5303] text-white flex items-center justify-center font-bold shadow-xs shrink-0">
                   <Leaf className="w-4 h-4 sm:w-4.5 sm:h-4.5 text-[#94C000]" />
                 </div>
@@ -116,7 +122,22 @@ export const Navbar: React.FC<NavbarProps> = ({
             </div>
 
             {/* Center: Desktop Navigation Links */}
-            <nav className="hidden lg:flex items-center space-x-1 bg-[#F7F6F2] px-2 py-1 rounded-full border border-stone-200/80 text-[11px] uppercase tracking-wider font-semibold whitespace-nowrap shrink">
+            <nav className="hidden lg:flex items-center space-x-1 bg-[#F7F6F2] px-2 py-1 rounded-full border border-stone-200/80 text-[11px] font-semibold whitespace-nowrap shrink overflow-x-auto scrollbar-none">
+              <button
+                onClick={() => {
+                  setSelectedCategory('all');
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                }}
+                className={`px-3 py-1 rounded-full transition-all whitespace-nowrap shrink-0 flex items-center space-x-1 ${
+                  selectedCategory === 'all'
+                    ? 'bg-[#3A5303] text-white font-bold shadow-xs'
+                    : 'text-stone-600 hover:text-stone-900'
+                }`}
+              >
+                <HomeIcon className="w-3 h-3" />
+                <span>Home</span>
+              </button>
+
               {categories.map((cat) => (
                 <button
                   key={cat.id}
@@ -151,7 +172,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                   placeholder="Search produce..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-24 lg:w-36 pl-7 pr-2 py-1 text-xs border-b border-stone-300 bg-transparent text-stone-800 focus:outline-none focus:border-[#3A5303] transition-all"
+                  className="w-24 xl:w-36 pl-7 pr-2 py-1 text-xs border-b border-stone-300 bg-transparent text-stone-800 focus:outline-none focus:border-[#3A5303] transition-all"
                 />
                 <Search className="w-3.5 h-3.5 text-stone-400 absolute left-1.5" />
               </div>
@@ -299,17 +320,31 @@ export const Navbar: React.FC<NavbarProps> = ({
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
-              className="w-full px-4 pb-4 md:hidden pointer-events-auto"
+              className="w-full px-4 pb-4 lg:hidden pointer-events-auto max-h-[85vh] overflow-y-auto"
             >
               <div className="p-5 rounded-3xl bg-white border border-stone-200 shadow-2xl space-y-4">
                 <div className="flex items-center justify-between border-b border-stone-100 pb-3">
-                  <span className="text-xs font-serif font-bold text-[#3A5303] uppercase tracking-wider">Organic Lineup Categories</span>
+                  <span className="text-xs font-serif font-bold text-[#3A5303] uppercase tracking-wider">Nav Header Items</span>
                   <button onClick={() => setMobileMenuOpen(false)} className="p-1 text-stone-400">
                     <X className="w-5 h-5" />
                   </button>
                 </div>
 
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-1 gap-2">
+                  <button
+                    onClick={() => {
+                      setSelectedCategory('all');
+                      setMobileMenuOpen(false);
+                      window.scrollTo({ top: 0, behavior: 'smooth' });
+                    }}
+                    className={`text-left py-3 px-4 rounded-xl text-xs font-bold transition-all flex items-center space-x-2 ${
+                      selectedCategory === 'all' ? 'bg-[#3A5303] text-white shadow-md' : 'bg-[#F7F6F2] text-stone-700'
+                    }`}
+                  >
+                    <HomeIcon className="w-4 h-4" />
+                    <span>Home (All Products)</span>
+                  </button>
+
                   {categories.map((cat) => (
                     <button
                       key={cat.id}
@@ -317,7 +352,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                         setSelectedCategory(cat.id);
                         setMobileMenuOpen(false);
                       }}
-                      className={`text-center py-3 px-3 rounded-xl text-xs uppercase font-bold transition-all active:scale-95 ${
+                      className={`text-left py-3 px-4 rounded-xl text-xs font-bold transition-all ${
                         selectedCategory === cat.id ? 'bg-[#3A5303] text-white shadow-md' : 'bg-[#F7F6F2] text-stone-700 hover:bg-stone-200'
                       }`}
                     >

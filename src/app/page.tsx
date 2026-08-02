@@ -5,6 +5,7 @@ import { AuthProvider } from '@/context/AuthContext';
 import { StoreProvider, useStore } from '@/context/StoreContext';
 import { Navbar } from '@/components/Navbar';
 import { HeroBanner } from '@/components/HeroBanner';
+import { BrindavanamNatureSection } from '@/components/BrindavanamNatureSection';
 import { FarmProcessSection } from '@/components/FarmProcessSection';
 import { ProductCard } from '@/components/ProductCard';
 import { ProductDetailModal } from '@/components/ProductDetailModal';
@@ -71,9 +72,15 @@ function HomePageContent() {
 
   const cartTotalCount = cartItems.reduce((acc, item) => acc + item.quantity, 0);
 
-  const handleBuyNow = (product: Product, variant: ProductVariant, quantity: number) => {
-    addToCart(product, variant, quantity);
-    setIsCartDrawerOpen(true);
+  const getCategoryTitle = () => {
+    switch (selectedCategory) {
+      case 'milk': return 'Pure Desi Cow Milk Lineup';
+      case 'ghee': return 'Authentic A2 Bilona Ghee Lineup';
+      case 'oil': return 'Pure Wood-Pressed Oils Lineup';
+      case 'paneer': return 'Fresh Desi Paneer Lineup';
+      case 'eggs': return 'Farm Fresh Eggs Lineup';
+      default: return 'Fresh Farm Harvest Lineup';
+    }
   };
 
   return (
@@ -94,31 +101,32 @@ function HomePageContent() {
       />
 
       <main className="flex-1">
+        
+        {/* Top Hero Banner (Title reduced 50-60%, pagination dots removed) */}
         <HeroBanner onShopNow={() => {
           const element = document.getElementById('catalog');
           element?.scrollIntoView({ behavior: 'smooth' });
         }} />
 
-        <FarmProcessSection />
-
+        {/* Store Catalog Section */}
         <section id="catalog" className="py-16 sm:py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
           <div className="flex flex-col md:flex-row md:items-end justify-between mb-12">
             <div>
               <span className="text-xs uppercase tracking-[0.2em] font-bold text-[#3A5303] mb-2 block">
-                100% Certified Farm Lineup
+                100% Certified Farm Produce
               </span>
               <h2 className="text-3xl sm:text-4xl font-serif text-stone-900">
-                Fresh Farm Harvest
+                {getCategoryTitle()}
               </h2>
             </div>
             <p className="text-xs sm:text-sm text-stone-600 max-w-md mt-2 md:mt-0 font-light">
-              Every jar is hand-bottled at our farm in Hyderabad without heat processing, chemicals, or artificial preservatives.
+              Every item is hand-bottled at our farm in Hyderabad without heat processing, chemicals, or artificial preservatives.
             </p>
           </div>
 
           {filteredProducts.length === 0 ? (
             <div className="text-center py-20 bg-white rounded-3xl border border-stone-200 shadow-sm">
-              <p className="text-stone-500 font-serif text-lg">No organic produce found matching your search.</p>
+              <p className="text-stone-500 font-serif text-lg">No organic produce found matching your filter.</p>
               <button
                 onClick={() => {
                   setSelectedCategory('all');
@@ -142,28 +150,43 @@ function HomePageContent() {
             </div>
           )}
         </section>
+
+        {/* Brindavanam Nature Centre Section (Pure. Natural. Honest.) */}
+        <BrindavanamNatureSection />
+
+        {/* Standard of Integrity / Our Ancient Extraction Method (Placed at bottom per Changes.pdf Page 3) */}
+        <FarmProcessSection />
+
       </main>
 
       <Footer />
 
+      {/* Cart Drawer Overlay */}
       <CartDrawer
         isOpen={isCartDrawerOpen}
         onClose={() => setIsCartDrawerOpen(false)}
         items={cartItems}
         onUpdateQuantity={updateQuantity}
         onRemoveItem={removeCartItem}
-        onCheckout={(discount, promo) => triggerCheckout(discount, promo)}
+        onCheckout={() => {
+          setIsCartDrawerOpen(false);
+          setIsCheckoutOpen(true);
+        }}
       />
 
-      {quickViewProduct && (
-        <ProductDetailModal
-          product={quickViewProduct}
-          onClose={() => setQuickViewProduct(null)}
-          onAddToCart={addToCart}
-          onBuyNow={handleBuyNow}
-        />
-      )}
+      {/* Product Quick-View Detail Modal */}
+      <ProductDetailModal
+        product={quickViewProduct}
+        isOpen={!!quickViewProduct}
+        onClose={() => setQuickViewProduct(null)}
+        onAddToCart={(p, v, q) => {
+          addToCart(p, v, q);
+          setQuickViewProduct(null);
+          setIsCartDrawerOpen(true);
+        }}
+      />
 
+      {/* Checkout Modal */}
       <CheckoutModal
         isOpen={isCheckoutOpen}
         onClose={() => setIsCheckoutOpen(false)}
@@ -173,17 +196,20 @@ function HomePageContent() {
         onOrderSuccess={onOrderSuccess}
       />
 
+      {/* Customer Auth Modal */}
       <AuthModal
         isOpen={isAuthOpen}
         onClose={() => setIsAuthOpen(false)}
       />
 
+      {/* Customer Orders Modal */}
       <UserOrdersModal
         isOpen={isOrdersOpen}
         onClose={() => setIsOrdersOpen(false)}
         orders={userOrders}
       />
 
+      {/* Master Admin Operations Desk Modal */}
       <AdminDashboardModal
         isOpen={isAdminOpen}
         onClose={() => setIsAdminOpen(false)}

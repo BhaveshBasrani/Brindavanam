@@ -1,6 +1,6 @@
 export interface ProductVariant {
   id: string;
-  weight: string; // e.g. "500 ml", "1 Litre", "5 Litres", "250g", "500g"
+  weight: string; // e.g. "500 ml", "1 Litre", "5 Litres", "250g", "500g", "1 Kg"
   price: number; // in INR
   originalPrice?: number;
   inStock: boolean;
@@ -19,11 +19,11 @@ export interface Product {
   id: string;
   name: string;
   subtitle: string;
-  category: 'ghee' | 'oil' | 'paneer';
+  category: 'milk' | 'ghee' | 'oil' | 'paneer' | 'eggs';
   description: string;
   healthBenefits: string[];
   extractionMethod: string;
-  badge?: string; // e.g., "Bestseller", "100% Wood Pressed", "A2 Certified"
+  badge?: string;
   rating: number;
   reviewsCount: number;
   images: string[];

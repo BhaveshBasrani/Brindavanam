@@ -38,7 +38,7 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({ onShopNow }) => {
 
   return (
     <div 
-      className="relative bg-[#F7F6F2] overflow-hidden pt-28 sm:pt-36 pb-16 sm:pb-24 border-b border-stone-200"
+      className="relative bg-[#F7F6F2] overflow-hidden pt-28 sm:pt-32 pb-12 sm:pb-16 border-b border-stone-200"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
@@ -47,28 +47,28 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({ onShopNow }) => {
       <div className="absolute bottom-0 left-0 -ml-20 -mb-20 w-96 h-96 bg-[#3A5303]/10 rounded-full blur-3xl pointer-events-none" />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-10 items-center">
           
           {/* Left Column: Headline, Copy & CTAs */}
-          <div className="lg:col-span-7 space-y-5 text-center lg:text-left">
+          <div className="lg:col-span-7 space-y-4 text-center lg:text-left">
             
-            <div className="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-full bg-[#3A5303]/10 border border-[#3A5303]/20 text-[#3A5303] text-xs font-bold uppercase tracking-widest mx-auto lg:mx-0">
+            <div className="inline-flex items-center space-x-2 px-3.5 py-1 rounded-full bg-[#3A5303]/10 border border-[#3A5303]/20 text-[#3A5303] text-[11px] font-bold uppercase tracking-widest mx-auto lg:mx-0">
               <Sparkles className="w-3.5 h-3.5 text-[#94C000]" />
               <span>Artisanal Organic Produce • Native Heirloom Farms</span>
             </div>
 
-            {/* Headline */}
-            <h1 className="text-3xl sm:text-5xl lg:text-6xl font-serif text-stone-900 leading-[1.15] font-normal">
+            {/* Compact Headline (Reduced 50-60% per Changes.pdf Page 4) */}
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-serif text-stone-900 leading-[1.2] font-normal">
               Pure Wood-Pressed Oils <br className="hidden sm:inline" />
               <span className="italic text-[#3A5303] font-normal">& A2 Desi Cow Bilona Ghee</span>
             </h1>
 
-            <p className="text-stone-600 text-xs sm:text-base font-light leading-relaxed max-w-2xl mx-auto lg:mx-0">
+            <p className="text-stone-600 text-xs sm:text-sm font-light leading-relaxed max-w-2xl mx-auto lg:mx-0">
               Handcrafted in small batches using ancient Vedic methods. Slow wood-fire hand-churned Gir Cow Bilona Ghee, zero-heat Marachekku pressed oils, and fresh unadulterated Paneer.
             </p>
 
             {/* Dynamic Product Spotlight Tag */}
-            <div className="bg-white/90 p-3.5 rounded-2xl border border-stone-200 shadow-xs max-w-lg mx-auto lg:mx-0">
+            <div className="bg-white/90 p-3 rounded-2xl border border-stone-200 shadow-xs max-w-lg mx-auto lg:mx-0">
               <AnimatePresence mode="wait">
                 <motion.div
                   key={currentProduct.id}
@@ -93,27 +93,27 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({ onShopNow }) => {
             </div>
 
             {/* Key Value Props */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-1 text-left max-w-lg mx-auto lg:mx-0 text-xs font-medium text-stone-700">
-              <div className="flex items-center space-x-2 bg-white/80 p-2.5 rounded-xl border border-stone-200/80 shadow-xs">
-                <CheckCircle2 className="w-4 h-4 text-[#3A5303] shrink-0" />
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1 text-left max-w-lg mx-auto lg:mx-0 text-xs font-medium text-stone-700">
+              <div className="flex items-center space-x-2 bg-white/80 p-2 rounded-xl border border-stone-200/80 shadow-xs">
+                <CheckCircle2 className="w-3.5 h-3.5 text-[#3A5303] shrink-0" />
                 <span>Wood-Fire Hand Churned</span>
               </div>
-              <div className="flex items-center space-x-2 bg-white/80 p-2.5 rounded-xl border border-stone-200/80 shadow-xs">
-                <CheckCircle2 className="w-4 h-4 text-[#3A5303] shrink-0" />
+              <div className="flex items-center space-x-2 bg-white/80 p-2 rounded-xl border border-stone-200/80 shadow-xs">
+                <CheckCircle2 className="w-3.5 h-3.5 text-[#3A5303] shrink-0" />
                 <span>Zero Chemicals or Bleach</span>
               </div>
-              <div className="flex items-center space-x-2 bg-white/80 p-2.5 rounded-xl border border-stone-200/80 shadow-xs">
-                <CheckCircle2 className="w-4 h-4 text-[#3A5303] shrink-0" />
+              <div className="flex items-center space-x-2 bg-white/80 p-2 rounded-xl border border-stone-200/80 shadow-xs">
+                <CheckCircle2 className="w-3.5 h-3.5 text-[#3A5303] shrink-0" />
                 <span>Glass Packaging</span>
               </div>
             </div>
 
-            {/* Action Buttons & Navigation Dots */}
-            <div className="space-y-4 pt-2">
+            {/* Action Buttons (Dots removed per Changes.pdf Page 3) */}
+            <div className="pt-2">
               <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-3">
                 <button
                   onClick={onShopNow}
-                  className="w-full sm:w-auto px-8 py-4 bg-[#3A5303] hover:bg-[#2b3e02] text-white font-bold text-xs uppercase tracking-wider rounded-2xl shadow-lg hover:shadow-xl transition-all active:scale-98 flex items-center justify-center space-x-2"
+                  className="w-full sm:w-auto px-7 py-3 bg-[#3A5303] hover:bg-[#2b3e02] text-white font-bold text-xs uppercase tracking-wider rounded-2xl shadow-lg hover:shadow-xl transition-all active:scale-98 flex items-center justify-center space-x-2"
                 >
                   <span>Shop Organic Lineup</span>
                   <ArrowRight className="w-4 h-4" />
@@ -124,27 +124,11 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({ onShopNow }) => {
                     const el = document.getElementById('catalog');
                     if (el) el.scrollIntoView({ behavior: 'smooth' });
                   }}
-                  className="w-full sm:w-auto px-8 py-4 bg-white hover:bg-stone-50 text-stone-800 font-bold text-xs uppercase tracking-wider rounded-2xl border border-stone-300 shadow-xs transition-all active:scale-98 flex items-center justify-center space-x-2"
+                  className="w-full sm:w-auto px-7 py-3 bg-white hover:bg-stone-50 text-stone-800 font-bold text-xs uppercase tracking-wider rounded-2xl border border-stone-300 shadow-xs transition-all active:scale-98 flex items-center justify-center space-x-2"
                 >
                   <Leaf className="w-4 h-4 text-[#3A5303]" />
                   <span>Our Vedic Process</span>
                 </button>
-              </div>
-
-              {/* Product Selector Dots */}
-              <div className="flex items-center justify-center lg:justify-start space-x-2 pt-2">
-                {PRODUCTS.map((prod, idx) => (
-                  <button
-                    key={prod.id}
-                    onClick={() => setCurrentIndex(idx)}
-                    className={`h-2.5 rounded-full transition-all duration-300 ${
-                      idx === currentIndex
-                        ? 'w-8 bg-[#3A5303]'
-                        : 'w-2.5 bg-stone-300 hover:bg-stone-400'
-                    }`}
-                    title={prod.name}
-                  />
-                ))}
               </div>
             </div>
 

@@ -51,9 +51,16 @@ function CartPageContent() {
     setPromoMessage({ text: result.message, isError: !result.success });
   };
 
-  const freeShippingThreshold = 999;
+  // Thresholds per Changes.pdf Page 5:
+  // 1. Free Shipping threshold: ₹2000
+  // 2. Cart value above ₹5000: automatic 10% discount
+  const freeShippingThreshold = 2000;
+  const bulkDiscount = rawSubtotal >= 5000 ? Math.round(rawSubtotal * 0.10) : 0;
+  const effectiveDiscount = Math.max(appliedDiscount, bulkDiscount);
+  const effectivePromoLabel = appliedDiscount >= bulkDiscount && appliedDiscount > 0 ? appliedPromoCode : (bulkDiscount > 0 ? 'AUTO 10% BULK DISCOUNT' : '');
+
   const deliveryFee = rawSubtotal >= freeShippingThreshold || cartItems.length === 0 ? 0 : 70;
-  const finalTotal = Math.max(0, rawSubtotal - appliedDiscount + deliveryFee);
+  const finalTotal = Math.max(0, rawSubtotal - effectiveDiscount + deliveryFee);
   const progressToFreeShipping = Math.min(100, Math.round((rawSubtotal / freeShippingThreshold) * 100));
 
   const cartTotalCount = cartItems.reduce((acc, item) => acc + item.quantity, 0);
@@ -95,7 +102,7 @@ function CartPageContent() {
             </div>
             <h2 className="text-xl font-serif text-stone-800 font-bold">Your Shopping Cart is Empty</h2>
             <p className="text-xs text-stone-500 font-light">
-              Add some of our A2 Gir Cow Bilona Ghee or Cold-Pressed Oils to your cart.
+              Add some of our A2 Gir Cow Bilona Ghee, Wood-Pressed Oils, or Fresh Desi Paneer to your cart.
             </p>
             <Link
               href="/"
@@ -116,11 +123,11 @@ function CartPageContent() {
                   {rawSubtotal >= freeShippingThreshold ? (
                     <span className="font-bold text-emerald-700 flex items-center">
                       <Truck className="w-4 h-4 mr-1.5 text-[#3A5303]" />
-                      🎉 You unlocked FREE Delivery across India!
+                      🎉 You unlocked FREE Express Delivery (Orders ₹2000+)!
                     </span>
                   ) : (
                     <span className="text-stone-600 font-medium">
-                      Add <span className="font-bold text-[#3A5303]">₹{freeShippingThreshold - rawSubtotal}</span> more for <span className="font-bold text-emerald-700">FREE Shipping</span>
+                      Add <span className="font-bold text-[#3A5303]">₹{freeShippingThreshold - rawSubtotal}</span> more for <span className="font-bold text-emerald-700">FREE Shipping (₹2000 Min)</span>
                     </span>
                   )}
                   <span className="font-bold text-stone-500">{progressToFreeShipping}%</span>
@@ -132,6 +139,14 @@ function CartPageContent() {
                   />
                 </div>
               </div>
+
+              {/* Automatic 10% Bulk Discount Banner */}
+              {rawSubtotal >= 5000 && (
+                <div className="bg-emerald-50 p-3.5 rounded-2xl border border-emerald-200 text-xs text-emerald-900 flex items-center space-x-2 font-semibold">
+                  <Sparkles className="w-4 h-4 text-emerald-700 shrink-0" />
+                  <span>🎉 Order above ₹5000! Automatic 10% Farm Bulk Discount (₹{bulkDiscount}) applied!</span>
+                </div>
+              )}
 
               {/* Items Card List */}
               <div className="bg-white rounded-3xl border border-stone-200 overflow-hidden shadow-xs divide-y divide-stone-100">
@@ -242,10 +257,10 @@ function CartPageContent() {
                     <span className="font-semibold text-stone-800">₹{rawSubtotal}</span>
                   </div>
 
-                  {appliedDiscount > 0 && (
+                  {effectiveDiscount > 0 && (
                     <div className="flex justify-between text-emerald-700 font-bold">
-                      <span>Promo Discount ({appliedPromoCode})</span>
-                      <span>-₹{appliedDiscount}</span>
+                      <span>Discount ({effectivePromoLabel || 'Special Discount'})</span>
+                      <span>-₹{effectiveDiscount}</span>
                     </div>
                   )}
 
@@ -268,7 +283,7 @@ function CartPageContent() {
 
                 {/* Checkout Trigger */}
                 <button
-                  onClick={() => triggerCheckout(appliedDiscount, appliedPromoCode)}
+                  onClick={() => triggerCheckout(effectiveDiscount, effectivePromoLabel || appliedPromoCode)}
                   className="w-full py-4 bg-[#3A5303] hover:bg-[#2b3e02] text-white font-bold text-xs uppercase tracking-wider rounded-xl shadow-lg flex items-center justify-center space-x-2 transition-transform active:scale-98"
                 >
                   <span>Proceed to Farm Checkout</span>
@@ -295,8 +310,8 @@ function CartPageContent() {
         isOpen={isCheckoutOpen}
         onClose={() => setIsCheckoutOpen(false)}
         items={cartItems}
-        discount={appliedDiscount}
-        promoCode={appliedPromoCode}
+        discount={effectiveDiscount}
+        promoCode={effectivePromoLabel || appliedPromoCode}
         onOrderSuccess={onOrderSuccess}
       />
 
