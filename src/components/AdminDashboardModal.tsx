@@ -25,7 +25,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
   const { 
     products, addProduct, updateProduct, deleteProduct,
     promoCodes, addPromoCode, togglePromoCode, deletePromoCode,
-    announcements, addAnnouncement, deleteAnnouncement, resetAnnouncements,
+    announcements, addAnnouncement, editAnnouncement, deleteAnnouncement, resetAnnouncements,
     updateOrderDetails, deleteOrder 
   } = useStore();
 
@@ -61,6 +61,10 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
   const [editProdWeight, setEditProdWeight] = useState('');
   const [editProdImage, setEditProdImage] = useState('');
   const [editProdBadge, setEditProdBadge] = useState('');
+
+  // Announcement Ticker Editor Modal State
+  const [editingAnnouncementIdx, setEditingAnnouncementIdx] = useState<number | null>(null);
+  const [editAnnouncementText, setEditAnnouncementText] = useState('');
 
   // New Promo Code Form Inputs
   const [newPromoCode, setNewPromoCode] = useState('');
@@ -147,7 +151,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
     }
   };
 
-  // Open Product Editor
+  // Open Product Editor for any product (default or custom)
   const openProductEditor = (p: Product) => {
     setEditingProduct(p);
     setEditProdName(p.name);
@@ -182,6 +186,18 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
 
     updateProduct(updatedProd);
     setEditingProduct(null);
+  };
+
+  // Open Offer Announcement Editor for any item (default or custom)
+  const openAnnouncementEditor = (index: number, currentText: string) => {
+    setEditingAnnouncementIdx(index);
+    setEditAnnouncementText(currentText);
+  };
+
+  const handleSaveEditedAnnouncement = () => {
+    if (editingAnnouncementIdx === null) return;
+    editAnnouncement(editingAnnouncementIdx, editAnnouncementText);
+    setEditingAnnouncementIdx(null);
   };
 
   // High-Resolution Standalone Print Window Trigger
@@ -546,7 +562,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                 required
                 value={passcode}
                 onChange={(e) => setPasscode(e.target.value)}
-                className="w-full px-4 py-3 border border-stone-300 rounded-xl text-xs text-center font-bold tracking-widest bg-[#F7F6F2] focus:outline-none focus:border-[#3A5303]"
+                className="w-full px-4 py-3 border border-stone-300 rounded-xl text-xs text-center font-bold tracking-widest bg-white text-stone-900 focus:outline-none focus:border-[#3A5303]"
                 placeholder="Passcode (default: admin123)"
               />
 
@@ -701,7 +717,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                       placeholder="Search Order ID, Customer Name, Email, Address..."
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
-                      className="w-full pl-8 pr-3 py-2 text-xs border border-stone-300 rounded-xl bg-white focus:outline-none focus:border-[#3A5303]"
+                      className="w-full pl-8 pr-3 py-2 text-xs border border-stone-300 rounded-xl bg-white text-stone-900 font-medium focus:outline-none focus:border-[#3A5303]"
                     />
                     <Search className="w-3.5 h-3.5 text-stone-400 absolute left-2.5 top-3" />
                   </div>
@@ -710,7 +726,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                     <select
                       value={statusFilter}
                       onChange={(e) => setStatusFilter(e.target.value)}
-                      className="w-full px-3 py-2 border border-stone-300 rounded-xl text-xs bg-white font-semibold focus:outline-none"
+                      className="w-full px-3 py-2 border border-stone-300 rounded-xl text-xs bg-white text-stone-900 font-semibold focus:outline-none"
                     >
                       <option value="all">All Statuses ({combinedOrders.length})</option>
                       <option value="processing">Processing ({processingCount})</option>
@@ -806,7 +822,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
               </div>
             )}
 
-            {/* TAB 2: Offer Ticker Announcement Manager */}
+            {/* TAB 2: Offer Ticker Announcement Manager (With Edit Support for Default & Custom Items) */}
             {activeTab === 'offers' && (
               <div className="space-y-4">
                 <form onSubmit={handleAddOfferTicker} className="bg-[#F7F6F2] p-4 rounded-2xl border border-stone-200 space-y-3">
@@ -820,10 +836,10 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                       type="button"
                       onClick={resetAnnouncements}
                       className="px-3 py-1.5 bg-amber-50 text-amber-900 border border-amber-200 hover:bg-amber-100 rounded-xl font-bold text-[10px] flex items-center space-x-1 cursor-pointer transition-colors"
-                      title="Reset back to cool default offers"
+                      title="Reset back to default offers"
                     >
                       <RotateCcw className="w-3 h-3 text-amber-700" />
-                      <span>Reset To Default Cool Offers</span>
+                      <span>Reset To Default Offers</span>
                     </button>
                   </div>
 
@@ -833,8 +849,8 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                       required
                       value={newOfferText}
                       onChange={(e) => setNewOfferText(e.target.value)}
-                      className="flex-1 px-3 py-2 text-xs border border-stone-300 rounded-xl bg-white focus:outline-none focus:border-[#3A5303]"
-                      placeholder="e.g. 🌸 DIWALI SPECIAL: 15% OFF ON ALL WOOD-PRESSED OILS"
+                      className="flex-1 px-3.5 py-2 text-xs border border-stone-300 rounded-xl bg-white text-stone-900 font-medium focus:outline-none focus:border-[#3A5303] placeholder:text-stone-400"
+                      placeholder="e.g. 🌸 FESTIVE HARVEST SALE: FREE SHIPPING ON ALL ORDERS ABOVE ₹2000"
                     />
 
                     <button
@@ -847,28 +863,38 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                   </div>
                 </form>
 
-                {/* List of active announcement ticker items */}
+                {/* List of active announcement ticker items (Supports Editing Any Item) */}
                 <div className="space-y-2">
                   {announcements.map((text, idx) => (
-                    <div key={idx} className="bg-stone-50 p-3.5 rounded-2xl border border-stone-200 flex items-center justify-between text-xs space-x-3">
-                      <div className="flex items-center space-x-2.5 min-w-0">
+                    <div key={idx} className="bg-white p-3.5 rounded-2xl border border-stone-200 flex items-center justify-between text-xs space-x-3 shadow-xs">
+                      <div className="flex items-center space-x-2.5 min-w-0 flex-1">
                         <span className="w-2 h-2 rounded-full bg-[#94C000] shrink-0" />
                         <span className="font-semibold text-stone-900 truncate">{text}</span>
                       </div>
-                      <button
-                        onClick={() => deleteAnnouncement(idx)}
-                        className="p-1.5 text-stone-400 hover:text-red-600 rounded-lg hover:bg-red-50 shrink-0 cursor-pointer"
-                        title="Delete Offer Announcement"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+
+                      <div className="flex items-center space-x-1 shrink-0">
+                        <button
+                          onClick={() => openAnnouncementEditor(idx, text)}
+                          className="p-1.5 text-stone-600 hover:text-[#3A5303] hover:bg-stone-100 rounded-lg cursor-pointer"
+                          title="Edit Announcement Message"
+                        >
+                          <Edit3 className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => deleteAnnouncement(idx)}
+                          className="p-1.5 text-stone-400 hover:text-red-600 rounded-lg hover:bg-red-50 cursor-pointer"
+                          title="Delete Offer Announcement"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
                     </div>
                   ))}
                 </div>
               </div>
             )}
 
-            {/* TAB 3: Dynamic Product Catalog Manager (With Edit Ability) */}
+            {/* TAB 3: Dynamic Product Catalog Manager (Allows Editing Default & Custom Products) */}
             {activeTab === 'products' && (
               <div className="space-y-5">
                 <form onSubmit={handleCreateProduct} className="bg-[#F7F6F2] p-4 sm:p-5 rounded-2xl border border-stone-200 space-y-3">
@@ -885,7 +911,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                         required
                         value={newProdName}
                         onChange={(e) => setNewProdName(e.target.value)}
-                        className="w-full px-3 py-2 text-xs border border-stone-300 rounded-xl bg-white focus:outline-none focus:border-[#3A5303]"
+                        className="w-full px-3 py-2 text-xs border border-stone-300 rounded-xl bg-white text-stone-900 font-medium focus:outline-none focus:border-[#3A5303]"
                         placeholder="e.g. Wild Forest Honey"
                       />
                     </div>
@@ -895,7 +921,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                       <select
                         value={newProdCategory}
                         onChange={(e) => setNewProdCategory(e.target.value as any)}
-                        className="w-full px-3 py-2 text-xs border border-stone-300 rounded-xl bg-white focus:outline-none focus:border-[#3A5303]"
+                        className="w-full px-3 py-2 text-xs border border-stone-300 rounded-xl bg-white text-stone-900 font-medium focus:outline-none focus:border-[#3A5303]"
                       >
                         <option value="milk">Pure Desi Cow Milk</option>
                         <option value="ghee">A2 Bilona Ghee</option>
@@ -911,7 +937,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                         type="text"
                         value={newProdSubtitle}
                         onChange={(e) => setNewProdSubtitle(e.target.value)}
-                        className="w-full px-3 py-2 text-xs border border-stone-300 rounded-xl bg-white focus:outline-none focus:border-[#3A5303]"
+                        className="w-full px-3 py-2 text-xs border border-stone-300 rounded-xl bg-white text-stone-900 font-medium focus:outline-none focus:border-[#3A5303]"
                         placeholder="Raw & Unfiltered 100% Pure"
                       />
                     </div>
@@ -925,7 +951,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                         required
                         value={newProdPrice}
                         onChange={(e) => setNewProdPrice(parseInt(e.target.value) || 0)}
-                        className="w-full px-3 py-2 text-xs border border-stone-300 rounded-xl bg-white focus:outline-none focus:border-[#3A5303]"
+                        className="w-full px-3 py-2 text-xs border border-stone-300 rounded-xl bg-white text-stone-900 font-medium focus:outline-none focus:border-[#3A5303]"
                       />
                     </div>
 
@@ -936,7 +962,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                         required
                         value={newProdWeight}
                         onChange={(e) => setNewProdWeight(e.target.value)}
-                        className="w-full px-3 py-2 text-xs border border-stone-300 rounded-xl bg-white focus:outline-none focus:border-[#3A5303]"
+                        className="w-full px-3 py-2 text-xs border border-stone-300 rounded-xl bg-white text-stone-900 font-medium focus:outline-none focus:border-[#3A5303]"
                         placeholder="500g Glass Jar"
                       />
                     </div>
@@ -947,7 +973,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                         type="url"
                         value={newProdImage}
                         onChange={(e) => setNewProdImage(e.target.value)}
-                        className="w-full px-3 py-2 text-xs border border-stone-300 rounded-xl bg-white focus:outline-none focus:border-[#3A5303]"
+                        className="w-full px-3 py-2 text-xs border border-stone-300 rounded-xl bg-white text-stone-900 font-medium focus:outline-none focus:border-[#3A5303]"
                         placeholder="https://..."
                       />
                     </div>
@@ -962,10 +988,10 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                   </button>
                 </form>
 
-                {/* Catalog Grid With Edit Button */}
+                {/* Catalog Grid With Edit Support for Default & Custom Produce */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                   {products.map((p) => (
-                    <div key={p.id} className="bg-stone-50 p-4 rounded-2xl border border-stone-200 flex items-center justify-between text-xs space-x-3">
+                    <div key={p.id} className="bg-white p-4 rounded-2xl border border-stone-200 flex items-center justify-between text-xs space-x-3 shadow-xs">
                       <img src={p.images[0]} alt="" className="w-12 h-12 rounded-xl object-cover border border-stone-300 shrink-0 bg-white" />
                       <div className="flex-1 min-w-0">
                         <h4 className="font-serif font-bold text-stone-900 truncate">{p.name}</h4>
@@ -976,7 +1002,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                       <div className="flex items-center space-x-1 shrink-0">
                         <button
                           onClick={() => openProductEditor(p)}
-                          className="p-1.5 text-stone-600 hover:text-[#3A5303] hover:bg-stone-200 rounded-lg cursor-pointer"
+                          className="p-1.5 text-stone-600 hover:text-[#3A5303] hover:bg-stone-100 rounded-lg cursor-pointer"
                           title="Edit Product Details"
                         >
                           <Edit3 className="w-4 h-4" />
@@ -1012,7 +1038,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                         required
                         value={adminRevAuthor}
                         onChange={(e) => setAdminRevAuthor(e.target.value)}
-                        className="w-full px-3 py-2 border border-stone-300 rounded-xl bg-white focus:outline-none focus:border-[#3A5303]"
+                        className="w-full px-3 py-2 border border-stone-300 rounded-xl bg-white text-stone-900 font-medium focus:outline-none focus:border-[#3A5303]"
                         placeholder="e.g. Dr. Rajesh Reddy"
                       />
                     </div>
@@ -1023,7 +1049,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                         type="text"
                         value={adminRevLocation}
                         onChange={(e) => setAdminRevLocation(e.target.value)}
-                        className="w-full px-3 py-2 border border-stone-300 rounded-xl bg-white focus:outline-none focus:border-[#3A5303]"
+                        className="w-full px-3 py-2 border border-stone-300 rounded-xl bg-white text-stone-900 font-medium focus:outline-none focus:border-[#3A5303]"
                         placeholder="Jubilee Hills, Hyderabad"
                       />
                     </div>
@@ -1033,7 +1059,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                       <select
                         value={adminRevProduceTag}
                         onChange={(e) => setAdminRevProduceTag(e.target.value)}
-                        className="w-full px-3 py-2 border border-stone-300 rounded-xl bg-white focus:outline-none focus:border-[#3A5303]"
+                        className="w-full px-3 py-2 border border-stone-300 rounded-xl bg-white text-stone-900 font-medium focus:outline-none focus:border-[#3A5303]"
                       >
                         <option value="ghee">A2 Desi Cow Bilona Ghee</option>
                         <option value="oil">Wood-Pressed Oil</option>
@@ -1051,7 +1077,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                         type="text"
                         value={adminRevHeadline}
                         onChange={(e) => setAdminRevHeadline(e.target.value)}
-                        className="w-full px-3 py-2 border border-stone-300 rounded-xl bg-white focus:outline-none focus:border-[#3A5303]"
+                        className="w-full px-3 py-2 border border-stone-300 rounded-xl bg-white text-stone-900 font-medium focus:outline-none focus:border-[#3A5303]"
                         placeholder="e.g. Authentic Danedar Ghee!"
                       />
                     </div>
@@ -1063,7 +1089,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                         required
                         value={adminRevComment}
                         onChange={(e) => setAdminRevComment(e.target.value)}
-                        className="w-full px-3 py-2 border border-stone-300 rounded-xl bg-white focus:outline-none focus:border-[#3A5303]"
+                        className="w-full px-3 py-2 border border-stone-300 rounded-xl bg-white text-stone-900 font-medium focus:outline-none focus:border-[#3A5303]"
                         placeholder="Detailed customer review..."
                       />
                     </div>
@@ -1081,12 +1107,12 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                 {/* Reviews List */}
                 <div className="space-y-2">
                   {gasReviews.length === 0 ? (
-                    <div className="text-center py-12 bg-stone-50 rounded-2xl border border-stone-200 text-stone-400 text-xs">
+                    <div className="text-center py-12 bg-white rounded-2xl border border-stone-200 text-stone-400 text-xs">
                       No customer reviews saved in Apps Script yet.
                     </div>
                   ) : (
                     gasReviews.map((r) => (
-                      <div key={r.id} className="bg-stone-50 p-4 rounded-2xl border border-stone-200 flex justify-between items-start text-xs space-x-3">
+                      <div key={r.id} className="bg-white p-4 rounded-2xl border border-stone-200 flex justify-between items-start text-xs space-x-3 shadow-xs">
                         <div className="space-y-1">
                           <div className="flex items-center space-x-2">
                             <span className="font-bold text-stone-900">{r.name}</span>
@@ -1128,7 +1154,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                         required
                         value={newPromoCode}
                         onChange={(e) => setNewPromoCode(e.target.value)}
-                        className="w-full px-3 py-2 text-xs font-mono font-bold uppercase border border-stone-300 rounded-xl bg-white focus:outline-none focus:border-[#3A5303]"
+                        className="w-full px-3 py-2 text-xs font-mono font-bold uppercase border border-stone-300 rounded-xl bg-white text-stone-900 focus:outline-none focus:border-[#3A5303]"
                         placeholder="e.g. FESTIVE25"
                       />
                     </div>
@@ -1142,7 +1168,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                         required
                         value={newPromoDiscount}
                         onChange={(e) => setNewPromoDiscount(parseInt(e.target.value) || 10)}
-                        className="w-full px-3 py-2 text-xs border border-stone-300 rounded-xl bg-white focus:outline-none focus:border-[#3A5303]"
+                        className="w-full px-3 py-2 text-xs border border-stone-300 rounded-xl bg-white text-stone-900 font-medium focus:outline-none focus:border-[#3A5303]"
                       />
                     </div>
 
@@ -1152,7 +1178,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                         type="text"
                         value={newPromoDesc}
                         onChange={(e) => setNewPromoDesc(e.target.value)}
-                        className="w-full px-3 py-2 text-xs border border-stone-300 rounded-xl bg-white focus:outline-none focus:border-[#3A5303]"
+                        className="w-full px-3 py-2 text-xs border border-stone-300 rounded-xl bg-white text-stone-900 font-medium focus:outline-none focus:border-[#3A5303]"
                         placeholder="25% Off Harvest Sale"
                       />
                     </div>
@@ -1169,7 +1195,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
 
                 <div className="space-y-2">
                   {promoCodes.map((p) => (
-                    <div key={p.code} className="bg-stone-50 p-3.5 rounded-2xl border border-stone-200 flex items-center justify-between text-xs">
+                    <div key={p.code} className="bg-white p-3.5 rounded-2xl border border-stone-200 flex items-center justify-between text-xs shadow-xs">
                       <div>
                         <div className="flex items-center space-x-2">
                           <span className="font-mono font-bold text-[#3A5303] text-sm">{p.code}</span>
@@ -1198,7 +1224,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
             {activeTab === 'crm' && (
               <div className="space-y-3">
                 {customerList.map((c, i) => (
-                  <div key={i} className="bg-stone-50 p-3.5 rounded-2xl border border-stone-200 space-y-1 text-xs">
+                  <div key={i} className="bg-white p-3.5 rounded-2xl border border-stone-200 space-y-1 text-xs shadow-xs">
                     <div className="flex justify-between items-center">
                       <span className="font-bold text-stone-900 text-sm">{c.name}</span>
                       <span className="font-bold text-[#3A5303] bg-[#3A5303]/10 px-2.5 py-0.5 rounded-full text-[11px]">₹{c.totalSpent}</span>
@@ -1234,7 +1260,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
           </div>
         )}
 
-        {/* MODAL A: Product Editor Modal */}
+        {/* MODAL A: Product Editor Modal (For Default & Custom Items) */}
         {editingProduct && (
           <div className="fixed inset-0 z-60 bg-black/75 backdrop-blur-xs flex items-center justify-center p-4">
             <div className="bg-white max-w-lg w-full rounded-3xl p-6 border border-stone-200 space-y-4 shadow-2xl">
@@ -1242,7 +1268,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
               <div className="flex justify-between items-center border-b border-stone-200 pb-3">
                 <h3 className="font-serif font-bold text-stone-900 text-lg flex items-center space-x-2">
                   <Edit3 className="w-5 h-5 text-[#3A5303]" />
-                  <span>Edit Product: {editingProduct.name}</span>
+                  <span>Edit Produce: {editingProduct.name}</span>
                 </h3>
                 <button onClick={() => setEditingProduct(null)} className="text-stone-400 hover:text-stone-700 cursor-pointer">
                   <X className="w-5 h-5" />
@@ -1256,7 +1282,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                     type="text"
                     value={editProdName}
                     onChange={(e) => setEditProdName(e.target.value)}
-                    className="w-full px-3 py-2 border border-stone-300 rounded-xl bg-stone-50 focus:bg-white focus:outline-none focus:border-[#3A5303]"
+                    className="w-full px-3 py-2 border border-stone-300 rounded-xl bg-white text-stone-900 font-semibold focus:outline-none focus:border-[#3A5303]"
                   />
                 </div>
 
@@ -1267,7 +1293,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                       type="number"
                       value={editProdPrice}
                       onChange={(e) => setEditProdPrice(parseInt(e.target.value) || 0)}
-                      className="w-full px-3 py-2 border border-stone-300 rounded-xl bg-stone-50 focus:bg-white focus:outline-none focus:border-[#3A5303]"
+                      className="w-full px-3 py-2 border border-stone-300 rounded-xl bg-white text-stone-900 font-semibold focus:outline-none focus:border-[#3A5303]"
                     />
                   </div>
 
@@ -1277,7 +1303,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                       type="text"
                       value={editProdWeight}
                       onChange={(e) => setEditProdWeight(e.target.value)}
-                      className="w-full px-3 py-2 border border-stone-300 rounded-xl bg-stone-50 focus:bg-white focus:outline-none focus:border-[#3A5303]"
+                      className="w-full px-3 py-2 border border-stone-300 rounded-xl bg-white text-stone-900 font-semibold focus:outline-none focus:border-[#3A5303]"
                     />
                   </div>
                 </div>
@@ -1288,7 +1314,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                     type="url"
                     value={editProdImage}
                     onChange={(e) => setEditProdImage(e.target.value)}
-                    className="w-full px-3 py-2 border border-stone-300 rounded-xl bg-stone-50 focus:bg-white focus:outline-none focus:border-[#3A5303]"
+                    className="w-full px-3 py-2 border border-stone-300 rounded-xl bg-white text-stone-900 font-semibold focus:outline-none focus:border-[#3A5303]"
                   />
                 </div>
 
@@ -1298,7 +1324,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                     <select
                       value={editProdCategory}
                       onChange={(e) => setEditProdCategory(e.target.value as any)}
-                      className="w-full px-3 py-2 border border-stone-300 rounded-xl bg-stone-50 focus:outline-none focus:border-[#3A5303]"
+                      className="w-full px-3 py-2 border border-stone-300 rounded-xl bg-white text-stone-900 font-semibold focus:outline-none focus:border-[#3A5303]"
                     >
                       <option value="milk">Pure Desi Cow Milk</option>
                       <option value="ghee">A2 Bilona Ghee</option>
@@ -1314,7 +1340,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                       type="text"
                       value={editProdBadge}
                       onChange={(e) => setEditProdBadge(e.target.value)}
-                      className="w-full px-3 py-2 border border-stone-300 rounded-xl bg-stone-50 focus:bg-white focus:outline-none focus:border-[#3A5303]"
+                      className="w-full px-3 py-2 border border-stone-300 rounded-xl bg-white text-stone-900 font-semibold focus:outline-none focus:border-[#3A5303]"
                     />
                   </div>
                 </div>
@@ -1340,7 +1366,54 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
           </div>
         )}
 
-        {/* MODAL B: Detailed Order Inspector Modal */}
+        {/* MODAL B: Announcement Ticker Editor Modal */}
+        {editingAnnouncementIdx !== null && (
+          <div className="fixed inset-0 z-60 bg-black/75 backdrop-blur-xs flex items-center justify-center p-4">
+            <div className="bg-white max-w-lg w-full rounded-3xl p-6 border border-stone-200 space-y-4 shadow-2xl">
+              
+              <div className="flex justify-between items-center border-b border-stone-200 pb-3">
+                <h3 className="font-serif font-bold text-stone-900 text-lg flex items-center space-x-2">
+                  <Edit3 className="w-5 h-5 text-[#3A5303]" />
+                  <span>Edit Offer Announcement Text</span>
+                </h3>
+                <button onClick={() => setEditingAnnouncementIdx(null)} className="text-stone-400 hover:text-stone-700 cursor-pointer">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="space-y-3 text-xs">
+                <div>
+                  <label className="block text-[10px] font-bold text-stone-700 uppercase mb-1">Announcement Message *</label>
+                  <textarea
+                    rows={3}
+                    value={editAnnouncementText}
+                    onChange={(e) => setEditAnnouncementText(e.target.value)}
+                    className="w-full px-3 py-2 border border-stone-300 rounded-xl bg-white text-stone-900 font-semibold focus:outline-none focus:border-[#3A5303]"
+                  />
+                </div>
+              </div>
+
+              <div className="flex justify-end space-x-2 pt-2 border-t border-stone-200">
+                <button
+                  onClick={() => setEditingAnnouncementIdx(null)}
+                  className="px-4 py-2 border border-stone-300 rounded-xl text-stone-700 text-xs font-bold cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleSaveEditedAnnouncement}
+                  className="px-5 py-2 bg-[#3A5303] text-white rounded-xl text-xs font-bold uppercase hover:bg-[#2b3e02] flex items-center space-x-1 cursor-pointer"
+                >
+                  <Save className="w-3.5 h-3.5" />
+                  <span>Update Announcement</span>
+                </button>
+              </div>
+
+            </div>
+          </div>
+        )}
+
+        {/* MODAL C: Detailed Order Inspector Modal (Crisp High-Contrast Text) */}
         {inspectingOrder && (
           <div className="fixed inset-0 z-60 bg-black/75 backdrop-blur-xs flex items-center justify-center p-4">
             <div className="bg-white max-w-2xl w-full rounded-3xl p-6 border border-stone-200 space-y-5 shadow-2xl max-h-[90vh] overflow-y-auto">
@@ -1373,7 +1446,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                     </div>
                   ))
                 ) : (
-                  <p className="text-stone-600 font-mono text-[11px]">{inspectingOrder.itemsSummary}</p>
+                  <p className="text-stone-700 font-mono text-[11px] font-bold">{inspectingOrder.itemsSummary}</p>
                 )}
                 <div className="flex justify-between font-bold text-stone-900 text-sm pt-2 border-t border-stone-300">
                   <span>Grand Total:</span>
@@ -1381,7 +1454,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                 </div>
               </div>
 
-              {/* Editable Fields */}
+              {/* Editable Fields With High Contrast Visible Dark Text */}
               <div className="space-y-3 text-xs">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
@@ -1390,7 +1463,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                       type="text"
                       value={editCustomerName}
                       onChange={(e) => setEditCustomerName(e.target.value)}
-                      className="w-full px-3 py-2 border border-stone-300 rounded-xl bg-stone-50 focus:bg-white focus:outline-none focus:border-[#3A5303]"
+                      className="w-full px-3 py-2.5 border border-stone-300 rounded-xl bg-white text-stone-900 font-semibold focus:outline-none focus:border-[#3A5303] shadow-xs"
                     />
                   </div>
 
@@ -1400,7 +1473,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                       type="text"
                       value={editCustomerPhone}
                       onChange={(e) => setEditCustomerPhone(e.target.value)}
-                      className="w-full px-3 py-2 border border-stone-300 rounded-xl bg-stone-50 focus:bg-white focus:outline-none focus:border-[#3A5303]"
+                      className="w-full px-3 py-2.5 border border-stone-300 rounded-xl bg-white text-stone-900 font-semibold focus:outline-none focus:border-[#3A5303] shadow-xs"
                     />
                   </div>
                 </div>
@@ -1410,7 +1483,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                   <select
                     value={editStatus}
                     onChange={(e) => setEditStatus(e.target.value as Order['status'])}
-                    className="w-full px-3 py-2 border border-stone-300 rounded-xl bg-stone-50 font-bold focus:outline-none focus:border-[#3A5303]"
+                    className="w-full px-3 py-2.5 border border-stone-300 rounded-xl bg-white text-stone-900 font-bold focus:outline-none focus:border-[#3A5303] shadow-xs"
                   >
                     <option value="Processing">Processing</option>
                     <option value="Shipped">Shipped</option>
@@ -1426,7 +1499,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                       type="url"
                       value={editTrackingUrl}
                       onChange={(e) => setEditTrackingUrl(e.target.value)}
-                      className="w-full px-3 py-2 border border-stone-300 rounded-xl bg-stone-50 focus:bg-white focus:outline-none focus:border-[#3A5303]"
+                      className="w-full px-3 py-2.5 border border-stone-300 rounded-xl bg-white text-stone-900 font-semibold focus:outline-none focus:border-[#3A5303] shadow-xs"
                       placeholder="https://track.bluedart.com/..."
                     />
                   </div>
@@ -1437,8 +1510,8 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                       type="text"
                       value={editETA}
                       onChange={(e) => setEditETA(e.target.value)}
-                      className="w-full px-3 py-2 border border-stone-300 rounded-xl bg-stone-50 focus:bg-white focus:outline-none focus:border-[#3A5303]"
-                      placeholder="3-5 Business Days (e.g. Aug 2, 2026)"
+                      className="w-full px-3 py-2.5 border border-stone-300 rounded-xl bg-white text-stone-900 font-semibold focus:outline-none focus:border-[#3A5303] shadow-xs"
+                      placeholder="3-5 Business Days"
                     />
                   </div>
                 </div>
@@ -1449,7 +1522,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                     rows={2}
                     value={editAdminNotes}
                     onChange={(e) => setEditAdminNotes(e.target.value)}
-                    className="w-full px-3 py-2 border border-stone-300 rounded-xl bg-stone-50 focus:bg-white focus:outline-none focus:border-[#3A5303]"
+                    className="w-full px-3 py-2.5 border border-stone-300 rounded-xl bg-white text-stone-900 font-semibold focus:outline-none focus:border-[#3A5303] shadow-xs"
                     placeholder="e.g. Hand-churned morning batch. Packed in double bubble-wrap glass jar."
                   />
                 </div>

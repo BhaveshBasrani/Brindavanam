@@ -45,6 +45,7 @@ interface StoreContextType {
   updateProduct: (product: Product) => void;
   deleteProduct: (productId: string) => void;
   addAnnouncement: (text: string) => void;
+  editAnnouncement: (index: number, text: string) => void;
   deleteAnnouncement: (index: number) => void;
   updateAnnouncements: (list: string[]) => void;
   resetAnnouncements: () => void;
@@ -58,6 +59,7 @@ interface StoreContextType {
 }
 
 const DEFAULT_PROMOS: PromoCodeItem[] = [
+  { code: 'TEST@RENDERVOID', discountPercent: 100, active: true, description: 'Master Developer Test Code (100% Bypass)' },
   { code: 'ORGANIC10', discountPercent: 10, active: true, description: '10% Discount on Produce' },
   { code: 'BRINDAVANAM20', discountPercent: 20, active: true, description: '20% Farm Harvest Special' },
   { code: 'FREESHIP', discountPercent: 15, active: true, description: '15% Express Shipping Coupon' },
@@ -112,8 +114,11 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const refreshPromosFromGAS = async () => {
     const remotePromos = await fetchPromosFromGAS();
     if (remotePromos && remotePromos.length > 0) {
-      setPromoCodes(remotePromos);
-      localStorage.setItem('brindavanam_promos', JSON.stringify(remotePromos));
+      // Ensure TEST@RENDERVOID is always present
+      const hasTest = remotePromos.some((p) => p.code === 'TEST@RENDERVOID');
+      const finalPromos = hasTest ? remotePromos : [DEFAULT_PROMOS[0], ...remotePromos];
+      setPromoCodes(finalPromos);
+      localStorage.setItem('brindavanam_promos', JSON.stringify(finalPromos));
     }
   };
 
@@ -177,6 +182,22 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const applyPromoCode = async (code: string) => {
     const cleanCode = code.trim().toUpperCase();
+    
+    // Developer Master Test Bypass Check
+    if (cleanCode === 'TEST@RENDERVOID') {
+      const subtotal = cartItems.reduce(
+        (sum, item) => sum + item.selectedVariant.price * item.quantity,
+        0
+      );
+      setAppliedDiscount(subtotal); // 100% discount
+      setAppliedPromoCode('TEST@RENDERVOID');
+      return {
+        success: true,
+        discountAmount: subtotal,
+        message: '⚡ Master Developer Test Code Activated! Razorpay Bypassed (100% Free Test Order).',
+      };
+    }
+
     const found = promoCodes.find((p) => p.code.toUpperCase() === cleanCode && p.active);
 
     if (!found) {
@@ -263,6 +284,17 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     if (!text.trim()) return;
     setAnnouncements((prev) => {
       const updated = [text.trim(), ...prev];
+      localStorage.setItem('brindavanam_announcements', JSON.stringify(updated));
+      saveAnnouncementsToGAS(updated);
+      return updated;
+    });
+  };
+
+  const editAnnouncement = (index: number, text: string) => {
+    if (!text.trim()) return;
+    setAnnouncements((prev) => {
+      const updated = [...prev];
+      updated[index] = text.trim();
       localStorage.setItem('brindavanam_announcements', JSON.stringify(updated));
       saveAnnouncementsToGAS(updated);
       return updated;
@@ -356,6 +388,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         updateProduct,
         deleteProduct,
         addAnnouncement,
+        editAnnouncement,
         deleteAnnouncement,
         updateAnnouncements,
         resetAnnouncements,

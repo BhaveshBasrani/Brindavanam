@@ -58,7 +58,7 @@ export interface Order {
   discount: number;
   deliveryFee?: number;
   total: number;
-  paymentMethod: 'Razorpay' | 'Cash on Delivery';
+  paymentMethod: 'Razorpay' | 'Cash on Delivery' | 'Master Test Bypass' | string;
   paymentId?: string;
   status: 'Processing' | 'Shipped' | 'Delivered' | 'Cancelled';
   customerName?: string;

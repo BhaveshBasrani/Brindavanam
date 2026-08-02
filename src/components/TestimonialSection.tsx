@@ -2,206 +2,166 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Star, Sparkles, Heart, MessageSquarePlus, UserCheck, CheckCircle2 } from 'lucide-react';
+import { Star, ShieldCheck, Heart, Sparkles, Quote, ThumbsUp, CheckCircle2, Award, UserCheck, Plus, MessageSquare } from 'lucide-react';
+import { useStore } from '@/context/StoreContext';
 
-interface Testimonial {
+interface CustomerReviewItem {
   id: string;
   name: string;
-  role: string;
   location: string;
-  avatar: string;
+  role: string;
   rating: number;
-  date: string;
   produceTag: 'ghee' | 'oil' | 'paneer' | 'milk' | 'eggs';
   produceName: string;
   headline: string;
   review: string;
   verified: boolean;
   likes: number;
+  date: string;
+  avatar: string;
 }
 
-const DEFAULT_REVIEWS: Testimonial[] = [
+const DEFAULT_REVIEWS: CustomerReviewItem[] = [
   {
     id: 'rev-1',
-    name: 'Dr. Ramesh Kulkarni',
-    role: 'Ayurvedic Physician',
+    name: 'Dr. Ananya Reddy',
     location: 'Jubilee Hills, Hyderabad',
-    avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=300&auto=format&fit=crop',
+    role: 'Senior Physician & Wellness Practitioner',
     rating: 5,
-    date: '3 days ago',
     produceTag: 'ghee',
     produceName: 'A2 Desi Cow Bilona Ghee',
-    headline: 'Reminds me of my grandmother’s village farm in Gujarat',
-    review: 'As an Ayurvedic practitioner, purity is non-negotiable. The Danedar granular texture and authentic nutty wood-fire aroma of Brindavanam Bilona Ghee are unmatched. You can literally smell the curd-churning purity the moment you unseal the glass jar.',
+    headline: 'Traditional Bilona Danedar Ghee — Smells Just Like My Nani’s Kitchen!',
+    review: 'As a doctor, I recommend A2 Gir cow ghee to my patients for gut immunity. Brindavanam’s ghee is authentic hand-churned bilona ghee made in earthen pots. The rich golden granules and nutty aroma are divine. Absolutely 100% pure!',
     verified: true,
-    likes: 42
+    likes: 142,
+    date: '2 Days Ago',
+    avatar: 'https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg?auto=compress&cs=tinysrgb&w=300'
   },
   {
     id: 'rev-2',
-    name: 'Ananya Sharma',
-    role: 'Nutritionist & Fitness Coach',
-    location: 'Banjara Hills, Hyderabad',
-    avatar: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?q=80&w=300&auto=format&fit=crop',
+    name: 'Vikram & Radhika Rao',
+    location: 'Gachibowli, Hyderabad',
+    role: 'IT Leadership & Organic Advocates',
     rating: 5,
-    date: '1 week ago',
-    produceTag: 'paneer',
-    produceName: 'Fresh Desi Cow Paneer',
-    headline: 'Melts in your mouth! Zero rubbery feel',
-    review: 'I recommend this paneer to all my high-protein fitness clients. Soft, juicy, and handcrafted daily from pure A2 Desi Cow Milk. When cooked in Palak Paneer or tikka, it absorbs spices effortlessly without getting tough.',
+    produceTag: 'oil',
+    produceName: 'Wood-Pressed Kusuma & Sesame Oil',
+    headline: 'Zero Bleach, Pure Marachekku Pressing — You Can Taste The Natural Seeds!',
+    review: 'We switched to Brindavanam’s cold wood-pressed Kusuma and Mustard oils 6 months ago. The difference in food taste and digestion is night and day. No refining chemicals, zero foam during frying, just pure unadulterated cold-pressed oil.',
     verified: true,
-    likes: 38
+    likes: 98,
+    date: '4 Days Ago',
+    avatar: 'https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=300'
   },
   {
     id: 'rev-3',
-    name: 'Sunil Deshmukh',
-    role: 'Organic Food Connoisseur',
-    location: 'Gachibowli, Hyderabad',
-    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=300&auto=format&fit=crop',
+    name: 'Srilatha Kulkarni',
+    location: 'Banjara Hills, Hyderabad',
+    role: 'Home Chef & Culinary Expert',
     rating: 5,
-    date: '2 weeks ago',
-    produceTag: 'oil',
-    produceName: 'Wood-Pressed Groundnut Oil',
-    headline: 'True Marachekku Kachi Ghani aroma',
-    review: 'You can taste the natural sweetness of native bold peanuts in every dish! Unlike refined solvent-extracted oils from supermarket shelves, this wood-pressed oil produces zero heavy grease and makes tadka taste heavenly.',
+    produceTag: 'paneer',
+    produceName: 'Fresh Artisanal Desi Paneer',
+    headline: 'Softest & Creamiest Paneer In Hyderabad — Melt In The Mouth!',
+    review: 'Brindavanam’s fresh A2 Paneer is absurdly soft! You can tell it’s made from pure A2 milk with zero starch or synthetic coagulants. It absorbs spices beautifully and holds its texture in curries without turning rubbery.',
     verified: true,
-    likes: 29
+    likes: 76,
+    date: '1 Week Ago',
+    avatar: 'https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=300'
   },
   {
     id: 'rev-4',
-    name: 'Priya Nambiar',
-    role: 'Homemaker & Mother of two',
-    location: 'Kondapur, Hyderabad',
-    avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=300&auto=format&fit=crop',
-    rating: 5,
-    date: '1 month ago',
-    produceTag: 'milk',
-    produceName: 'Fresh A2 Desi Cow Milk',
-    headline: 'Thick malai layer every single morning!',
-    review: 'My kids used to refuse milk until we switched to Brindavanam Nature Centre. The milk is unadulterated, creamy, and sweet. Boiling it forms a thick golden malai layer that makes homemade butter so easy!',
-    verified: true,
-    likes: 56
-  },
-  {
-    id: 'rev-5',
-    name: 'Vikram Reddy',
-    role: 'Tech Executive',
+    name: 'Rajeshwar Sharma',
     location: 'Hitec City, Hyderabad',
-    avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=300&auto=format&fit=crop',
+    role: 'Software Architect & Fitness Enthusiast',
     rating: 5,
-    date: '2 weeks ago',
-    produceTag: 'eggs',
-    produceName: 'Farm Fresh Free-Range Eggs',
-    headline: 'Deep orange yolks & incredible freshness',
-    review: 'Delivered in pristine condition with zero breakage! You can tell these hens are free-range and naturally raised. The yolk is vibrant deep orange and tastes vastly superior to commercial store eggs.',
+    produceTag: 'milk',
+    produceName: 'Pure A2 Desi Cow Raw Milk',
+    headline: 'Fresh Morning Glass Bottle Delivery — Thick Cream Layer Every Day!',
+    review: 'Finding real A2 Gir Cow milk in Hyderabad used to be a struggle until we found Brindavanam Nature Centre. The glass bottle packaging is eco-friendly, and the thick cream top makes the richest curd we’ve ever tasted.',
     verified: true,
-    likes: 31
-  },
-  {
-    id: 'rev-6',
-    name: 'Meenakshi Iyer',
-    role: 'Classical Culinary Instructor',
-    location: 'Secunderabad, Telangana',
-    avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=300&auto=format&fit=crop',
-    rating: 5,
-    date: '1 month ago',
-    produceTag: 'oil',
-    produceName: 'Wood-Pressed Sesame (Til) Oil',
-    headline: 'Essential for traditional South Indian pickles',
-    review: 'Extracted under 40°C in wooden Ghani without chemical solvents. Perfect for Avakaya pickles, Gingelly oil pulling, and daily lamp rituals. Brindavanam Nature Centre is a blessing for authentic traditional cooking!',
-    verified: true,
-    likes: 47
+    likes: 115,
+    date: '1 Week Ago',
+    avatar: 'https://images.pexels.com/photos/1222271/pexels-photo-1222271.jpeg?auto=compress&cs=tinysrgb&w=300'
   }
 ];
 
 export const TestimonialSection: React.FC = () => {
-  const [reviews, setReviews] = useState<Testimonial[]>(DEFAULT_REVIEWS);
-  const [activeFilter, setActiveFilter] = useState<'all' | 'ghee' | 'oil' | 'paneer' | 'milk' | 'eggs'>('all');
+  const { userOrders } = useStore();
+  const [reviews, setReviews] = useState<CustomerReviewItem[]>(DEFAULT_REVIEWS);
+  const [activeTagFilter, setActiveTagFilter] = useState<'all' | 'ghee' | 'oil' | 'paneer' | 'milk' | 'eggs'>('all');
   const [likesState, setLikesState] = useState<Record<string, number>>({});
   const [userLiked, setUserLiked] = useState<Record<string, boolean>>({});
 
-  // Review Submission Modal State
+  // Review Submission Modal Form State
   const [isSubmitOpen, setIsSubmitOpen] = useState(false);
   const [newAuthor, setNewAuthor] = useState('');
-  const [newLocation, setNewLocation] = useState('');
-  const [newRating, setNewRating] = useState(5);
+  const [newLocation, setNewLocation] = useState('Hyderabad');
   const [newProduceTag, setNewProduceTag] = useState<'ghee' | 'oil' | 'paneer' | 'milk' | 'eggs'>('ghee');
+  const [newRating, setNewRating] = useState(5);
   const [newHeadline, setNewHeadline] = useState('');
   const [newComment, setNewComment] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [submittedMessage, setSubmittedMessage] = useState(false);
 
   const gasUrl = process.env.NEXT_PUBLIC_GAS_WEB_APP_URL || 'https://script.google.com/macros/s/AKfycbwqHEdFL5zR_cCPSUkvb91nudf72H9K1CdFYPEyHgP_XInRSaHQU0TiZEtadcYHpQPS/exec';
 
-  // Fetch reviews from Apps Script backend
+  // Load live customer reviews from Google Apps Script
   useEffect(() => {
-    const fetchReviews = async () => {
+    const loadRemoteReviews = async () => {
       try {
-        const res = await fetch(`${gasUrl}?action=getReviews`);
-        const data = await res.json();
+        const response = await fetch(`${gasUrl}?action=getReviews`);
+        const data = await response.json();
         if (data.status === 'success' && Array.isArray(data.reviews) && data.reviews.length > 0) {
-          // Merge custom submitted reviews with defaults
-          const remoteFormatted = data.reviews.map((r: any) => ({
-            id: r.id || `rev-${Date.now()}`,
+          const remoteMapped: CustomerReviewItem[] = data.reviews.map((r: any, idx: number) => ({
+            id: r.id || `gas-rev-${idx}`,
             name: r.name || 'Valued Patron',
-            role: 'Verified Customer',
             location: r.location || 'Hyderabad',
-            avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=300&auto=format&fit=crop',
+            role: 'Verified Farm Patron',
             rating: r.rating || 5,
-            date: r.date || 'Recent',
             produceTag: r.produceTag || 'ghee',
             produceName: r.produceName || 'A2 Desi Cow Bilona Ghee',
-            headline: r.headline || 'Excellent Pure Quality!',
-            review: r.review || '',
+            headline: r.headline || 'Authentic Farm Fresh Quality!',
+            review: r.review || 'Pure, natural, and honest produce.',
             verified: true,
-            likes: 12
+            likes: Math.floor(Math.random() * 40) + 25,
+            date: r.date || 'Recent',
+            avatar: [
+              'https://images.pexels.com/photos-[#3A5303]415829.jpeg',
+              'https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg',
+              'https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg',
+              'https://images.pexels.com/photos/1222271/pexels-photo-1222271.jpeg'
+            ][idx % 4]
           }));
-          setReviews([...remoteFormatted, ...DEFAULT_REVIEWS]);
+          setReviews([...remoteMapped, ...DEFAULT_REVIEWS]);
         }
       } catch (err) {
-        console.warn('Using default reviews:', err);
+        console.warn('Live review stream notice:', err);
       }
     };
-    fetchReviews();
+    loadRemoteReviews();
   }, [gasUrl]);
 
-  const filteredReviews = reviews.filter((r) => activeFilter === 'all' || r.produceTag === activeFilter);
-
   const handleLike = (id: string) => {
-    if (userLiked[id]) return;
-    setUserLiked((prev) => ({ ...prev, [id]: true }));
-    setLikesState((prev) => ({ ...prev, [id]: (prev[id] || 0) + 1 }));
-  };
-
-  const getProduceLabel = (tag: string) => {
-    switch (tag) {
-      case 'ghee': return 'A2 Desi Cow Bilona Ghee';
-      case 'oil': return 'Wood-Pressed Oils';
-      case 'paneer': return 'Fresh Desi Paneer';
-      case 'milk': return 'Pure Desi Cow Milk';
-      case 'eggs': return 'Farm Fresh Eggs';
-      default: return 'Certified Organic Produce';
-    }
+    setUserLiked((prev) => {
+      const alreadyLiked = !!prev[id];
+      setLikesState((lPrev) => ({
+        ...lPrev,
+        [id]: (lPrev[id] || 0) + (alreadyLiked ? -1 : 1)
+      }));
+      return { ...prev, [id]: !alreadyLiked };
+    });
   };
 
   const handleSubmitReview = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newAuthor.trim() || !newComment.trim()) return;
 
-    setIsSubmitting(true);
-    const newRevObj: Testimonial = {
-      id: `rev-${Date.now()}`,
+    const newRevObj = {
       name: newAuthor,
-      role: 'Verified Patron',
       location: newLocation || 'Hyderabad',
-      avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=300&auto=format&fit=crop',
       rating: newRating,
-      date: 'Just now',
       produceTag: newProduceTag,
-      produceName: getProduceLabel(newProduceTag),
-      headline: newHeadline || 'Pure & Authentic Organic Quality!',
-      review: newComment,
-      verified: true,
-      likes: 1
+      produceName: newProduceTag === 'ghee' ? 'A2 Desi Cow Bilona Ghee' : newProduceTag === 'oil' ? 'Wood-Pressed Oils' : 'Fresh Paneer',
+      headline: newHeadline || 'Excellent Organic Farm Quality!',
+      review: newComment
     };
 
     try {
@@ -210,104 +170,99 @@ export const TestimonialSection: React.FC = () => {
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify({
           action: 'submitReview',
-          review: {
-            name: newAuthor,
-            location: newLocation || 'Hyderabad',
-            rating: newRating,
-            produceTag: newProduceTag,
-            produceName: getProduceLabel(newProduceTag),
-            headline: newHeadline || 'Pure & Authentic Organic Quality!',
-            review: newComment,
-          }
-        }),
+          review: newRevObj
+        })
       });
-    } catch (err) {
-      console.warn('Sync review warning:', err);
-    } finally {
-      setIsSubmitting(false);
+
+      const localItem: CustomerReviewItem = {
+        id: `local-rev-${Date.now()}`,
+        name: newAuthor,
+        location: newLocation || 'Hyderabad',
+        role: 'Verified Patron',
+        rating: newRating,
+        produceTag: newProduceTag,
+        produceName: newRevObj.produceName,
+        headline: newRevObj.headline,
+        review: newComment,
+        verified: true,
+        likes: 1,
+        date: 'Just Now',
+        avatar: 'https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=300'
+      };
+
+      setReviews((prev) => [localItem, ...prev]);
       setSubmittedMessage(true);
-      setReviews((prev) => [newRevObj, ...prev]);
       setTimeout(() => {
         setSubmittedMessage(false);
         setIsSubmitOpen(false);
         setNewAuthor('');
-        setNewLocation('');
         setNewHeadline('');
         setNewComment('');
       }, 2000);
+
+    } catch (err) {
+      console.warn('Submit review notice:', err);
     }
   };
 
-  return (
-    <section id="reviews" className="py-20 sm:py-28 bg-[#1c260b] text-white relative overflow-hidden">
-      
-      {/* Background Ambient Organic Glows */}
-      <div className="absolute top-0 right-1/4 w-[500px] h-[500px] bg-[#94C000]/10 rounded-full blur-[120px] pointer-events-none" />
-      <div className="absolute bottom-0 left-1/4 w-[500px] h-[500px] bg-[#3A5303]/40 rounded-full blur-[140px] pointer-events-none" />
+  const filteredReviews = reviews.filter((r) => 
+    activeTagFilter === 'all' || r.produceTag === activeTagFilter
+  );
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 space-y-12">
+  return (
+    <section id="reviews" className="py-24 bg-[#141b08] text-white relative overflow-hidden">
+      
+      {/* Background Decorative Gradients & Watermarks */}
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(148,192,0,0.12),transparent_60%)] pointer-events-none" />
+      <div className="absolute -bottom-24 -left-24 w-96 h-96 bg-[#3A5303]/20 rounded-full blur-3xl pointer-events-none" />
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 space-y-16">
         
-        {/* Header Section */}
+        {/* Section Header */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-stone-800 pb-8">
-          <div className="space-y-3">
-            <div className="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-full bg-[#94C000]/15 border border-[#94C000]/30 text-[#94C000] text-xs font-bold uppercase tracking-widest">
-              <Sparkles className="w-4 h-4 animate-pulse" />
-              <span>100% Verified Farm Patron Love</span>
+          <div className="space-y-3 max-w-2xl">
+            <div className="inline-flex items-center space-x-2 bg-[#3A5303]/40 border border-[#94C000]/30 px-3.5 py-1.5 rounded-full text-[11px] font-bold text-[#94C000] uppercase tracking-wider">
+              <Award className="w-3.5 h-3.5 text-[#94C000]" />
+              <span>100% Genuine Farm Patron Reviews</span>
             </div>
 
-            <h2 className="text-3xl sm:text-5xl font-serif font-normal text-white tracking-tight">
-              Loved by <span className="italic text-[#94C000]">1,200+ Families</span> Across India
+            <h2 className="text-3xl sm:text-5xl font-serif tracking-tight text-white font-normal leading-tight">
+              Loved By Wellness Families & Home Chefs Across India
             </h2>
-            
-            <p className="text-stone-400 text-xs sm:text-sm font-light max-w-xl">
-              Real stories and unvarnished reviews from doctors, nutritionists, mothers, and culinary connoisseurs who rely on Brindavanam Nature Centre.
+            <p className="text-stone-400 text-sm font-light leading-relaxed">
+              Read real stories from thousands of families in Jubilee Hills, Banjara Hills, Gachibowli & pan-India who trust Brindavanam Nature Centre for their daily A2 Bilona Ghee, Wood-Pressed Oils & Fresh Produce.
             </p>
           </div>
 
-          {/* Trust Score Card & Add Review Button */}
-          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 shrink-0">
-            <div className="bg-white/5 backdrop-blur-md p-4 rounded-2xl border border-white/10 flex items-center space-x-4">
-              <div className="text-center pr-4 border-r border-stone-700">
-                <span className="text-3xl font-serif font-bold text-white block">4.9</span>
-                <div className="flex text-amber-400 justify-center">
-                  {[...Array(5)].map((_, i) => (
-                    <Star key={i} className="w-3 h-3 fill-amber-400" />
-                  ))}
-                </div>
-              </div>
-              <div className="text-xs">
-                <span className="font-bold text-white block">★ 100% Purity Guaranteed</span>
-                <span className="text-stone-400 text-[10px]">1,240 Verified Reviews</span>
-              </div>
-            </div>
-
+          {/* Action Trigger Buttons */}
+          <div className="flex items-center space-x-3 shrink-0">
             <button
               onClick={() => setIsSubmitOpen(true)}
-              className="px-5 py-3.5 bg-[#94C000] hover:bg-[#85ad00] text-[#1c260b] font-bold text-xs uppercase tracking-wider rounded-2xl shadow-lg transition-all active:scale-95 flex items-center space-x-2 cursor-pointer"
+              className="px-5 py-3 bg-[#3A5303] hover:bg-[#2b3e02] text-white font-bold text-xs uppercase tracking-wider rounded-2xl shadow-lg border border-[#94C000]/40 transition-all flex items-center space-x-2 cursor-pointer active:scale-95"
             >
-              <MessageSquarePlus className="w-4 h-4" />
-              <span>Share Your Review</span>
+              <MessageSquare className="w-4 h-4 text-[#94C000]" />
+              <span>Leave A Review</span>
             </button>
           </div>
         </div>
 
-        {/* Interactive Filter Pills */}
-        <div className="flex items-center space-x-2 overflow-x-auto pb-2 scrollbar-none">
+        {/* Filter Category Pills */}
+        <div className="flex items-center space-x-2 overflow-x-auto whitespace-nowrap scrollbar-none py-1">
           {[
-            { id: 'all', label: 'All Patron Stories' },
+            { id: 'all', label: 'All Reviews' },
             { id: 'ghee', label: 'A2 Bilona Ghee' },
             { id: 'oil', label: 'Wood-Pressed Oils' },
-            { id: 'paneer', label: 'Fresh Desi Paneer' },
-            { id: 'milk', label: 'Pure A2 Milk' },
-            { id: 'eggs', label: 'Farm Fresh Eggs' },
+            { id: 'paneer', label: 'Desi Paneer' },
+            { id: 'milk', label: 'Gir Cow Milk' },
+            { id: 'eggs', label: 'Farm Eggs' }
           ].map((tab) => (
             <button
               key={tab.id}
-              onClick={() => setActiveFilter(tab.id as any)}
-              className={`px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
-                activeFilter === tab.id
-                  ? 'bg-[#94C000] text-[#1c260b] font-bold shadow-md'
-                  : 'bg-white/5 text-stone-300 hover:bg-white/10 hover:text-white border border-white/5'
+              onClick={() => setActiveTagFilter(tab.id as any)}
+              className={`px-4 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+                activeTagFilter === tab.id
+                  ? 'bg-[#3A5303] text-white shadow-lg border border-[#94C000]/50 font-bold'
+                  : 'bg-white/5 text-stone-400 hover:text-white hover:bg-white/10 border border-white/10'
               }`}
             >
               {tab.label}
@@ -315,10 +270,10 @@ export const TestimonialSection: React.FC = () => {
           ))}
         </div>
 
-        {/* Testimonials Masonry Grid */}
+        {/* Masonry / Responsive Review Cards Grid */}
         <motion.div 
           layout
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+          className="grid grid-cols-1 md:grid-cols-2 gap-6"
         >
           <AnimatePresence>
             {filteredReviews.map((rev) => (
@@ -329,21 +284,24 @@ export const TestimonialSection: React.FC = () => {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.95 }}
                 transition={{ duration: 0.3 }}
-                className="bg-white/5 backdrop-blur-lg p-6 sm:p-7 rounded-3xl border border-white/10 shadow-xl flex flex-col justify-between space-y-4 hover:border-[#94C000]/40 transition-all group hover:-translate-y-1"
+                className="bg-white/5 backdrop-blur-md border border-stone-800 hover:border-[#3A5303] rounded-3xl p-6 sm:p-8 space-y-6 flex flex-col justify-between group transition-all duration-300 hover:shadow-2xl hover:shadow-[#3A5303]/10 relative"
               >
-                <div className="space-y-3">
-                  
-                  {/* Top Header: Produce Tag & Rating */}
-                  <div className="flex items-center justify-between">
-                    <span className="text-[10px] font-bold uppercase tracking-widest text-[#94C000] bg-[#94C000]/10 px-2.5 py-1 rounded-full border border-[#94C000]/20">
+                
+                {/* Top Card Info: Rating & Produce Badge */}
+                <div className="space-y-4">
+                  <div className="flex justify-between items-start">
+                    <div className="flex items-center space-x-1">
+                      {[...Array(rev.rating)].map((_, i) => (
+                        <Star key={i} className="w-4 h-4 fill-amber-400 text-amber-400" />
+                      ))}
+                      <span className="text-xs font-bold text-amber-400 ml-1.5 font-mono">
+                        {rev.rating}.0
+                      </span>
+                    </div>
+
+                    <span className="text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-full bg-[#3A5303]/40 border border-[#94C000]/30 text-[#94C000]">
                       {rev.produceName}
                     </span>
-
-                    <div className="flex text-amber-400">
-                      {[...Array(rev.rating)].map((_, i) => (
-                        <Star key={i} className="w-3.5 h-3.5 fill-amber-400" />
-                      ))}
-                    </div>
                   </div>
 
                   {/* Headline Quote */}
@@ -369,7 +327,9 @@ export const TestimonialSection: React.FC = () => {
                       <div className="flex items-center space-x-1.5">
                         <span className="text-xs font-bold text-white">{rev.name}</span>
                         {rev.verified && (
-                          <UserCheck className="w-3.5 h-3.5 text-[#94C000]" title="Verified Farm Buyer" />
+                          <span title="Verified Farm Buyer">
+                            <UserCheck className="w-3.5 h-3.5 text-[#94C000]" />
+                          </span>
                         )}
                       </div>
                       <span className="text-[10px] text-stone-400 block">{rev.role} • {rev.location}</span>
@@ -479,37 +439,39 @@ export const TestimonialSection: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="block text-stone-300 uppercase font-bold text-[10px] mb-1">Review Headline</label>
+                  <label className="block text-stone-300 uppercase font-bold text-[10px] mb-1">Headline / Main Remark</label>
                   <input
                     type="text"
                     value={newHeadline}
                     onChange={(e) => setNewHeadline(e.target.value)}
                     className="w-full px-3 py-2 bg-white/10 border border-stone-700 rounded-xl text-white focus:outline-none focus:border-[#94C000]"
-                    placeholder="e.g. Unmatched Danedar texture and pure aroma!"
+                    placeholder="e.g. Purest Bilona Ghee in Hyderabad!"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-stone-300 uppercase font-bold text-[10px] mb-1">Your Review & Comments *</label>
+                  <label className="block text-stone-300 uppercase font-bold text-[10px] mb-1">Detailed Review *</label>
                   <textarea
                     rows={3}
                     required
                     value={newComment}
                     onChange={(e) => setNewComment(e.target.value)}
                     className="w-full px-3 py-2 bg-white/10 border border-stone-700 rounded-xl text-white focus:outline-none focus:border-[#94C000]"
-                    placeholder="Tell us about the aroma, purity, or taste of our A2 Bilona Ghee, Wood-Pressed Oils, Milk, or Paneer..."
+                    placeholder="Tell us about the aroma, taste, and packaging..."
                   />
                 </div>
 
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="w-full py-3.5 bg-[#94C000] text-[#1c260b] font-bold uppercase rounded-xl shadow-lg hover:bg-[#85ad00] cursor-pointer"
-                >
-                  {isSubmitting ? 'Saving to Database...' : 'Submit Patron Review'}
-                </button>
+                <div className="pt-2 flex justify-end">
+                  <button
+                    type="submit"
+                    className="px-6 py-2.5 bg-[#3A5303] text-white font-bold text-xs uppercase rounded-xl hover:bg-[#2b3e02] shadow-lg cursor-pointer"
+                  >
+                    Submit Verified Review
+                  </button>
+                </div>
               </form>
             )}
+
           </div>
         </div>
       )}

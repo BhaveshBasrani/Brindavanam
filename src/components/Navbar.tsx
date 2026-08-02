@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { ShoppingBag, User, Search, Menu, X, LogOut, Package, Leaf, Home as HomeIcon, Sparkles } from 'lucide-react';
+import { ShoppingBag, User as UserIcon, Search, Menu, X, LogOut, Package, Leaf, Home as HomeIcon } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { useStore } from '@/context/StoreContext';
 
@@ -66,27 +66,48 @@ export const Navbar: React.FC<NavbarProps> = ({
     { id: 'eggs', label: 'Farm Fresh Eggs' },
   ];
 
-  const marqueeText = announcements && announcements.length > 0 
-    ? announcements.join('   ✦   ') 
-    : "🌸 FESTIVE HARVEST SALE: FREE SHIPPING ON ALL ORDERS ABOVE ₹2000   ✦   🌿 100% PURE A2 DESI BILONA GHEE   ✦   ⚡ AUTOMATIC 10% DISCOUNT ON ₹5000+ PURCHASES";
+  const defaultAnnouncements = [
+    "FESTIVE HARVEST SALE: FREE SHIPPING ON ALL ORDERS ABOVE ₹2000 PAN-INDIA",
+    "100% PURE A2 DESI COW BILONA GHEE — TRADITIONALLY HAND-CHURNED IN EARTHEN POTS",
+    "AUTOMATIC 10% BULK FARM DISCOUNT APPLIED ON ₹5000+ PURCHASES",
+    "WOOD-PRESSED COLD-EXTRACTED OILS — KUSUMA, SESAME & MUSTARD OILS DIRECT FROM FARM"
+  ];
+
+  const rawItems = announcements && announcements.length > 0 ? announcements : defaultAnnouncements;
+
+  // ADAPTIVE FILLER: Multiply items if list/text is short to fill the top bar 100% edge-to-edge!
+  const minItemsRequired = 8;
+  const repeatMultiplier = Math.max(1, Math.ceil(minItemsRequired / rawItems.length));
+  const marqueeItems = Array(repeatMultiplier).fill(rawItems).flat();
 
   return (
     <>
       {/* Dynamic Floating Header Wrapper */}
       <header className="fixed top-0 left-0 right-0 z-50 flex flex-col items-center pointer-events-none">
         
-        {/* Crazyyy Continuous Moving Ticker Announcement Bar */}
+        {/* Adaptive Seamless Infinite Sideways Marquee Ticker */}
         {!isScrolled && (
           <div className="w-full bg-[#1c260b] text-white text-[10px] sm:text-[11px] font-bold tracking-widest uppercase py-2.5 overflow-hidden pointer-events-auto border-b border-[#3A5303]/40 shadow-xs relative select-none">
-            <div className="whitespace-nowrap flex animate-marquee space-x-8 items-center">
-              <span className="flex items-center space-x-3 text-[#94C000]">
-                <Sparkles className="w-3.5 h-3.5 text-[#94C000] animate-spin inline-block shrink-0" />
-                <span>{marqueeText}</span>
-              </span>
-              <span className="flex items-center space-x-3 text-stone-200">
-                <Sparkles className="w-3.5 h-3.5 text-[#94C000] animate-spin inline-block shrink-0" />
-                <span>{marqueeText}</span>
-              </span>
+            <div className="animate-marquee flex whitespace-nowrap">
+              {/* Loop Track 1 */}
+              <div className="flex items-center space-x-10 pr-10">
+                {marqueeItems.map((item, idx) => (
+                  <span key={`l1-${idx}`} className="flex items-center space-x-3 text-stone-200">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#94C000] inline-block shrink-0" />
+                    <span className="hover:text-[#94C000] transition-colors">{item}</span>
+                  </span>
+                ))}
+              </div>
+
+              {/* Loop Track 2 (Identical Duplicate for 100% Edge-to-Edge Continuous Transition) */}
+              <div className="flex items-center space-x-10 pr-10">
+                {marqueeItems.map((item, idx) => (
+                  <span key={`l2-${idx}`} className="flex items-center space-x-3 text-stone-200">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#94C000] inline-block shrink-0" />
+                    <span className="hover:text-[#94C000] transition-colors">{item}</span>
+                  </span>
+                ))}
+              </div>
             </div>
           </div>
         )}
@@ -126,7 +147,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               </Link>
             </div>
 
-            {/* Center: Desktop Navigation Links (Clean 100% Fit) */}
+            {/* Center: Desktop Navigation Links */}
             <nav className="hidden xl:flex items-center space-x-1 bg-[#F7F6F2] px-2 py-1 rounded-full border border-stone-200/80 text-[11px] font-semibold whitespace-nowrap shrink-0">
               <button
                 onClick={() => {
@@ -165,7 +186,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 placeholder="Search A2 Ghee, Oils, Paneer..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-8 pr-3 py-1.5 text-xs bg-[#F7F6F2] border border-stone-200 rounded-full focus:outline-none focus:border-[#3A5303] focus:bg-white transition-all text-stone-900 placeholder:text-stone-400"
+                className="w-full pl-8 pr-3 py-1.5 text-xs bg-[#F7F6F2] border border-stone-200 rounded-full focus:outline-none focus:border-[#3A5303] focus:bg-white transition-all text-stone-900 placeholder:text-stone-400 font-medium"
               />
               <Search className="w-3.5 h-3.5 text-stone-400 absolute left-2.5 top-2.5 pointer-events-none" />
               {searchQuery && (
@@ -178,7 +199,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               )}
             </div>
 
-            {/* Right: Actions (Cart, Account, Orders) */}
+            {/* Right: Actions (Cart, Google Profile Pic Account, Orders) */}
             <div className="flex items-center space-x-1 sm:space-x-2 shrink-0">
               
               {/* Mobile Search Toggle */}
@@ -190,26 +211,49 @@ export const Navbar: React.FC<NavbarProps> = ({
                 <Search className="w-4 h-4 sm:w-5 sm:h-5" />
               </button>
 
-              {/* Patron Orders & Account Portal Button */}
+              {/* Patron Orders & Google Account Profile Picture Button */}
               {user ? (
                 <div className="relative">
                   <button
                     onClick={() => setUserDropdownOpen(!userDropdownOpen)}
-                    className="flex items-center space-x-1.5 px-2.5 py-1.5 bg-[#F7F6F2] hover:bg-stone-200 border border-stone-200 rounded-full text-xs font-semibold text-stone-800 transition-colors cursor-pointer"
+                    className="flex items-center space-x-1.5 px-2 py-1 bg-[#F7F6F2] hover:bg-stone-200 border border-stone-200 rounded-full text-xs font-semibold text-stone-800 transition-colors cursor-pointer"
                   >
-                    <div className="w-5 h-5 rounded-full bg-[#3A5303] text-white flex items-center justify-center text-[10px] font-bold">
-                      {user.displayName ? user.displayName.charAt(0).toUpperCase() : 'P'}
-                    </div>
-                    <span className="hidden sm:inline-block max-w-[80px] truncate">
+                    {user.photoURL ? (
+                      <img
+                        src={user.photoURL}
+                        alt={user.displayName || 'Profile'}
+                        className="w-5.5 h-5.5 rounded-full object-cover ring-1 ring-[#3A5303] shrink-0"
+                        referrerPolicy="no-referrer"
+                      />
+                    ) : (
+                      <div className="w-5.5 h-5.5 rounded-full bg-[#3A5303] text-white flex items-center justify-center text-[10px] font-bold shrink-0">
+                        {user.displayName ? user.displayName.charAt(0).toUpperCase() : 'P'}
+                      </div>
+                    )}
+                    <span className="hidden sm:inline-block max-w-[85px] truncate font-medium">
                       {user.displayName ? user.displayName.split(' ')[0] : 'Account'}
                     </span>
                   </button>
 
                   {userDropdownOpen && (
-                    <div className="absolute right-0 mt-2 w-48 bg-white rounded-2xl shadow-xl border border-stone-200 py-2 z-50 animate-in fade-in duration-150">
-                      <div className="px-4 py-2 border-b border-stone-100">
-                        <p className="text-xs font-bold text-stone-900 truncate">{user.displayName || 'Valued Patron'}</p>
-                        <p className="text-[10px] text-stone-500 truncate">{user.email}</p>
+                    <div className="absolute right-0 mt-2 w-52 bg-white rounded-2xl shadow-xl border border-stone-200 py-2 z-50 animate-in fade-in duration-150">
+                      <div className="px-4 py-2.5 border-b border-stone-100 flex items-center space-x-2.5">
+                        {user.photoURL ? (
+                          <img
+                            src={user.photoURL}
+                            alt=""
+                            className="w-9 h-9 rounded-full object-cover ring-2 ring-[#3A5303] shrink-0"
+                            referrerPolicy="no-referrer"
+                          />
+                        ) : (
+                          <div className="w-9 h-9 rounded-full bg-[#3A5303] text-white flex items-center justify-center text-sm font-bold shrink-0">
+                            {user.displayName ? user.displayName.charAt(0).toUpperCase() : 'P'}
+                          </div>
+                        )}
+                        <div className="min-w-0 flex-1">
+                          <p className="text-xs font-bold text-stone-900 truncate">{user.displayName || 'Valued Patron'}</p>
+                          <p className="text-[10px] text-stone-500 truncate">{user.email}</p>
+                        </div>
                       </div>
 
                       <button
@@ -241,7 +285,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                   onClick={onOpenAuth}
                   className="px-3 py-1.5 text-stone-700 hover:text-[#3A5303] text-xs font-semibold rounded-full hover:bg-stone-100 transition-colors flex items-center space-x-1 cursor-pointer"
                 >
-                  <User className="w-4 h-4 text-[#3A5303]" />
+                  <UserIcon className="w-4 h-4 text-[#3A5303]" />
                   <span className="hidden sm:inline">Sign In</span>
                 </button>
               )}
@@ -272,7 +316,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 placeholder="Search Desi Cow Milk, A2 Ghee..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-8 pr-8 py-2 text-xs bg-white border border-stone-300 rounded-full shadow-lg focus:outline-none focus:border-[#3A5303]"
+                className="w-full pl-8 pr-8 py-2 text-xs bg-white border border-stone-300 rounded-full shadow-lg focus:outline-none focus:border-[#3A5303] text-stone-900 font-medium"
                 autoFocus
               />
               <Search className="w-3.5 h-3.5 text-stone-400 absolute left-3 top-3" />

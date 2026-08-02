@@ -29,11 +29,21 @@ body {
   font-family: 'Plus Jakarta Sans', sans-serif !important;
 }
 
-/* Subtle, refined custom colors */
-.bg-babypowder { background-color: #F7F6F2; }
-.bg-darkmoss { background-color: #3A5303; }
-.text-darkmoss { color: #3A5303; }
-.border-darkmoss { border-color: #3A5303; }
+/* Infinite Sideways Marquee Movement */
+@keyframes marquee {
+  0% { transform: translateX(0%); }
+  100% { transform: translateX(-50%); }
+}
+
+.animate-marquee {
+  display: flex;
+  width: max-content;
+  animation: marquee 30s linear infinite;
+}
+
+.animate-marquee:hover {
+  animation-play-state: paused;
+}
 
 /* Custom smooth scrollbar */
 ::-webkit-scrollbar {
