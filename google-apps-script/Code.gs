@@ -21,14 +21,25 @@
  * P (16): Admin Notes
  */
 
+var DEFAULT_ANNOUNCEMENTS = [
+  "🌸 FESTIVE HARVEST SALE: FREE SHIPPING ON ALL ORDERS ABOVE ₹2000 PAN-INDIA",
+  "🌿 100% PURE A2 DESI COW BILONA GHEE — TRADITIONALLY HAND-CHURNED IN EARTHEN POTS",
+  "⚡ AUTOMATIC 10% BULK FARM DISCOUNT APPLIED ON ₹5000+ PURCHASES",
+  "🌾 WOOD-PRESSED COLD-EXTRACTED OILS — KUSUMA, SESAME & MUSTARD OILS DIRECT FROM FARM"
+];
+
 function doGet(e) {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
-  ensureAndRepairSheetStructure(ss); // Self-healing header & structure check
+  ensureAndRepairSheetStructure(ss);
 
   var action = e && e.parameter ? e.parameter.action : '';
 
   if (action === 'repairSheets') {
     return handleRepairSheets(ss);
+  }
+
+  if (action === 'getAnnouncements' || action === 'get_announcements') {
+    return handleGetAnnouncements(ss);
   }
 
   if (action === 'getPromos') {
@@ -58,28 +69,47 @@ function doPost(e) {
 
   try {
     var ss = SpreadsheetApp.getActiveSpreadsheet();
-    ensureAndRepairSheetStructure(ss); // Self-healing header & structure check
+    ensureAndRepairSheetStructure(ss);
+
+    if (!e || !e.postData || !e.postData.contents) {
+      return ContentService.createTextOutput(JSON.stringify({
+        status: 'ignored',
+        message: 'Empty request body ignored'
+      })).setMimeType(ContentService.MimeType.JSON);
+    }
 
     var postData = JSON.parse(e.postData.contents);
-    var action = postData.action || 'saveOrder';
+    var action = postData && postData.action ? postData.action : '';
 
     if (action === 'repairSheets') {
       return handleRepairSheets(ss);
     }
 
-    if (action === 'updatePromos') {
+    if (action === 'updateAnnouncements' || action === 'save_announcements') {
+      return handleUpdateAnnouncements(ss, postData.announcements);
+    }
+
+    if (action === 'resetAnnouncements' || action === 'reset_announcements') {
+      return handleResetAnnouncements(ss);
+    }
+
+    if (action === 'updatePromos' || action === 'save_promos') {
       return handleUpdatePromos(ss, postData.promos);
     }
 
-    if (action === 'updateProducts') {
+    if (action === 'updateProducts' || action === 'save_products') {
       return handleUpdateProducts(ss, postData.products);
     }
 
-    if (action === 'updateOrderDetails') {
-      return handleUpdateOrderDetails(ss, postData.orderId, postData.details);
+    if (action === 'updateSingleProduct' || action === 'update_product') {
+      return handleUpdateSingleProduct(ss, postData.product);
     }
 
-    if (action === 'deleteOrder') {
+    if (action === 'updateOrderDetails' || action === 'update_order_details') {
+      return handleUpdateOrderDetails(ss, postData.orderId, postData);
+    }
+
+    if (action === 'deleteOrder' || action === 'delete_order') {
       return handleDeleteOrder(ss, postData.orderId);
     }
 
@@ -95,8 +125,15 @@ function doPost(e) {
       return handleDeleteReview(ss, postData.reviewId);
     }
 
-    // Default: Save new customer order
-    return handleSaveOrder(ss, postData);
+    if (action === 'saveOrder' || action === 'create_order') {
+      return handleSaveOrder(ss, postData);
+    }
+
+    // Default response for unknown action
+    return ContentService.createTextOutput(JSON.stringify({
+      status: 'ignored',
+      message: 'No valid action provided'
+    })).setMimeType(ContentService.MimeType.JSON);
 
   } catch (err) {
     return ContentService.createTextOutput(JSON.stringify({
@@ -125,8 +162,6 @@ function ensureAndRepairSheetStructure(ss) {
     ordersSheet.appendRow(expectedOrdersHeaders);
     formatHeaderRow(ordersSheet, 16);
   } else {
-    // Check if Row 1 headers match
-    var lastCol = Math.max(ordersSheet.getLastColumn(), 16);
     var firstRow = ordersSheet.getRange(1, 1, 1, 16).getValues()[0];
     var needsHeaderRepair = false;
 
@@ -143,7 +178,18 @@ function ensureAndRepairSheetStructure(ss) {
     }
   }
 
-  // 2. Repair PromoCodes Sheet Tab
+  // 2. Repair Announcements Tab
+  var annSheet = ss.getSheetByName('Announcements');
+  if (!annSheet) {
+    annSheet = ss.insertSheet('Announcements');
+    annSheet.appendRow(['Announcement Message', 'Is Active', 'Created Date']);
+    formatHeaderRow(annSheet, 3);
+    for (var a = 0; a < DEFAULT_ANNOUNCEMENTS.length; a++) {
+      annSheet.appendRow([DEFAULT_ANNOUNCEMENTS[a], true, new Date().toLocaleDateString('en-IN')]);
+    }
+  }
+
+  // 3. Repair PromoCodes Sheet Tab
   var promoSheet = ss.getSheetByName('PromoCodes');
   if (!promoSheet) {
     promoSheet = ss.insertSheet('PromoCodes');
@@ -151,7 +197,7 @@ function ensureAndRepairSheetStructure(ss) {
     formatHeaderRow(promoSheet, 4);
   }
 
-  // 3. Repair Products Sheet Tab
+  // 4. Repair Products Sheet Tab
   var prodSheet = ss.getSheetByName('Products');
   if (!prodSheet) {
     prodSheet = ss.insertSheet('Products');
@@ -159,7 +205,7 @@ function ensureAndRepairSheetStructure(ss) {
     formatHeaderRow(prodSheet, 4);
   }
 
-  // 4. Repair Reviews Sheet Tab
+  // 5. Repair Reviews Sheet Tab
   var revSheet = ss.getSheetByName('Reviews');
   if (!revSheet) {
     revSheet = ss.insertSheet('Reviews');
@@ -167,7 +213,7 @@ function ensureAndRepairSheetStructure(ss) {
     formatHeaderRow(revSheet, 10);
   }
 
-  // 5. Repair Customers Sheet Tab (CRM)
+  // 6. Repair Customers Sheet Tab (CRM)
   var custSheet = ss.getSheetByName('Customers');
   if (!custSheet) {
     custSheet = ss.insertSheet('Customers');
@@ -191,6 +237,57 @@ function formatHeaderRow(sheet, colCount) {
 }
 
 /**
+ * Announcement Ticker Handlers
+ */
+function handleGetAnnouncements(ss) {
+  var annSheet = ss.getSheetByName('Announcements');
+  if (!annSheet) return ContentService.createTextOutput(JSON.stringify({ status: 'success', announcements: DEFAULT_ANNOUNCEMENTS })).setMimeType(ContentService.MimeType.JSON);
+
+  var data = annSheet.getDataRange().getValues();
+  var list = [];
+  for (var i = 1; i < data.length; i++) {
+    if (data[i][0] && (data[i][1] === true || data[i][1] === 'true' || data[i][1] === 'TRUE' || data[i][1] === '')) {
+      list.push(data[i][0].toString());
+    }
+  }
+
+  if (list.length === 0) list = DEFAULT_ANNOUNCEMENTS;
+
+  return ContentService.createTextOutput(JSON.stringify({
+    status: 'success',
+    announcements: list
+  })).setMimeType(ContentService.MimeType.JSON);
+}
+
+function handleUpdateAnnouncements(ss, announcementsList) {
+  var annSheet = ss.getSheetByName('Announcements');
+  if (!annSheet) annSheet = ss.insertSheet('Announcements');
+
+  annSheet.clear();
+  annSheet.appendRow(['Announcement Message', 'Is Active', 'Created Date']);
+  formatHeaderRow(annSheet, 3);
+
+  if (Array.isArray(announcementsList) && announcementsList.length > 0) {
+    for (var i = 0; i < announcementsList.length; i++) {
+      annSheet.appendRow([announcementsList[i], true, new Date().toLocaleDateString('en-IN')]);
+    }
+  } else {
+    for (var d = 0; d < DEFAULT_ANNOUNCEMENTS.length; d++) {
+      annSheet.appendRow([DEFAULT_ANNOUNCEMENTS[d], true, new Date().toLocaleDateString('en-IN')]);
+    }
+  }
+
+  return ContentService.createTextOutput(JSON.stringify({
+    status: 'success',
+    message: 'Announcement ticker offers updated successfully!'
+  })).setMimeType(ContentService.MimeType.JSON);
+}
+
+function handleResetAnnouncements(ss) {
+  return handleUpdateAnnouncements(ss, DEFAULT_ANNOUNCEMENTS);
+}
+
+/**
  * Manual Repair Sheets Action Endpoint
  */
 function handleRepairSheets(ss) {
@@ -202,7 +299,7 @@ function handleRepairSheets(ss) {
 }
 
 /**
- * Fetch All Orders List (Exact 16-Column Match)
+ * Fetch All Orders List
  */
 function handleGetOrders(ss) {
   var ordersSheet = ss.getSheetByName('Orders');
@@ -215,7 +312,7 @@ function handleGetOrders(ss) {
 
   for (var i = 1; i < data.length; i++) {
     var row = data[i];
-    if (!row[0]) continue; // Skip empty header/rows
+    if (!row[0]) continue;
 
     var orderId = row[0].toString();
     var timestamp = row[1] ? row[1].toString() : '';
@@ -323,9 +420,25 @@ function handleGetUserOrders(ss, userEmail) {
 }
 
 /**
- * Save New Customer Order (Matching User's Google Sheet Headers)
+ * Save New Customer Order (With Payload Verification To Reject Ghost Orders)
  */
 function handleSaveOrder(ss, order) {
+  // STRICT VERIFICATION: Ignore empty ping/ghost order requests
+  if (!order || (!order.id && !order.itemsSummary && (!order.total || order.total <= 0) && (!order.customerEmail && !order.customerPhone))) {
+    return ContentService.createTextOutput(JSON.stringify({
+      status: 'ignored',
+      message: 'Empty or invalid order payload ignored'
+    })).setMimeType(ContentService.MimeType.JSON);
+  }
+
+  // Reject orders with total 0 and no customer info
+  if ((!order.total || order.total <= 0) && (!order.shippingAddress || !order.shippingAddress.fullName)) {
+    return ContentService.createTextOutput(JSON.stringify({
+      status: 'ignored',
+      message: 'Zero-rupee ghost order rejected'
+    })).setMimeType(ContentService.MimeType.JSON);
+  }
+
   var ordersSheet = ss.getSheetByName('Orders');
   
   var itemsSummary = order.items && order.items.length > 0
@@ -363,15 +476,12 @@ function handleSaveOrder(ss, order) {
     order.adminNotes || ''
   ]);
 
-  // Update CRM Records
   updateCustomerCRMRecord(ss, fullName, email, phone, city);
 
-  // Send Wholesome Customer Email Invoice
   if (email) {
     sendWholesomeInvoiceEmail(email, fullName, orderId, order.total, itemsSummary, addressLine + ', ' + city, order.estimatedArrival || '3-5 Business Days');
   }
 
-  // Send Instant Admin Alert Notification
   sendAdminOrderNotificationEmail(fullName, email, phone, orderId, order.total, itemsSummary, addressLine + ', ' + city);
 
   return ContentService.createTextOutput(JSON.stringify({
@@ -381,7 +491,7 @@ function handleSaveOrder(ss, order) {
 }
 
 /**
- * Update Specific Order Details (Matching User's Google Sheet Headers)
+ * Update Specific Order Details
  */
 function handleUpdateOrderDetails(ss, orderId, details) {
   var ordersSheet = ss.getSheetByName('Orders');
@@ -394,7 +504,7 @@ function handleUpdateOrderDetails(ss, orderId, details) {
 
   for (var i = 1; i < data.length; i++) {
     if (data[i][0].toString() === orderId.toString()) {
-      foundRow = i + 1; // 1-indexed
+      foundRow = i + 1;
       break;
     }
   }
@@ -402,15 +512,6 @@ function handleUpdateOrderDetails(ss, orderId, details) {
   if (foundRow === -1) {
     return ContentService.createTextOutput(JSON.stringify({ status: 'error', message: 'Order #' + orderId + ' not found' })).setMimeType(ContentService.MimeType.JSON);
   }
-
-  // Column Index Mapping:
-  // C (3): Customer Name
-  // E (5): Phone
-  // F (6): Address
-  // M (13): Status
-  // N (14): Tracking URL
-  // O (15): ETA
-  // P (16): Admin Notes
 
   if (details.customerName) ordersSheet.getRange(foundRow, 3).setValue(details.customerName);
   if (details.customerPhone) ordersSheet.getRange(foundRow, 5).setValue(details.customerPhone);
@@ -420,7 +521,6 @@ function handleUpdateOrderDetails(ss, orderId, details) {
   if (details.estimatedArrival) ordersSheet.getRange(foundRow, 15).setValue(details.estimatedArrival);
   if (details.adminNotes !== undefined) ordersSheet.getRange(foundRow, 16).setValue(details.adminNotes);
 
-  // Send status update email if status or tracking changed
   var customerEmail = ordersSheet.getRange(foundRow, 4).getValue();
   var customerName = ordersSheet.getRange(foundRow, 3).getValue();
   var newStatus = details.status || ordersSheet.getRange(foundRow, 13).getValue();
@@ -656,6 +756,40 @@ function handleUpdateProducts(ss, productsList) {
   }
 
   return ContentService.createTextOutput(JSON.stringify({ status: 'success', message: 'Products catalog updated successfully!' })).setMimeType(ContentService.MimeType.JSON);
+}
+
+/**
+ * Update Single Product
+ */
+function handleUpdateSingleProduct(ss, product) {
+  if (!product || !product.id) {
+    return ContentService.createTextOutput(JSON.stringify({ status: 'error', message: 'Invalid product payload' })).setMimeType(ContentService.MimeType.JSON);
+  }
+  var prodSheet = ss.getSheetByName('Products');
+  if (!prodSheet) prodSheet = ss.insertSheet('Products');
+
+  var data = prodSheet.getDataRange().getValues();
+  var foundRow = -1;
+
+  for (var i = 1; i < data.length; i++) {
+    if (data[i][0] && data[i][0].toString() === product.id.toString()) {
+      foundRow = i + 1;
+      break;
+    }
+  }
+
+  if (foundRow > -1) {
+    prodSheet.getRange(foundRow, 2).setValue(JSON.stringify(product));
+    prodSheet.getRange(foundRow, 3).setValue(product.name);
+    prodSheet.getRange(foundRow, 4).setValue(product.category);
+  } else {
+    prodSheet.appendRow([product.id, JSON.stringify(product), product.name, product.category]);
+  }
+
+  return ContentService.createTextOutput(JSON.stringify({
+    status: 'success',
+    message: 'Product ' + product.name + ' updated successfully!'
+  })).setMimeType(ContentService.MimeType.JSON);
 }
 
 /**

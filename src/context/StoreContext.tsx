@@ -6,7 +6,9 @@ import { PRODUCTS as INITIAL_PRODUCTS } from '@/data/products';
 import { 
   syncPromosToGAS, fetchPromosFromGAS, 
   syncProductsToGAS, fetchProductsFromGAS, 
-  updateOrderDetailsInGAS, deleteOrderFromGAS 
+  updateOrderDetailsInGAS, deleteOrderFromGAS,
+  fetchAnnouncementsFromGAS, saveAnnouncementsToGAS, resetAnnouncementsInGAS,
+  DEFAULT_OFFER_ANNOUNCEMENTS
 } from '@/lib/googleAppsScript';
 
 export interface PromoCodeItem {
@@ -21,6 +23,7 @@ interface StoreContextType {
   cartItems: CartItem[];
   userOrders: Order[];
   promoCodes: PromoCodeItem[];
+  announcements: string[];
   appliedDiscount: number;
   appliedPromoCode: string;
   isCheckoutOpen: boolean;
@@ -39,13 +42,19 @@ interface StoreContextType {
   togglePromoCode: (code: string) => void;
   deletePromoCode: (code: string) => void;
   addProduct: (product: Product) => void;
+  updateProduct: (product: Product) => void;
   deleteProduct: (productId: string) => void;
+  addAnnouncement: (text: string) => void;
+  deleteAnnouncement: (index: number) => void;
+  updateAnnouncements: (list: string[]) => void;
+  resetAnnouncements: () => void;
   updateOrderDetails: (orderId: string, details: Partial<Order>) => Promise<void>;
   deleteOrder: (orderId: string) => Promise<void>;
   triggerCheckout: (discount: number, promo: string) => void;
   onOrderSuccess: (order: Order) => void;
   refreshPromosFromGAS: () => Promise<void>;
   refreshProductsFromGAS: () => Promise<void>;
+  refreshAnnouncementsFromGAS: () => Promise<void>;
 }
 
 const DEFAULT_PROMOS: PromoCodeItem[] = [
@@ -61,24 +70,50 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [userOrders, setUserOrders] = useState<Order[]>([]);
   const [promoCodes, setPromoCodes] = useState<PromoCodeItem[]>(DEFAULT_PROMOS);
+  const [announcements, setAnnouncements] = useState<string[]>(DEFAULT_OFFER_ANNOUNCEMENTS);
+
   const [appliedDiscount, setAppliedDiscount] = useState<number>(0);
   const [appliedPromoCode, setAppliedPromoCode] = useState<string>('');
-  const [isLoaded, setIsLoaded] = useState<boolean>(false);
 
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [isOrdersOpen, setIsOrdersOpen] = useState(false);
   const [isAdminOpen, setIsAdminOpen] = useState(false);
 
+  // Sync state with LocalStorage on Client Mount
+  useEffect(() => {
+    try {
+      const localCart = localStorage.getItem('brindavanam_cart');
+      if (localCart) setCartItems(JSON.parse(localCart));
+
+      const localOrders = localStorage.getItem('brindavanam_orders');
+      if (localOrders) setUserOrders(JSON.parse(localOrders));
+
+      const localPromos = localStorage.getItem('brindavanam_promos');
+      if (localPromos) setPromoCodes(JSON.parse(localPromos));
+
+      const localProducts = localStorage.getItem('brindavanam_products');
+      if (localProducts) setProducts(JSON.parse(localProducts));
+
+      const localAnnouncements = localStorage.getItem('brindavanam_announcements');
+      if (localAnnouncements) setAnnouncements(JSON.parse(localAnnouncements));
+    } catch (err) {
+      console.warn('LocalStorage hydration error:', err);
+    }
+  }, []);
+
+  // Sync to GAS on Mount
+  useEffect(() => {
+    refreshPromosFromGAS();
+    refreshProductsFromGAS();
+    refreshAnnouncementsFromGAS();
+  }, []);
+
   const refreshPromosFromGAS = async () => {
     const remotePromos = await fetchPromosFromGAS();
     if (remotePromos && remotePromos.length > 0) {
       setPromoCodes(remotePromos);
-      try {
-        localStorage.setItem('brindavanam_promos', JSON.stringify(remotePromos));
-      } catch (e) {
-        console.warn('localStorage promo cache error:', e);
-      }
+      localStorage.setItem('brindavanam_promos', JSON.stringify(remotePromos));
     }
   };
 
@@ -86,186 +121,189 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     const remoteProducts = await fetchProductsFromGAS();
     if (remoteProducts && remoteProducts.length > 0) {
       setProducts(remoteProducts);
-      try {
-        localStorage.setItem('brindavanam_products', JSON.stringify(remoteProducts));
-      } catch (e) {
-        console.warn('localStorage products cache error:', e);
-      }
+      localStorage.setItem('brindavanam_products', JSON.stringify(remoteProducts));
     }
   };
 
-  // Load initial saved state on client mount
-  useEffect(() => {
-    const loadInitialData = async () => {
-      try {
-        const savedProducts = localStorage.getItem('brindavanam_products');
-        if (savedProducts) {
-          const parsed = JSON.parse(savedProducts);
-          if (Array.isArray(parsed) && parsed.length > 0) setProducts(parsed);
-        }
-
-        const savedCart = localStorage.getItem('brindavanam_cart');
-        if (savedCart) {
-          const parsed = JSON.parse(savedCart);
-          if (Array.isArray(parsed) && parsed.length > 0) setCartItems(parsed);
-        }
-
-        const savedOrders = localStorage.getItem('brindavanam_orders');
-        if (savedOrders) {
-          const parsedOrders = JSON.parse(savedOrders);
-          if (Array.isArray(parsedOrders)) setUserOrders(parsedOrders);
-        }
-
-        const savedPromos = localStorage.getItem('brindavanam_promos');
-        if (savedPromos) {
-          const parsedPromos = JSON.parse(savedPromos);
-          if (Array.isArray(parsedPromos) && parsedPromos.length > 0) setPromoCodes(parsedPromos);
-        }
-
-        await refreshPromosFromGAS();
-        await refreshProductsFromGAS();
-
-      } catch (e) {
-        console.warn('Store Context load error:', e);
-      } finally {
-        setIsLoaded(true);
-      }
-    };
-
-    loadInitialData();
-  }, []);
-
-  // Sync cart changes to localStorage
-  useEffect(() => {
-    if (!isLoaded) return;
-    try {
-      localStorage.setItem('brindavanam_cart', JSON.stringify(cartItems));
-    } catch (e) {
-      console.warn('Store Context localStorage save error:', e);
+  const refreshAnnouncementsFromGAS = async () => {
+    const remoteAnnouncements = await fetchAnnouncementsFromGAS();
+    if (remoteAnnouncements && remoteAnnouncements.length > 0) {
+      setAnnouncements(remoteAnnouncements);
+      localStorage.setItem('brindavanam_announcements', JSON.stringify(remoteAnnouncements));
     }
-  }, [cartItems, isLoaded]);
+  };
 
+  // Cart operations
   const addToCart = (product: Product, variant: ProductVariant, quantity: number) => {
     setCartItems((prev) => {
       const existingIdx = prev.findIndex(
         (item) => item.product.id === product.id && item.selectedVariant.id === variant.id
       );
+
+      let updated: CartItem[];
       if (existingIdx > -1) {
-        const updated = [...prev];
-        updated[existingIdx] = {
-          ...updated[existingIdx],
-          quantity: updated[existingIdx].quantity + quantity,
-        };
-        return updated;
+        updated = [...prev];
+        updated[existingIdx].quantity += quantity;
+      } else {
+        updated = [...prev, { product, selectedVariant: variant, quantity }];
       }
-      return [...prev, { product, selectedVariant: variant, quantity }];
+
+      localStorage.setItem('brindavanam_cart', JSON.stringify(updated));
+      return updated;
     });
   };
 
   const updateQuantity = (index: number, newQty: number) => {
-    if (newQty <= 0) {
-      removeCartItem(index);
-      return;
-    }
     setCartItems((prev) => {
-      const updated = [...prev];
-      updated[index] = { ...updated[index], quantity: newQty };
+      let updated: CartItem[];
+      if (newQty <= 0) {
+        updated = prev.filter((_, i) => i !== index);
+      } else {
+        updated = [...prev];
+        updated[index].quantity = newQty;
+      }
+      localStorage.setItem('brindavanam_cart', JSON.stringify(updated));
       return updated;
     });
   };
 
   const removeCartItem = (index: number) => {
-    setCartItems((prev) => prev.filter((_, i) => i !== index));
+    setCartItems((prev) => {
+      const updated = prev.filter((_, i) => i !== index);
+      localStorage.setItem('brindavanam_cart', JSON.stringify(updated));
+      return updated;
+    });
   };
 
   const applyPromoCode = async (code: string) => {
-    const rawSubtotal = cartItems.reduce((sum, item) => sum + item.selectedVariant.price * item.quantity, 0);
     const cleanCode = code.trim().toUpperCase();
-    
-    const remotePromos = await fetchPromosFromGAS();
-    const activePromosList = (remotePromos && remotePromos.length > 0) ? remotePromos : promoCodes;
-    
-    if (remotePromos && remotePromos.length > 0) setPromoCodes(remotePromos);
+    const found = promoCodes.find((p) => p.code.toUpperCase() === cleanCode && p.active);
 
-    const matched = activePromosList.find((p) => p.code.toUpperCase() === cleanCode);
-
-    if (!matched) {
-      return { success: false, discountAmount: 0, message: 'Invalid promo coupon code.' };
+    if (!found) {
+      return { success: false, discountAmount: 0, message: 'Invalid or expired promo code.' };
     }
 
-    if (!matched.active) {
-      return { success: false, discountAmount: 0, message: 'This coupon code has expired or is disabled.' };
-    }
+    const subtotal = cartItems.reduce(
+      (sum, item) => sum + item.selectedVariant.price * item.quantity,
+      0
+    );
 
-    const discount = Math.round((rawSubtotal * matched.discountPercent) / 100);
-    setAppliedDiscount(discount);
-    setAppliedPromoCode(matched.code);
+    const discountAmount = Math.round((subtotal * found.discountPercent) / 100);
+    setAppliedDiscount(discountAmount);
+    setAppliedPromoCode(found.code);
+
     return {
       success: true,
-      discountAmount: discount,
-      message: `${matched.discountPercent}% discount applied! (${matched.description})`,
+      discountAmount,
+      message: `Coupon '${found.code}' applied successfully! Saved ₹${discountAmount}.`,
     };
   };
 
   const addPromoCode = (code: string, discountPercent: number, description: string) => {
-    const clean = code.trim().toUpperCase().replace(/\s+/g, '');
-    if (!clean) return;
-    const newItem: PromoCodeItem = {
-      code: clean,
+    const newPromo: PromoCodeItem = {
+      code: code.trim().toUpperCase(),
       discountPercent,
       active: true,
-      description: description || `${discountPercent}% Storewide Coupon`,
+      description,
     };
-
-    const updated = [...promoCodes.filter((p) => p.code !== clean), newItem];
-    setPromoCodes(updated);
-    try { localStorage.setItem('brindavanam_promos', JSON.stringify(updated)); } catch {}
-    syncPromosToGAS(updated);
+    setPromoCodes((prev) => {
+      const updated = [...prev.filter((p) => p.code !== newPromo.code), newPromo];
+      localStorage.setItem('brindavanam_promos', JSON.stringify(updated));
+      syncPromosToGAS(updated);
+      return updated;
+    });
   };
 
   const togglePromoCode = (code: string) => {
-    const updated = promoCodes.map((p) => (p.code === code ? { ...p, active: !p.active } : p));
-    setPromoCodes(updated);
-    try { localStorage.setItem('brindavanam_promos', JSON.stringify(updated)); } catch {}
-    syncPromosToGAS(updated);
+    setPromoCodes((prev) => {
+      const updated = prev.map((p) => (p.code === code ? { ...p, active: !p.active } : p));
+      localStorage.setItem('brindavanam_promos', JSON.stringify(updated));
+      syncPromosToGAS(updated);
+      return updated;
+    });
   };
 
   const deletePromoCode = (code: string) => {
-    const updated = promoCodes.filter((p) => p.code !== code);
-    setPromoCodes(updated);
-    try { localStorage.setItem('brindavanam_promos', JSON.stringify(updated)); } catch {}
-    syncPromosToGAS(updated);
+    setPromoCodes((prev) => {
+      const updated = prev.filter((p) => p.code !== code);
+      localStorage.setItem('brindavanam_promos', JSON.stringify(updated));
+      syncPromosToGAS(updated);
+      return updated;
+    });
   };
 
-  // Add Product to Storefront Catalog
-  const addProduct = (newProd: Product) => {
-    const updated = [...products.filter((p) => p.id !== newProd.id), newProd];
-    setProducts(updated);
-    try { localStorage.setItem('brindavanam_products', JSON.stringify(updated)); } catch {}
-    syncProductsToGAS(updated);
+  const addProduct = (product: Product) => {
+    setProducts((prev) => {
+      const updated = [product, ...prev];
+      localStorage.setItem('brindavanam_products', JSON.stringify(updated));
+      syncProductsToGAS(updated);
+      return updated;
+    });
   };
 
-  // Delete Product from Storefront Catalog
+  const updateProduct = (updatedProduct: Product) => {
+    setProducts((prev) => {
+      const updated = prev.map((p) => (p.id === updatedProduct.id ? updatedProduct : p));
+      localStorage.setItem('brindavanam_products', JSON.stringify(updated));
+      syncProductsToGAS(updated);
+      return updated;
+    });
+  };
+
   const deleteProduct = (productId: string) => {
-    const updated = products.filter((p) => p.id !== productId);
-    setProducts(updated);
-    try { localStorage.setItem('brindavanam_products', JSON.stringify(updated)); } catch {}
-    syncProductsToGAS(updated);
+    setProducts((prev) => {
+      const updated = prev.filter((p) => p.id !== productId);
+      localStorage.setItem('brindavanam_products', JSON.stringify(updated));
+      syncProductsToGAS(updated);
+      return updated;
+    });
   };
 
-  // Update Order Details (Notes, Tracking URL, ETA, Status)
+  const addAnnouncement = (text: string) => {
+    if (!text.trim()) return;
+    setAnnouncements((prev) => {
+      const updated = [text.trim(), ...prev];
+      localStorage.setItem('brindavanam_announcements', JSON.stringify(updated));
+      saveAnnouncementsToGAS(updated);
+      return updated;
+    });
+  };
+
+  const deleteAnnouncement = (index: number) => {
+    setAnnouncements((prev) => {
+      const updated = prev.filter((_, i) => i !== index);
+      const final = updated.length > 0 ? updated : DEFAULT_OFFER_ANNOUNCEMENTS;
+      localStorage.setItem('brindavanam_announcements', JSON.stringify(final));
+      saveAnnouncementsToGAS(final);
+      return final;
+    });
+  };
+
+  const updateAnnouncements = (list: string[]) => {
+    setAnnouncements(list);
+    localStorage.setItem('brindavanam_announcements', JSON.stringify(list));
+    saveAnnouncementsToGAS(list);
+  };
+
+  const resetAnnouncements = () => {
+    setAnnouncements(DEFAULT_OFFER_ANNOUNCEMENTS);
+    localStorage.setItem('brindavanam_announcements', JSON.stringify(DEFAULT_OFFER_ANNOUNCEMENTS));
+    resetAnnouncementsInGAS();
+  };
+
   const updateOrderDetails = async (orderId: string, details: Partial<Order>) => {
-    setUserOrders((prev) =>
-      prev.map((o) => (o.id === orderId ? { ...o, ...details } : o))
-    );
-    await updateOrderDetailsInGAS(orderId, details);
+    setUserOrders((prev) => {
+      const updated = prev.map((o) => (o.id === orderId ? { ...o, ...details } : o));
+      localStorage.setItem('brindavanam_orders', JSON.stringify(updated));
+      return updated;
+    });
+    await updateOrderDetailsInGAS(orderId, details as any);
   };
 
-  // Delete Order
   const deleteOrder = async (orderId: string) => {
     setUserOrders((prev) => {
       const updated = prev.filter((o) => o.id !== orderId);
-      try { localStorage.setItem('brindavanam_orders', JSON.stringify(updated)); } catch {}
+      localStorage.setItem('brindavanam_orders', JSON.stringify(updated));
       return updated;
     });
     await deleteOrderFromGAS(orderId);
@@ -277,13 +315,14 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setIsCheckoutOpen(true);
   };
 
-  const onOrderSuccess = (newOrder: Order) => {
+  const onOrderSuccess = (order: Order) => {
     setUserOrders((prev) => {
-      const updated = [newOrder, ...prev];
-      try { localStorage.setItem('brindavanam_orders', JSON.stringify(updated)); } catch {}
+      const updated = [order, ...prev];
+      localStorage.setItem('brindavanam_orders', JSON.stringify(updated));
       return updated;
     });
     setCartItems([]);
+    localStorage.removeItem('brindavanam_cart');
     setAppliedDiscount(0);
     setAppliedPromoCode('');
   };
@@ -295,6 +334,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         cartItems,
         userOrders,
         promoCodes,
+        announcements,
         appliedDiscount,
         appliedPromoCode,
         isCheckoutOpen,
@@ -313,13 +353,19 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         togglePromoCode,
         deletePromoCode,
         addProduct,
+        updateProduct,
         deleteProduct,
+        addAnnouncement,
+        deleteAnnouncement,
+        updateAnnouncements,
+        resetAnnouncements,
         updateOrderDetails,
         deleteOrder,
         triggerCheckout,
         onOrderSuccess,
         refreshPromosFromGAS,
         refreshProductsFromGAS,
+        refreshAnnouncementsFromGAS,
       }}
     >
       {children}
@@ -329,6 +375,8 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
 export const useStore = () => {
   const context = useContext(StoreContext);
-  if (!context) throw new Error('useStore must be used within a StoreProvider');
+  if (!context) {
+    throw new Error('useStore must be used within a StoreProvider');
+  }
   return context;
 };

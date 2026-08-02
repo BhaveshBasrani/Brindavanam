@@ -5,7 +5,7 @@ import {
   X, ShieldAlert, RefreshCw, Package, Search, Lock, 
   DollarSign, Users, BarChart3, Database, Printer, Clock,
   Tag, Plus, Trash2, ToggleLeft, ToggleRight, Phone, Mail, Edit3, Save,
-  ShoppingCart, Leaf, Star, MessageSquare
+  ShoppingCart, Leaf, Star, MessageSquare, Megaphone, RotateCcw
 } from 'lucide-react';
 import { Order, Product, ShippingAddress } from '@/types/store';
 import { useStore } from '@/context/StoreContext';
@@ -23,8 +23,9 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
   localOrders,
 }) => {
   const { 
-    products, addProduct, deleteProduct,
+    products, addProduct, updateProduct, deleteProduct,
     promoCodes, addPromoCode, togglePromoCode, deletePromoCode,
+    announcements, addAnnouncement, deleteAnnouncement, resetAnnouncements,
     updateOrderDetails, deleteOrder 
   } = useStore();
 
@@ -33,7 +34,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
   const [authError, setAuthError] = useState('');
   const [recaptchaToken, setRecaptchaToken] = useState<string | null>(null);
 
-  const [activeTab, setActiveTab] = useState<'orders' | 'products' | 'promos' | 'reviews' | 'crm' | 'analytics' | 'gas'>('orders');
+  const [activeTab, setActiveTab] = useState<'orders' | 'products' | 'promos' | 'offers' | 'reviews' | 'crm' | 'analytics' | 'gas'>('orders');
   const [gasOrders, setGasOrders] = useState<Order[]>([]);
   const [gasReviews, setGasReviews] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
@@ -51,10 +52,23 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
   const [editStatus, setEditStatus] = useState<Order['status']>('Processing');
   const [isSavingDetails, setIsSavingDetails] = useState(false);
 
+  // Product Editor Modal State
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [editProdName, setEditProdName] = useState('');
+  const [editProdSubtitle, setEditProdSubtitle] = useState('');
+  const [editProdCategory, setEditProdCategory] = useState<'ghee' | 'oil' | 'paneer' | 'milk' | 'eggs'>('ghee');
+  const [editProdPrice, setEditProdPrice] = useState<number>(0);
+  const [editProdWeight, setEditProdWeight] = useState('');
+  const [editProdImage, setEditProdImage] = useState('');
+  const [editProdBadge, setEditProdBadge] = useState('');
+
   // New Promo Code Form Inputs
   const [newPromoCode, setNewPromoCode] = useState('');
   const [newPromoDiscount, setNewPromoDiscount] = useState<number>(15);
   const [newPromoDesc, setNewPromoDesc] = useState('');
+
+  // New Offer Ticker Input
+  const [newOfferText, setNewOfferText] = useState('');
 
   // New Product Form Inputs
   const [newProdName, setNewProdName] = useState('');
@@ -131,6 +145,43 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
     } else {
       setAuthError('Invalid Admin Security Passcode. Default is: admin123');
     }
+  };
+
+  // Open Product Editor
+  const openProductEditor = (p: Product) => {
+    setEditingProduct(p);
+    setEditProdName(p.name);
+    setEditProdSubtitle(p.subtitle || '');
+    setEditProdCategory(p.category);
+    setEditProdPrice(p.variants[0]?.price || 0);
+    setEditProdWeight(p.variants[0]?.weight || '');
+    setEditProdImage(p.images[0] || '');
+    setEditProdBadge(p.badge || '100% Certified Organic');
+  };
+
+  const handleSaveEditedProduct = () => {
+    if (!editingProduct) return;
+
+    const updatedProd: Product = {
+      ...editingProduct,
+      name: editProdName,
+      subtitle: editProdSubtitle,
+      category: editProdCategory,
+      badge: editProdBadge,
+      images: [editProdImage || editingProduct.images[0]],
+      variants: [
+        {
+          ...editingProduct.variants[0],
+          price: editProdPrice,
+          weight: editProdWeight,
+          originalPrice: Math.round(editProdPrice * 1.15),
+        },
+        ...editingProduct.variants.slice(1),
+      ],
+    };
+
+    updateProduct(updatedProd);
+    setEditingProduct(null);
   };
 
   // High-Resolution Standalone Print Window Trigger
@@ -357,6 +408,13 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
     setNewPromoDesc('');
   };
 
+  const handleAddOfferTicker = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newOfferText.trim()) return;
+    addAnnouncement(newOfferText);
+    setNewOfferText('');
+  };
+
   const handleCreateProduct = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newProdName.trim()) return;
@@ -522,6 +580,16 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                 </button>
 
                 <button
+                  onClick={() => setActiveTab('offers')}
+                  className={`px-3.5 py-2 rounded-xl transition-all flex items-center space-x-1.5 shrink-0 cursor-pointer ${
+                    activeTab === 'offers' ? 'bg-[#3A5303] text-white shadow-md font-bold' : 'text-stone-600 hover:text-stone-900'
+                  }`}
+                >
+                  <Megaphone className="w-3.5 h-3.5 text-amber-400" />
+                  <span>Offer Ticker ({announcements.length})</span>
+                </button>
+
+                <button
                   onClick={() => setActiveTab('products')}
                   className={`px-3.5 py-2 rounded-xl transition-all flex items-center space-x-1.5 shrink-0 cursor-pointer ${
                     activeTab === 'products' ? 'bg-[#3A5303] text-white shadow-md font-bold' : 'text-stone-600 hover:text-stone-900'
@@ -610,9 +678,9 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
               </div>
 
               <div className="bg-[#F7F6F2] p-4 rounded-2xl border border-stone-200 space-y-1">
-                <span className="text-[10px] font-bold uppercase tracking-widest text-stone-500">Patron Reviews</span>
-                <p className="text-2xl font-serif text-amber-500 font-bold">{gasReviews.length}</p>
-                <p className="text-[10px] text-stone-400">Saved in Apps Script</p>
+                <span className="text-[10px] font-bold uppercase tracking-widest text-stone-500">Offer Messages</span>
+                <p className="text-2xl font-serif text-[#3A5303] font-bold">{announcements.length}</p>
+                <p className="text-[10px] text-stone-400">Live moving ticker text</p>
               </div>
 
               <div className="bg-[#F7F6F2] p-4 rounded-2xl border border-stone-200 space-y-1">
@@ -738,7 +806,69 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
               </div>
             )}
 
-            {/* TAB 2: Dynamic Product Catalog Manager */}
+            {/* TAB 2: Offer Ticker Announcement Manager */}
+            {activeTab === 'offers' && (
+              <div className="space-y-4">
+                <form onSubmit={handleAddOfferTicker} className="bg-[#F7F6F2] p-4 rounded-2xl border border-stone-200 space-y-3">
+                  <div className="flex justify-between items-center">
+                    <h3 className="text-xs font-serif font-bold text-stone-900 flex items-center space-x-1.5">
+                      <Megaphone className="w-4 h-4 text-[#3A5303]" />
+                      <span>Add Live Top Ticker Announcement / Offer</span>
+                    </h3>
+
+                    <button
+                      type="button"
+                      onClick={resetAnnouncements}
+                      className="px-3 py-1.5 bg-amber-50 text-amber-900 border border-amber-200 hover:bg-amber-100 rounded-xl font-bold text-[10px] flex items-center space-x-1 cursor-pointer transition-colors"
+                      title="Reset back to cool default offers"
+                    >
+                      <RotateCcw className="w-3 h-3 text-amber-700" />
+                      <span>Reset To Default Cool Offers</span>
+                    </button>
+                  </div>
+
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      required
+                      value={newOfferText}
+                      onChange={(e) => setNewOfferText(e.target.value)}
+                      className="flex-1 px-3 py-2 text-xs border border-stone-300 rounded-xl bg-white focus:outline-none focus:border-[#3A5303]"
+                      placeholder="e.g. 🌸 DIWALI SPECIAL: 15% OFF ON ALL WOOD-PRESSED OILS"
+                    />
+
+                    <button
+                      type="submit"
+                      className="px-5 py-2 bg-[#3A5303] text-white font-bold text-xs uppercase rounded-xl hover:bg-[#2b3e02] shadow-sm flex items-center space-x-1 shrink-0 cursor-pointer"
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                      <span>Add Offer</span>
+                    </button>
+                  </div>
+                </form>
+
+                {/* List of active announcement ticker items */}
+                <div className="space-y-2">
+                  {announcements.map((text, idx) => (
+                    <div key={idx} className="bg-stone-50 p-3.5 rounded-2xl border border-stone-200 flex items-center justify-between text-xs space-x-3">
+                      <div className="flex items-center space-x-2.5 min-w-0">
+                        <span className="w-2 h-2 rounded-full bg-[#94C000] shrink-0" />
+                        <span className="font-semibold text-stone-900 truncate">{text}</span>
+                      </div>
+                      <button
+                        onClick={() => deleteAnnouncement(idx)}
+                        className="p-1.5 text-stone-400 hover:text-red-600 rounded-lg hover:bg-red-50 shrink-0 cursor-pointer"
+                        title="Delete Offer Announcement"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* TAB 3: Dynamic Product Catalog Manager (With Edit Ability) */}
             {activeTab === 'products' && (
               <div className="space-y-5">
                 <form onSubmit={handleCreateProduct} className="bg-[#F7F6F2] p-4 sm:p-5 rounded-2xl border border-stone-200 space-y-3">
@@ -832,7 +962,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                   </button>
                 </form>
 
-                {/* Catalog Grid */}
+                {/* Catalog Grid With Edit Button */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                   {products.map((p) => (
                     <div key={p.id} className="bg-stone-50 p-4 rounded-2xl border border-stone-200 flex items-center justify-between text-xs space-x-3">
@@ -842,20 +972,30 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                         <p className="text-[10px] text-stone-500">{p.variants[0]?.weight}</p>
                         <p className="font-bold text-[#3A5303] mt-0.5">₹{p.variants[0]?.price}</p>
                       </div>
-                      <button
-                        onClick={() => deleteProduct(p.id)}
-                        className="p-2 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg shrink-0 cursor-pointer"
-                        title="Delete Product"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+
+                      <div className="flex items-center space-x-1 shrink-0">
+                        <button
+                          onClick={() => openProductEditor(p)}
+                          className="p-1.5 text-stone-600 hover:text-[#3A5303] hover:bg-stone-200 rounded-lg cursor-pointer"
+                          title="Edit Product Details"
+                        >
+                          <Edit3 className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => deleteProduct(p.id)}
+                          className="p-1.5 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg cursor-pointer"
+                          title="Delete Product"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
                     </div>
                   ))}
                 </div>
               </div>
             )}
 
-            {/* TAB 3: Reviews Manager */}
+            {/* TAB 4: Reviews Manager */}
             {activeTab === 'reviews' && (
               <div className="space-y-5">
                 <form onSubmit={handleAddAdminReview} className="bg-[#F7F6F2] p-4 sm:p-5 rounded-2xl border border-stone-200 space-y-3">
@@ -971,7 +1111,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
               </div>
             )}
 
-            {/* TAB 4: Promo Codes Manager */}
+            {/* TAB 5: Promo Codes Manager */}
             {activeTab === 'promos' && (
               <div className="space-y-4">
                 <form onSubmit={handleCreatePromoCode} className="bg-[#F7F6F2] p-4 rounded-2xl border border-stone-200 space-y-3">
@@ -1054,7 +1194,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
               </div>
             )}
 
-            {/* TAB 5: Customer CRM */}
+            {/* TAB 6: Customer CRM */}
             {activeTab === 'crm' && (
               <div className="space-y-3">
                 {customerList.map((c, i) => (
@@ -1072,7 +1212,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
               </div>
             )}
 
-            {/* TAB 6: Sales Analytics */}
+            {/* TAB 7: Sales Analytics */}
             {activeTab === 'analytics' && (
               <div className="bg-[#F7F6F2] p-5 rounded-2xl border border-stone-200 space-y-3 text-xs">
                 <h3 className="text-sm font-serif font-bold text-stone-900">Store Financial Overview</h3>
@@ -1081,7 +1221,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
               </div>
             )}
 
-            {/* TAB 7: Sync Monitor */}
+            {/* TAB 8: Sync Monitor */}
             {activeTab === 'gas' && (
               <div className="bg-[#F7F6F2] p-4 rounded-2xl border border-stone-200 space-y-2 text-xs">
                 <p className="font-bold text-stone-900">Apps Script Live Endpoint URL:</p>
@@ -1094,7 +1234,113 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
           </div>
         )}
 
-        {/* MODAL A: Detailed Order Inspector Modal */}
+        {/* MODAL A: Product Editor Modal */}
+        {editingProduct && (
+          <div className="fixed inset-0 z-60 bg-black/75 backdrop-blur-xs flex items-center justify-center p-4">
+            <div className="bg-white max-w-lg w-full rounded-3xl p-6 border border-stone-200 space-y-4 shadow-2xl">
+              
+              <div className="flex justify-between items-center border-b border-stone-200 pb-3">
+                <h3 className="font-serif font-bold text-stone-900 text-lg flex items-center space-x-2">
+                  <Edit3 className="w-5 h-5 text-[#3A5303]" />
+                  <span>Edit Product: {editingProduct.name}</span>
+                </h3>
+                <button onClick={() => setEditingProduct(null)} className="text-stone-400 hover:text-stone-700 cursor-pointer">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="space-y-3 text-xs">
+                <div>
+                  <label className="block text-[10px] font-bold text-stone-700 uppercase mb-1">Product Title</label>
+                  <input
+                    type="text"
+                    value={editProdName}
+                    onChange={(e) => setEditProdName(e.target.value)}
+                    className="w-full px-3 py-2 border border-stone-300 rounded-xl bg-stone-50 focus:bg-white focus:outline-none focus:border-[#3A5303]"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-[10px] font-bold text-stone-700 uppercase mb-1">Price (INR ₹)</label>
+                    <input
+                      type="number"
+                      value={editProdPrice}
+                      onChange={(e) => setEditProdPrice(parseInt(e.target.value) || 0)}
+                      className="w-full px-3 py-2 border border-stone-300 rounded-xl bg-stone-50 focus:bg-white focus:outline-none focus:border-[#3A5303]"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[10px] font-bold text-stone-700 uppercase mb-1">Weight / Variant</label>
+                    <input
+                      type="text"
+                      value={editProdWeight}
+                      onChange={(e) => setEditProdWeight(e.target.value)}
+                      className="w-full px-3 py-2 border border-stone-300 rounded-xl bg-stone-50 focus:bg-white focus:outline-none focus:border-[#3A5303]"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-[10px] font-bold text-stone-700 uppercase mb-1">Image URL</label>
+                  <input
+                    type="url"
+                    value={editProdImage}
+                    onChange={(e) => setEditProdImage(e.target.value)}
+                    className="w-full px-3 py-2 border border-stone-300 rounded-xl bg-stone-50 focus:bg-white focus:outline-none focus:border-[#3A5303]"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-[10px] font-bold text-stone-700 uppercase mb-1">Category</label>
+                    <select
+                      value={editProdCategory}
+                      onChange={(e) => setEditProdCategory(e.target.value as any)}
+                      className="w-full px-3 py-2 border border-stone-300 rounded-xl bg-stone-50 focus:outline-none focus:border-[#3A5303]"
+                    >
+                      <option value="milk">Pure Desi Cow Milk</option>
+                      <option value="ghee">A2 Bilona Ghee</option>
+                      <option value="oil">Wood-Pressed Oil</option>
+                      <option value="paneer">Fresh Paneer</option>
+                      <option value="eggs">Farm Fresh Eggs</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-[10px] font-bold text-stone-700 uppercase mb-1">Badge</label>
+                    <input
+                      type="text"
+                      value={editProdBadge}
+                      onChange={(e) => setEditProdBadge(e.target.value)}
+                      className="w-full px-3 py-2 border border-stone-300 rounded-xl bg-stone-50 focus:bg-white focus:outline-none focus:border-[#3A5303]"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex justify-end space-x-2 pt-2 border-t border-stone-200">
+                <button
+                  onClick={() => setEditingProduct(null)}
+                  className="px-4 py-2 border border-stone-300 rounded-xl text-stone-700 text-xs font-bold cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleSaveEditedProduct}
+                  className="px-5 py-2 bg-[#3A5303] text-white rounded-xl text-xs font-bold uppercase hover:bg-[#2b3e02] flex items-center space-x-1 cursor-pointer"
+                >
+                  <Save className="w-3.5 h-3.5" />
+                  <span>Save Product Changes</span>
+                </button>
+              </div>
+
+            </div>
+          </div>
+        )}
+
+        {/* MODAL B: Detailed Order Inspector Modal */}
         {inspectingOrder && (
           <div className="fixed inset-0 z-60 bg-black/75 backdrop-blur-xs flex items-center justify-center p-4">
             <div className="bg-white max-w-2xl w-full rounded-3xl p-6 border border-stone-200 space-y-5 shadow-2xl max-h-[90vh] overflow-y-auto">
