@@ -191,7 +191,7 @@ export const UserOrdersModal: React.FC<UserOrdersModalProps> = ({
                         <span className="font-bold text-stone-800 flex items-center">
                           <CreditCard className="w-3 h-3 mr-1 text-[#3A5303]" /> Payment Details:
                         </span>
-                        <p className="font-semibold text-stone-900">Method: {ord.paymentMethod || 'Razorpay'}</p>
+                        <p className="font-semibold text-stone-900">Method: {ord.paymentMethod || 'Online Payment'}</p>
                         {ord.paymentId && <p className="font-mono text-[10px] text-stone-500">Ref: {ord.paymentId}</p>}
                         <p className="font-bold text-sm text-[#3A5303] pt-0.5">Total Paid: ₹{ord.total}</p>
                       </div>

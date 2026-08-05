@@ -476,7 +476,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
             {isTestBypass && (
               <div className="bg-emerald-50 border border-emerald-300 p-3 rounded-2xl flex items-center space-x-2 text-emerald-900 text-xs font-bold">
                 <Zap className="w-4 h-4 text-emerald-600 shrink-0" />
-                <span>Master Developer Code (TEST@RENDERVOID) Active: Razorpay Bypassed (₹0 Free Test Order)!</span>
+                <span>Master Developer Test Code (TEST@RENDERVOID) Active: ₹0 Free Test Order!</span>
               </div>
             )}
 
@@ -554,7 +554,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                 className="px-6 py-3 bg-[#3A5303] hover:bg-[#2b3e02] text-white font-bold text-xs uppercase tracking-wider rounded-xl shadow-lg transition-all cursor-pointer flex items-center space-x-2"
               >
                 <CreditCard className="w-4 h-4 text-[#94C000]" />
-                <span>{isTestBypass || totalAmount === 0 ? 'Place Free Test Order' : `Pay ₹${totalAmount} via Razorpay`}</span>
+                <span>{isTestBypass || totalAmount === 0 ? 'Place Free Test Order' : `Pay ₹${totalAmount} via Secure Payment`}</span>
               </button>
             </div>
           </div>

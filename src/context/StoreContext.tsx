@@ -56,6 +56,7 @@ interface StoreContextType {
   refreshPromosFromGAS: () => Promise<void>;
   refreshProductsFromGAS: () => Promise<void>;
   refreshAnnouncementsFromGAS: () => Promise<void>;
+  addProductReview: (productId: string, newReview: { author: string; rating: number; comment: string; date?: string; verifiedPurchase?: boolean }) => void;
 }
 
 const DEFAULT_PROMOS: PromoCodeItem[] = [
@@ -359,6 +360,41 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setAppliedPromoCode('');
   };
 
+  const addProductReview = (productId: string, newReview: { author: string; rating: number; comment: string; date?: string; verifiedPurchase?: boolean }) => {
+    setProducts((prev) => {
+      const updated = prev.map((p) => {
+        if (p.id === productId) {
+          const revList = [
+            {
+              id: `rev-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+              author: newReview.author || 'Valued Patron',
+              rating: newReview.rating || 5,
+              date: newReview.date || new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
+              comment: newReview.comment,
+              verifiedPurchase: newReview.verifiedPurchase ?? true,
+            },
+            ...(p.reviews || []),
+          ];
+
+          const totalRatings = revList.reduce((acc, r) => acc + r.rating, 0);
+          const avgRating = Math.round((totalRatings / revList.length) * 10) / 10;
+
+          return {
+            ...p,
+            reviews: revList,
+            reviewsCount: revList.length,
+            rating: avgRating,
+          };
+        }
+        return p;
+      });
+
+      localStorage.setItem('brindavanam_products', JSON.stringify(updated));
+      syncProductsToGAS(updated);
+      return updated;
+    });
+  };
+
   return (
     <StoreContext.Provider
       value={{
@@ -399,6 +435,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         refreshPromosFromGAS,
         refreshProductsFromGAS,
         refreshAnnouncementsFromGAS,
+        addProductReview,
       }}
     >
       {children}

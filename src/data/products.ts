@@ -16,7 +16,7 @@ export const PRODUCTS: Product[] = [
     extractionMethod: 'Freshly milked from native Desi cows fed natural pasture feed',
     badge: '100% Pure A2 Milk',
     rating: 5.0,
-    reviewsCount: 215,
+    reviewsCount: 0,
     images: [
       'https://i.pinimg.com/736x/0c/c1/32/0cc1327f65c7e4a0975a15ad399750ec.jpg'
     ],
@@ -31,32 +31,7 @@ export const PRODUCTS: Product[] = [
       { label: 'Fat', value: '4.1g' },
       { label: 'Added Water', value: '0.0%' }
     ],
-    reviews: [
-      {
-        id: 'rev-milk-1',
-        author: 'Srinivas Rao',
-        rating: 5,
-        date: '28 Jan 2026',
-        comment: 'Reminds me of my childhood farm milk. Thick cream layer on top after boiling. Pure and unadulterated!',
-        verifiedPurchase: true
-      },
-      {
-        id: 'rev-milk-2',
-        author: 'Kavitha Swaminathan',
-        rating: 5,
-        date: '20 Jan 2026',
-        comment: 'Delivered in glass bottles every morning in Jubilee Hills. My kids digest this A2 milk effortlessly!',
-        verifiedPurchase: true
-      },
-      {
-        id: 'rev-milk-3',
-        author: 'Harish Varma',
-        rating: 5,
-        date: '12 Jan 2026',
-        comment: 'The curd made from this milk is super thick and naturally sweet. Absolutely organic.',
-        verifiedPurchase: true
-      }
-    ]
+    reviews: []
   },
   {
     id: 'a2-bilona-ghee',
@@ -72,8 +47,8 @@ export const PRODUCTS: Product[] = [
     ],
     extractionMethod: 'Traditional 5-step Vedic Bilona method (Curd-churned in clay pots over slow wood fire)',
     badge: '100% A2 Certified Bilona',
-    rating: 4.9,
-    reviewsCount: 148,
+    rating: 5.0,
+    reviewsCount: 0,
     images: [
       'https://images.pexels.com/photos/20689447/pexels-photo-20689447.jpeg?_gl=1*qqa97x*_ga*MTI2MzM2MDI2Ni4xNzg1MzQ0OTYz*_ga_8JE65Q40S6*czE3ODUzNDQ5NjIkbzEkZzEkdDE3ODUzNDUwMjEkajEkbDAkaDA.'
     ],
@@ -87,32 +62,7 @@ export const PRODUCTS: Product[] = [
       { label: 'A2 Beta-Casein', value: '100% Certified' },
       { label: 'Trans Fat', value: '0.0g' }
     ],
-    reviews: [
-      {
-        id: 'rev-1',
-        author: 'Dr. Ramesh Kulkarni',
-        rating: 5,
-        date: '14 Oct 2025',
-        comment: 'Reminds me of my grandmother village farm. The aroma, granular Danedar texture, and deep golden color are unmatched.',
-        verifiedPurchase: true
-      },
-      {
-        id: 'rev-ghee-2',
-        author: 'Anuradha Sharma',
-        rating: 5,
-        date: '05 Jan 2026',
-        comment: 'Best A2 Bilona ghee in India! You can literally smell the wood-fire earthen pot churned butter. Highly recommended!',
-        verifiedPurchase: true
-      },
-      {
-        id: 'rev-ghee-3',
-        author: 'Prashanth Joshi',
-        rating: 5,
-        date: '18 Dec 2025',
-        comment: 'Generations of our family have used bilona ghee. Brindavanam delivers pure authentic Vedic quality.',
-        verifiedPurchase: true
-      }
-    ]
+    reviews: []
   },
   {
     id: 'wood-pressed-groundnut-oil',
@@ -128,8 +78,8 @@ export const PRODUCTS: Product[] = [
     ],
     extractionMethod: 'Slow Marachekku Wood Pressing below 38°C (Cold Pressed Kachi Ghani)',
     badge: 'Traditional Wood Pressed',
-    rating: 4.8,
-    reviewsCount: 96,
+    rating: 5.0,
+    reviewsCount: 0,
     images: [
       'https://images.pexels.com/photos/209345/pexels-photo-209345.jpeg?_gl=1*lg6nef*_ga*MTI2MzM2MDI2Ni4xNzg1MzQ0OTYz*_ga_8JE65Q40S6*czE3ODUzNDQ5NjIkbzEkZzEkdDE3ODUzNDQ5OTQkajI4JGwwJGgw'
     ],
@@ -143,16 +93,7 @@ export const PRODUCTS: Product[] = [
       { label: 'Vitamin E', value: '15.7mg' },
       { label: 'Trans Fat', value: '0.0g' }
     ],
-    reviews: [
-      {
-        id: 'rev-3',
-        author: 'Sunil Deshmukh',
-        rating: 5,
-        date: '02 Jan 2026',
-        comment: 'The authentic peanut aroma while making tadka is incredible. Natural yellow color without chemical refining.',
-        verifiedPurchase: true
-      }
-    ]
+    reviews: []
   },
   {
     id: 'wood-pressed-sesame-oil',
@@ -168,8 +109,8 @@ export const PRODUCTS: Product[] = [
     ],
     extractionMethod: 'Slow Marachekku Wood Pressing from Organic Sesame Seeds',
     badge: 'Pure Wood-Pressed',
-    rating: 4.9,
-    reviewsCount: 88,
+    rating: 5.0,
+    reviewsCount: 0,
     images: [
       'https://i.pinimg.com/736x/a1/14/35/a114356e1d87a7b36c49bf5e200b4329.jpg'
     ],
@@ -182,16 +123,7 @@ export const PRODUCTS: Product[] = [
       { label: 'Sesamol Content', value: 'High Natural' },
       { label: 'Trans Fat', value: '0.0g' }
     ],
-    reviews: [
-      {
-        id: 'rev-sesame-1',
-        author: 'Lakshmi Narayan',
-        rating: 5,
-        date: '15 Jan 2026',
-        comment: 'Perfect for South Indian cooking and oil pulling. Rich nutty sesame fragrance!',
-        verifiedPurchase: true
-      }
-    ]
+    reviews: []
   },
   {
     id: 'kusuma-safflower-oil',
@@ -207,8 +139,8 @@ export const PRODUCTS: Product[] = [
     ],
     extractionMethod: 'Slow Cold Pressing under 40°C from Select Organic Safflower Seeds',
     badge: 'Heart Health Choice',
-    rating: 4.7,
-    reviewsCount: 64,
+    rating: 5.0,
+    reviewsCount: 0,
     images: [
       'https://i.pinimg.com/736x/7b/72/ec/7b72ec0a7388518616a22806131e3aae.jpg'
     ],
@@ -221,16 +153,7 @@ export const PRODUCTS: Product[] = [
       { label: 'Polyunsaturated Fat (PUFA)', value: '74.6g' },
       { label: 'Trans Fat', value: '0.0g' }
     ],
-    reviews: [
-      {
-        id: 'rev-5',
-        author: 'Vijay Patel',
-        rating: 5,
-        date: '19 Jan 2026',
-        comment: 'Recommended by our nutritionist for heart health. Very light for daily cooking.',
-        verifiedPurchase: true
-      }
-    ]
+    reviews: []
   },
   {
     id: 'wood-pressed-mustard-oil',
@@ -246,8 +169,8 @@ export const PRODUCTS: Product[] = [
     ],
     extractionMethod: 'Slow Wood Pressed (Kachi Ghani) below 40°C',
     badge: 'Pungent Kachi Ghani',
-    rating: 4.8,
-    reviewsCount: 79,
+    rating: 5.0,
+    reviewsCount: 0,
     images: [
       'https://i.pinimg.com/736x/13/18/8d/13188d1e419f405b39e9dc48669c823e.jpg'
     ],
@@ -260,16 +183,7 @@ export const PRODUCTS: Product[] = [
       { label: 'Omega-3 Fatty Acids', value: '6.0g' },
       { label: 'Trans Fat', value: '0.0g' }
     ],
-    reviews: [
-      {
-        id: 'rev-mustard-1',
-        author: 'Amitabh Sen',
-        rating: 5,
-        date: '20 Jan 2026',
-        comment: 'Brings back true Bengali mustard flavor! Perfect sharp punch for fish curry and pickles.',
-        verifiedPurchase: true
-      }
-    ]
+    reviews: []
   },
   {
     id: 'cold-pressed-coconut-oil',
@@ -285,8 +199,8 @@ export const PRODUCTS: Product[] = [
     ],
     extractionMethod: 'Zero-Heat Cold Expeller Pressed from Sun-Dried Organic Copra',
     badge: '100% Raw Virgin',
-    rating: 4.9,
-    reviewsCount: 112,
+    rating: 5.0,
+    reviewsCount: 0,
     images: [
       'https://images.pexels.com/photos/11809347/pexels-photo-11809347.jpeg?_gl=1*1y4fvrj*_ga*MTI2MzM2MDI2Ni4xNzg1MzQ0OTYz*_ga_8JE65Q40S6*czE3ODUzNDQ5NzEkajUxJGwwJGgw'
     ],
@@ -300,16 +214,7 @@ export const PRODUCTS: Product[] = [
       { label: 'MCT Content', value: '62%' },
       { label: 'Trans Fat', value: '0.0g' }
     ],
-    reviews: [
-      {
-        id: 'rev-4',
-        author: 'Priya Nambiar',
-        rating: 5,
-        date: '10 Jan 2026',
-        comment: 'Crystal clear consistency in liquid state and thick pure white in winter. Absolutely genuine quality.',
-        verifiedPurchase: true
-      }
-    ]
+    reviews: []
   },
   {
     id: 'artisanal-desi-paneer',
@@ -326,7 +231,7 @@ export const PRODUCTS: Product[] = [
     extractionMethod: 'Hand-curdled with natural lemon whey & pressed in organic muslin cloth',
     badge: 'Made Fresh Daily',
     rating: 5.0,
-    reviewsCount: 182,
+    reviewsCount: 0,
     images: [
       'https://images.unsplash.com/photo-1589647363585-f4a7d3877b10?q=80&w=1172&auto=format&fit=crop'
     ],
@@ -341,16 +246,7 @@ export const PRODUCTS: Product[] = [
       { label: 'Calcium', value: '480mg' },
       { label: 'Added Starch / Fillers', value: '0.0%' }
     ],
-    reviews: [
-      {
-        id: 'rev-6',
-        author: 'Meenakshi Iyer',
-        rating: 5,
-        date: '24 Jan 2026',
-        comment: 'So soft and fresh! Made purely from A2 Desi Cow Milk. Melts in the mouth!',
-        verifiedPurchase: true
-      }
-    ]
+    reviews: []
   },
   {
     id: 'farm-fresh-eggs',
@@ -366,8 +262,8 @@ export const PRODUCTS: Product[] = [
     ],
     extractionMethod: 'Harvested daily from healthy, naturally grazed hens',
     badge: 'Farm Fresh Daily',
-    rating: 4.9,
-    reviewsCount: 134,
+    rating: 5.0,
+    reviewsCount: 0,
     images: [
       'https://i.pinimg.com/736x/7f/4f/82/7f4f8291d388e9ab37c955181c227f08.jpg'
     ],
@@ -381,15 +277,7 @@ export const PRODUCTS: Product[] = [
       { label: 'Choline', value: '147mg' },
       { label: 'Trans Fat', value: '0.0g' }
     ],
-    reviews: [
-      {
-        id: 'rev-eggs-1',
-        author: 'Vikram Reddy',
-        rating: 5,
-        date: '25 Jan 2026',
-        comment: 'Deep orange yolks and very fresh! Delivered without any breakage.',
-        verifiedPurchase: true
-      }
-    ]
+    reviews: []
   }
 ];
+

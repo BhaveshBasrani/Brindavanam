@@ -18,9 +18,8 @@ import { ProductDetailModal } from '@/components/ProductDetailModal';
 import { ArrowLeft, Star, CheckCircle, ShieldCheck, ShoppingBag, Zap, Truck } from 'lucide-react';
 
 function ProductDetailPageContent({ id }: { id: string }) {
-  const product = PRODUCTS.find((p) => p.id === id);
-
   const {
+    products,
     cartItems,
     userOrders,
     addToCart,
@@ -37,6 +36,39 @@ function ProductDetailPageContent({ id }: { id: string }) {
     setIsAdminOpen,
     onOrderSuccess,
   } = useStore();
+
+  const rawDecoded = decodeURIComponent(id || '').trim();
+  const cleanId = rawDecoded.toLowerCase();
+  const slugifiedId = cleanId.replace(/\s+/g, '-');
+  const spaceId = cleanId.replace(/-/g, ' ');
+
+  const allProductsList = products && products.length > 0 ? products : PRODUCTS;
+
+  const product =
+    allProductsList.find((p) => {
+      const pid = p.id.toLowerCase();
+      const pname = p.name.toLowerCase();
+      return (
+        pid === cleanId ||
+        pid === slugifiedId ||
+        pid === spaceId ||
+        pname === cleanId ||
+        pname === spaceId ||
+        pname.replace(/\s+/g, '-') === slugifiedId
+      );
+    }) ||
+    PRODUCTS.find((p) => {
+      const pid = p.id.toLowerCase();
+      const pname = p.name.toLowerCase();
+      return (
+        pid === cleanId ||
+        pid === slugifiedId ||
+        pid === spaceId ||
+        pname === cleanId ||
+        pname === spaceId ||
+        pname.replace(/\s+/g, '-') === slugifiedId
+      );
+    });
 
   const [selectedVariant, setSelectedVariant] = useState<ProductVariant>(
     product ? product.variants[0] : ({} as ProductVariant)
@@ -237,7 +269,7 @@ function ProductDetailPageContent({ id }: { id: string }) {
                   className="py-3.5 px-4 rounded bg-[#3A5303] hover:bg-[#2b3e02] text-white font-semibold text-xs uppercase tracking-wider flex items-center justify-center space-x-2 transition-colors shadow-xs"
                 >
                   <Zap className="w-4 h-4 text-[#94C000]" />
-                  <span>Buy Now (Razorpay)</span>
+                  <span>Buy Now (Express Checkout)</span>
                 </button>
               </div>
 
@@ -314,17 +346,34 @@ function ProductDetailPageContent({ id }: { id: string }) {
             )}
 
             {activeTab === 'reviews' && (
-              <div className="space-y-4">
-                {product.reviews.map((r) => (
-                  <div key={r.id} className="bg-[#F7F6F2] p-4 rounded-xl border border-stone-200 space-y-1">
-                    <div className="flex items-center justify-between">
-                      <span className="font-semibold text-stone-900">{r.author}</span>
-                      <span className="text-[10px] text-stone-400">{r.date}</span>
-                    </div>
-                    <div className="text-amber-500 text-xs">{'★'.repeat(r.rating)}</div>
-                    <p className="text-stone-600">{r.comment}</p>
+              <div className="space-y-6">
+                {/* Dynamic Patron Reviews List */}
+                {product.reviews && product.reviews.length > 0 ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {product.reviews.map((r) => (
+                      <div key={r.id} className="bg-[#F7F6F2] p-4 rounded-2xl border border-stone-200 space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className="font-bold text-stone-900 flex items-center space-x-2">
+                            <span>{r.author}</span>
+                            {r.verifiedPurchase && (
+                              <span className="text-[9px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-full">Verified Patron</span>
+                            )}
+                          </span>
+                          <span className="text-[10px] text-stone-400">{r.date}</span>
+                        </div>
+                        <div className="text-amber-400 text-xs font-mono">
+                          {'★'.repeat(r.rating)} <span className="text-stone-700 font-bold">{r.rating}.0</span>
+                        </div>
+                        <p className="text-stone-600 text-xs font-light leading-relaxed">{r.comment}</p>
+                      </div>
+                    ))}
                   </div>
-                ))}
+                ) : (
+                  <div className="text-center py-8 bg-[#F7F6F2] rounded-2xl border border-stone-200 space-y-2">
+                    <p className="text-stone-500 font-medium text-xs">No patron reviews yet for this farm produce.</p>
+                    <p className="text-stone-400 text-[11px]">Be the first patron to share your experience after ordering!</p>
+                  </div>
+                )}
               </div>
             )}
           </div>

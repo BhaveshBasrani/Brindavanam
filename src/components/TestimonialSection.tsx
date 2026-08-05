@@ -85,8 +85,7 @@ const DEFAULT_REVIEWS: CustomerReviewItem[] = [
 ];
 
 export const TestimonialSection: React.FC = () => {
-  const { userOrders } = useStore();
-  const [reviews, setReviews] = useState<CustomerReviewItem[]>(DEFAULT_REVIEWS);
+  const { products, addProductReview } = useStore();
   const [activeTagFilter, setActiveTagFilter] = useState<'all' | 'ghee' | 'oil' | 'paneer' | 'milk' | 'eggs'>('all');
   const [likesState, setLikesState] = useState<Record<string, number>>({});
   const [userLiked, setUserLiked] = useState<Record<string, boolean>>({});
@@ -95,49 +94,31 @@ export const TestimonialSection: React.FC = () => {
   const [isSubmitOpen, setIsSubmitOpen] = useState(false);
   const [newAuthor, setNewAuthor] = useState('');
   const [newLocation, setNewLocation] = useState('Hyderabad');
-  const [newProduceTag, setNewProduceTag] = useState<'ghee' | 'oil' | 'paneer' | 'milk' | 'eggs'>('ghee');
+  const [newProductId, setNewProductId] = useState<string>(products[0]?.id || 'a2-bilona-ghee');
   const [newRating, setNewRating] = useState(5);
   const [newHeadline, setNewHeadline] = useState('');
   const [newComment, setNewComment] = useState('');
   const [submittedMessage, setSubmittedMessage] = useState(false);
 
-  const gasUrl = process.env.NEXT_PUBLIC_GAS_WEB_APP_URL || 'https://script.google.com/macros/s/AKfycbwqHEdFL5zR_cCPSUkvb91nudf72H9K1CdFYPEyHgP_XInRSaHQU0TiZEtadcYHpQPS/exec';
-
-  // Load live customer reviews from Google Apps Script
-  useEffect(() => {
-    const loadRemoteReviews = async () => {
-      try {
-        const response = await fetch(`${gasUrl}?action=getReviews`);
-        const data = await response.json();
-        if (data.status === 'success' && Array.isArray(data.reviews) && data.reviews.length > 0) {
-          const remoteMapped: CustomerReviewItem[] = data.reviews.map((r: any, idx: number) => ({
-            id: r.id || `gas-rev-${idx}`,
-            name: r.name || 'Valued Patron',
-            location: r.location || 'Hyderabad',
-            role: 'Verified Farm Patron',
-            rating: r.rating || 5,
-            produceTag: r.produceTag || 'ghee',
-            produceName: r.produceName || 'A2 Desi Cow Bilona Ghee',
-            headline: r.headline || 'Authentic Farm Fresh Quality!',
-            review: r.review || 'Pure, natural, and honest produce.',
-            verified: true,
-            likes: Math.floor(Math.random() * 40) + 25,
-            date: r.date || 'Recent',
-            avatar: [
-              'https://images.pexels.com/photos-[#3A5303]415829.jpeg',
-              'https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg',
-              'https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg',
-              'https://images.pexels.com/photos/1222271/pexels-photo-1222271.jpeg'
-            ][idx % 4]
-          }));
-          setReviews([...remoteMapped, ...DEFAULT_REVIEWS]);
-        }
-      } catch (err) {
-        console.warn('Live review stream notice:', err);
-      }
-    };
-    loadRemoteReviews();
-  }, [gasUrl]);
+  // Dynamically aggregate all genuine user reviews across all products
+  const dynamicReviews: CustomerReviewItem[] = products.flatMap((p) => {
+    if (!p.reviews || !Array.isArray(p.reviews)) return [];
+    return p.reviews.map((r, idx) => ({
+      id: r.id || `${p.id}-rev-${idx}`,
+      name: r.author || 'Valued Patron',
+      location: 'Hyderabad',
+      role: 'Verified Farm Patron',
+      rating: r.rating || 5,
+      produceTag: (p.category as any) || 'ghee',
+      produceName: p.name,
+      headline: 'Authentic Organic Farm Quality!',
+      review: r.comment,
+      verified: r.verifiedPurchase ?? true,
+      likes: 12 + idx * 5,
+      date: r.date || 'Recent',
+      avatar: 'https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=300'
+    }));
+  });
 
   const handleLike = (id: string) => {
     setUserLiked((prev) => {
@@ -150,62 +131,27 @@ export const TestimonialSection: React.FC = () => {
     });
   };
 
-  const handleSubmitReview = async (e: React.FormEvent) => {
+  const handleSubmitReview = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newAuthor.trim() || !newComment.trim()) return;
 
-    const newRevObj = {
-      name: newAuthor,
-      location: newLocation || 'Hyderabad',
+    addProductReview(newProductId, {
+      author: newAuthor.trim(),
       rating: newRating,
-      produceTag: newProduceTag,
-      produceName: newProduceTag === 'ghee' ? 'A2 Desi Cow Bilona Ghee' : newProduceTag === 'oil' ? 'Wood-Pressed Oils' : 'Fresh Paneer',
-      headline: newHeadline || 'Excellent Organic Farm Quality!',
-      review: newComment
-    };
+      comment: newComment.trim(),
+    });
 
-    try {
-      await fetch(gasUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify({
-          action: 'submitReview',
-          review: newRevObj
-        })
-      });
-
-      const localItem: CustomerReviewItem = {
-        id: `local-rev-${Date.now()}`,
-        name: newAuthor,
-        location: newLocation || 'Hyderabad',
-        role: 'Verified Patron',
-        rating: newRating,
-        produceTag: newProduceTag,
-        produceName: newRevObj.produceName,
-        headline: newRevObj.headline,
-        review: newComment,
-        verified: true,
-        likes: 1,
-        date: 'Just Now',
-        avatar: 'https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=300'
-      };
-
-      setReviews((prev) => [localItem, ...prev]);
-      setSubmittedMessage(true);
-      setTimeout(() => {
-        setSubmittedMessage(false);
-        setIsSubmitOpen(false);
-        setNewAuthor('');
-        setNewHeadline('');
-        setNewComment('');
-      }, 2000);
-
-    } catch (err) {
-      console.warn('Submit review notice:', err);
-    }
+    setSubmittedMessage(true);
+    setTimeout(() => {
+      setSubmittedMessage(false);
+      setIsSubmitOpen(false);
+      setNewAuthor('');
+      setNewHeadline('');
+      setNewComment('');
+    }, 1500);
   };
 
-  const filteredReviews = reviews.filter((r) => 
+  const filteredReviews = dynamicReviews.filter((r) => 
     activeTagFilter === 'all' || r.produceTag === activeTagFilter
   );
 
@@ -276,81 +222,97 @@ export const TestimonialSection: React.FC = () => {
           className="grid grid-cols-1 md:grid-cols-2 gap-6"
         >
           <AnimatePresence>
-            {filteredReviews.map((rev) => (
-              <motion.div
-                key={rev.id}
-                layout
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.95 }}
-                transition={{ duration: 0.3 }}
-                className="bg-white/5 backdrop-blur-md border border-stone-800 hover:border-[#3A5303] rounded-3xl p-6 sm:p-8 space-y-6 flex flex-col justify-between group transition-all duration-300 hover:shadow-2xl hover:shadow-[#3A5303]/10 relative"
-              >
-                
-                {/* Top Card Info: Rating & Produce Badge */}
-                <div className="space-y-4">
-                  <div className="flex justify-between items-start">
-                    <div className="flex items-center space-x-1">
-                      {[...Array(rev.rating)].map((_, i) => (
-                        <Star key={i} className="w-4 h-4 fill-amber-400 text-amber-400" />
-                      ))}
-                      <span className="text-xs font-bold text-amber-400 ml-1.5 font-mono">
-                        {rev.rating}.0
+            {filteredReviews.length === 0 ? (
+              <div className="text-center py-16 bg-white/5 border border-stone-800 rounded-3xl p-8 space-y-4 max-w-xl mx-auto col-span-full">
+                <Sparkles className="w-10 h-10 text-[#94C000] mx-auto animate-pulse" />
+                <h3 className="text-xl font-serif text-white font-normal">Be the First Patron to Share Your Feedback</h3>
+                <p className="text-xs text-stone-400 font-light leading-relaxed">
+                  No patron reviews submitted yet for this produce category. Click below to share your genuine experience!
+                </p>
+                <button
+                  onClick={() => setIsSubmitOpen(true)}
+                  className="px-6 py-3 bg-[#3A5303] text-white font-bold text-xs uppercase tracking-wider rounded-2xl shadow-lg border border-[#94C000]/40 hover:bg-[#2b3e02] transition-colors cursor-pointer"
+                >
+                  + Submit Patron Review
+                </button>
+              </div>
+            ) : (
+              filteredReviews.map((rev) => (
+                <motion.div
+                  key={rev.id}
+                  layout
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  transition={{ duration: 0.3 }}
+                  className="bg-white/5 backdrop-blur-md border border-stone-800 hover:border-[#3A5303] rounded-3xl p-6 sm:p-8 space-y-6 flex flex-col justify-between group transition-all duration-300 hover:shadow-2xl hover:shadow-[#3A5303]/10 relative"
+                >
+                  
+                  {/* Top Card Info: Rating & Produce Badge */}
+                  <div className="space-y-4">
+                    <div className="flex justify-between items-start">
+                      <div className="flex items-center space-x-1">
+                        {[...Array(rev.rating)].map((_, i) => (
+                          <Star key={i} className="w-4 h-4 fill-amber-400 text-amber-400" />
+                        ))}
+                        <span className="text-xs font-bold text-amber-400 ml-1.5 font-mono">
+                          {rev.rating}.0
+                        </span>
+                      </div>
+
+                      <span className="text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-full bg-[#3A5303]/40 border border-[#94C000]/30 text-[#94C000]">
+                        {rev.produceName}
                       </span>
                     </div>
 
-                    <span className="text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-full bg-[#3A5303]/40 border border-[#94C000]/30 text-[#94C000]">
-                      {rev.produceName}
-                    </span>
+                    {/* Headline Quote */}
+                    <h3 className="text-base font-serif font-bold text-white group-hover:text-[#94C000] transition-colors leading-snug">
+                      "{rev.headline}"
+                    </h3>
+
+                    {/* Body Review Paragraph */}
+                    <p className="text-xs text-stone-300 font-light leading-relaxed">
+                      {rev.review}
+                    </p>
                   </div>
 
-                  {/* Headline Quote */}
-                  <h3 className="text-base font-serif font-bold text-white group-hover:text-[#94C000] transition-colors leading-snug">
-                    "{rev.headline}"
-                  </h3>
-
-                  {/* Body Review Paragraph */}
-                  <p className="text-xs text-stone-300 font-light leading-relaxed">
-                    {rev.review}
-                  </p>
-                </div>
-
-                {/* Footer: User Profile & Verified Badge */}
-                <div className="pt-4 border-t border-stone-800/80 flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
-                    <img
-                      src={rev.avatar}
-                      alt={rev.name}
-                      className="w-10 h-10 rounded-full object-cover ring-2 ring-[#94C000]/40"
-                    />
-                    <div>
-                      <div className="flex items-center space-x-1.5">
-                        <span className="text-xs font-bold text-white">{rev.name}</span>
-                        {rev.verified && (
-                          <span title="Verified Farm Buyer">
-                            <UserCheck className="w-3.5 h-3.5 text-[#94C000]" />
-                          </span>
-                        )}
+                  {/* Footer: User Profile & Verified Badge */}
+                  <div className="pt-4 border-t border-stone-800/80 flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <img
+                        src={rev.avatar}
+                        alt={rev.name}
+                        className="w-10 h-10 rounded-full object-cover ring-2 ring-[#94C000]/40"
+                      />
+                      <div>
+                        <div className="flex items-center space-x-1.5">
+                          <span className="text-xs font-bold text-white">{rev.name}</span>
+                          {rev.verified && (
+                            <span title="Verified Farm Buyer">
+                              <UserCheck className="w-3.5 h-3.5 text-[#94C000]" />
+                            </span>
+                          )}
+                        </div>
+                        <span className="text-[10px] text-stone-400 block">{rev.role} • {rev.location}</span>
                       </div>
-                      <span className="text-[10px] text-stone-400 block">{rev.role} • {rev.location}</span>
                     </div>
+
+                    <button
+                      onClick={() => handleLike(rev.id)}
+                      className={`flex items-center space-x-1.5 text-[11px] px-2.5 py-1 rounded-full border transition-all cursor-pointer ${
+                        userLiked[rev.id]
+                          ? 'bg-rose-500/20 text-rose-300 border-rose-500/40 font-bold'
+                          : 'bg-white/5 text-stone-400 border-white/10 hover:text-white'
+                      }`}
+                    >
+                      <Heart className={`w-3.5 h-3.5 ${userLiked[rev.id] ? 'fill-rose-400 text-rose-400' : ''}`} />
+                      <span>{rev.likes + (likesState[rev.id] || 0)}</span>
+                    </button>
                   </div>
 
-                  <button
-                    onClick={() => handleLike(rev.id)}
-                    className={`flex items-center space-x-1.5 text-[11px] px-2.5 py-1 rounded-full border transition-all cursor-pointer ${
-                      userLiked[rev.id]
-                        ? 'bg-rose-500/20 text-rose-300 border-rose-500/40 font-bold'
-                        : 'bg-white/5 text-stone-400 border-white/10 hover:text-white'
-                    }`}
-                  >
-                    <Heart className={`w-3.5 h-3.5 ${userLiked[rev.id] ? 'fill-rose-400 text-rose-400' : ''}`} />
-                    <span>{rev.likes + (likesState[rev.id] || 0)}</span>
-                  </button>
-                </div>
-
-              </motion.div>
-            ))}
+                </motion.div>
+              ))
+            )}
           </AnimatePresence>
         </motion.div>
 
@@ -374,7 +336,7 @@ export const TestimonialSection: React.FC = () => {
               <div className="text-center py-10 space-y-3">
                 <CheckCircle2 className="w-12 h-12 text-[#94C000] mx-auto animate-bounce" />
                 <h4 className="text-lg font-serif text-white">Thank You for Your Feedback!</h4>
-                <p className="text-xs text-stone-300">Your review has been saved to Brindavanam Nature Centre database.</p>
+                <p className="text-xs text-stone-300">Your review has been saved and published live across Brindavanam Nature Centre.</p>
               </div>
             ) : (
               <form onSubmit={handleSubmitReview} className="space-y-4 text-xs">
@@ -407,15 +369,13 @@ export const TestimonialSection: React.FC = () => {
                   <div>
                     <label className="block text-stone-300 uppercase font-bold text-[10px] mb-1">Produce Purchased</label>
                     <select
-                      value={newProduceTag}
-                      onChange={(e) => setNewProduceTag(e.target.value as any)}
+                      value={newProductId}
+                      onChange={(e) => setNewProductId(e.target.value)}
                       className="w-full px-3 py-2 bg-[#1c260b] border border-stone-700 rounded-xl text-white focus:outline-none focus:border-[#94C000]"
                     >
-                      <option value="ghee">A2 Desi Cow Bilona Ghee</option>
-                      <option value="oil">Wood-Pressed Oils</option>
-                      <option value="paneer">Fresh Desi Paneer</option>
-                      <option value="milk">Pure A2 Desi Cow Milk</option>
-                      <option value="eggs">Farm Fresh Free-Range Eggs</option>
+                      {products.map((p) => (
+                        <option key={p.id} value={p.id}>{p.name}</option>
+                      ))}
                     </select>
                   </div>
 

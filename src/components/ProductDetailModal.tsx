@@ -3,6 +3,8 @@
 import React, { useState, useEffect } from 'react';
 import { X, Star, CheckCircle, ShieldCheck, ShoppingBag, Zap, Heart, Truck } from 'lucide-react';
 import { Product, ProductVariant } from '@/types/store';
+import { useStore } from '@/context/StoreContext';
+import { useAuth } from '@/context/AuthContext';
 
 interface ProductDetailModalProps {
   product: Product | null;
@@ -19,10 +21,17 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
   onAddToCart,
   onBuyNow,
 }) => {
+  const { addProductReview } = useStore();
+  const { user } = useAuth();
+
   const [selectedVariant, setSelectedVariant] = useState<ProductVariant | null>(null);
   const [activeImage, setActiveImage] = useState<string>('');
   const [quantity, setQuantity] = useState<number>(1);
   const [activeTab, setActiveTab] = useState<'benefits' | 'nutrition' | 'reviews'>('benefits');
+
+  const [newAuthor, setNewAuthor] = useState<string>('');
+  const [newRating, setNewRating] = useState<number>(5);
+  const [newComment, setNewComment] = useState<string>('');
 
   useEffect(() => {
     if (product) {
@@ -30,10 +39,23 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
       setActiveImage(product.images[0] || '');
       setQuantity(1);
     }
-  }, [product]);
+    if (user?.displayName) {
+      setNewAuthor(user.displayName);
+    }
+  }, [product, user]);
 
   if (!product || !selectedVariant) return null;
   if (isOpen === false) return null;
+
+  const handleSubmitModalReview = () => {
+    if (!newComment.trim() || !product) return;
+    addProductReview(product.id, {
+      author: newAuthor || 'Valued Patron',
+      rating: newRating,
+      comment: newComment.trim(),
+    });
+    setNewComment('');
+  };
 
   const handleAddToCartClick = () => {
     onAddToCart(product, selectedVariant, quantity);
@@ -234,16 +256,74 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
                 )}
 
                 {activeTab === 'reviews' && (
-                  <div className="space-y-2 max-h-36 overflow-y-auto pr-1 text-xs">
-                    {product.reviews?.map((r) => (
-                      <div key={r.id} className="bg-[#F7F6F2] p-2.5 rounded-xl border border-stone-200 space-y-1">
-                        <div className="flex justify-between items-center font-bold text-stone-800 text-[11px]">
-                          <span>{r.author}</span>
-                          <span className="text-amber-500 font-mono">★ {r.rating}/5</span>
+                  <div className="space-y-3 max-h-48 overflow-y-auto pr-1 text-xs">
+                    {/* Review Submission Form */}
+                    <div className="bg-[#F7F6F2] p-3 rounded-2xl border border-stone-200 space-y-2">
+                      <span className="text-[10px] font-bold text-[#3A5303] uppercase tracking-wider block">Write a Patron Review</span>
+                      <div className="flex items-center space-x-2">
+                        <span className="text-[10px] text-stone-500 font-medium">Rating:</span>
+                        <div className="flex space-x-1">
+                          {[1, 2, 3, 4, 5].map((star) => (
+                            <button
+                              key={star}
+                              type="button"
+                              onClick={() => setNewRating(star)}
+                              className="focus:outline-none cursor-pointer"
+                            >
+                              <Star className={`w-3.5 h-3.5 ${star <= newRating ? 'fill-amber-400 text-amber-400' : 'text-stone-300'}`} />
+                            </button>
+                          ))}
                         </div>
-                        <p className="text-stone-600 font-light text-[11px]">{r.comment}</p>
                       </div>
-                    ))}
+                      <input
+                        type="text"
+                        placeholder="Your Name / Location..."
+                        value={newAuthor}
+                        onChange={(e) => setNewAuthor(e.target.value)}
+                        className="w-full px-2.5 py-1 text-[11px] bg-white border border-stone-300 rounded-lg text-stone-900 focus:outline-none focus:border-[#3A5303]"
+                      />
+                      <textarea
+                        rows={2}
+                        placeholder="Share your experience with this organic produce..."
+                        value={newComment}
+                        onChange={(e) => setNewComment(e.target.value)}
+                        className="w-full px-2.5 py-1 text-[11px] bg-white border border-stone-300 rounded-lg text-stone-900 focus:outline-none focus:border-[#3A5303]"
+                      />
+                      <button
+                        type="button"
+                        onClick={handleSubmitModalReview}
+                        disabled={!newComment.trim()}
+                        className="w-full py-1.5 bg-[#3A5303] hover:bg-[#2b3e02] disabled:opacity-50 text-white font-bold text-[10px] uppercase rounded-lg shadow-xs transition-colors cursor-pointer"
+                      >
+                        Submit Patron Review
+                      </button>
+                    </div>
+
+                    {/* Existing Reviews List */}
+                    {product.reviews && product.reviews.length > 0 ? (
+                      product.reviews.map((r) => (
+                        <div key={r.id} className="bg-white p-3 rounded-xl border border-stone-200 space-y-1 shadow-2xs">
+                          <div className="flex justify-between items-center font-bold text-stone-800 text-[11px]">
+                            <span className="flex items-center space-x-1">
+                              <span>{r.author}</span>
+                              {r.verifiedPurchase && (
+                                <span className="text-[9px] bg-emerald-100 text-emerald-800 font-bold px-1.5 py-0.5 rounded">Verified</span>
+                              )}
+                            </span>
+                            <span className="text-amber-500 font-mono flex items-center">
+                              <Star className="w-3 h-3 fill-amber-400 text-amber-400 mr-0.5" />
+                              {r.rating}.0
+                            </span>
+                          </div>
+                          <p className="text-stone-600 font-light text-[11px] leading-relaxed">{r.comment}</p>
+                          <span className="text-[9px] text-stone-400 block pt-0.5">{r.date}</span>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="text-center py-4 text-stone-400 text-xs italic">
+                        No reviews yet. Be the first patron to share your feedback above!
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
