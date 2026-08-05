@@ -92,7 +92,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
   const [adminRevHeadline, setAdminRevHeadline] = useState('');
   const [adminRevComment, setAdminRevComment] = useState('');
 
-  const siteKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || '6LcpqGstAAAAAMBOybBtJPFQ2aMtBfLmsUT9AAtB';
+  const siteKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || '6Lfpvm4tAAAAAC_wsr8Cg2-OCEyhOwzqPb5gtfmr';
   const gasUrl = process.env.NEXT_PUBLIC_GAS_WEB_APP_URL || 'https://script.google.com/macros/s/AKfycbwqHEdFL5zR_cCPSUkvb91nudf72H9K1CdFYPEyHgP_XInRSaHQU0TiZEtadcYHpQPS/exec';
 
   const fetchOrdersFromGAS = async () => {

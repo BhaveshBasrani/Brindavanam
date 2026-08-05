@@ -4,7 +4,7 @@ import React from 'react';
 import Script from 'next/script';
 
 export const FloatingRecaptchaBadge: React.FC = () => {
-  const siteKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || '6LcpqGstAAAAAMBOybBtJPFQ2aMtBfLmsUT9AAtB';
+  const siteKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || '6Lfpvm4tAAAAAC_wsr8Cg2-OCEyhOwzqPb5gtfmr';
 
   return (
     <>
