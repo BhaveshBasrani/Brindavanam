@@ -507,162 +507,218 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
   const customerList = Array.from(customerMap.values());
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-black/80 backdrop-blur-sm flex items-center justify-center p-2 sm:p-6">
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-black/85 backdrop-blur-md flex items-center justify-center p-2 sm:p-6 font-sans">
       
-      {/* Floating Enterprise Window Container */}
-      <div className="bg-white w-full max-w-6xl rounded-3xl shadow-2xl overflow-hidden relative border border-stone-200 animate-in fade-in duration-200 h-[92vh] flex flex-col my-auto">
+      {/* Floating Executive Control Station Container */}
+      <div className="bg-stone-100 w-full max-w-6xl rounded-3xl shadow-2xl overflow-hidden relative border border-stone-300 animate-in fade-in duration-200 h-[92vh] flex flex-col my-auto text-stone-900">
         
-        {/* Top Header */}
-        <div className="bg-[#1c260b] text-white px-4 sm:px-6 py-4 flex justify-between items-center border-b border-stone-800 shrink-0">
-          <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 rounded-2xl bg-[#3A5303] flex items-center justify-center text-white font-bold shadow-md ring-2 ring-[#94C000] shrink-0">
+        {/* 1. TOP EXECUTIVE CONTROL STATION HEADER */}
+        <div className="bg-[#0e160a] text-white px-5 sm:px-7 py-4 flex justify-between items-center border-b border-stone-800 shrink-0 shadow-lg">
+          <div className="flex items-center space-x-3.5">
+            <div className="w-10 h-10 rounded-2xl bg-[#3A5303] flex items-center justify-center text-white font-bold shadow-md ring-2 ring-[#94C000]/50 shrink-0">
               <ShieldAlert className="w-5 h-5 text-[#94C000]" />
             </div>
             <div>
-              <div className="flex items-center space-x-2">
-                <span className="text-[10px] uppercase tracking-[0.2em] text-[#94C000] font-bold block">
-                  Brindavanam Nature Centre
+              <div className="flex items-center space-x-2.5">
+                <span className="text-[10px] font-mono uppercase tracking-[0.2em] text-[#94C000] font-bold block">
+                  BRINDAVANAM // CONTROL STATION
                 </span>
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                <span className="flex items-center space-x-1 bg-[#3A5303]/40 px-2 py-0.5 rounded-full border border-[#94C000]/30 text-[9px] font-mono text-emerald-300">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                  <span>SECURE SESSION</span>
+                </span>
               </div>
-              <h2 className="text-xl sm:text-2xl font-serif tracking-tight truncate">Master Operations Desk</h2>
+              <h2 className="text-lg sm:text-xl font-bold tracking-tight text-white font-mono uppercase mt-0.5">
+                Master Operations Desk
+              </h2>
             </div>
           </div>
 
-          <button
-            onClick={onClose}
-            className="p-2 text-white/70 hover:text-white rounded-full hover:bg-white/10 transition-colors"
-          >
-            <X className="w-6 h-6" />
-          </button>
+          <div className="flex items-center space-x-2">
+            {authenticated && (
+              <button
+                onClick={() => {
+                  fetchOrdersFromGAS();
+                  fetchReviewsFromGAS();
+                }}
+                disabled={loading}
+                className="hidden sm:flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-xs font-mono font-bold text-stone-200 border border-white/15 transition-all cursor-pointer"
+                title="Sync stream with Google Sheet"
+              >
+                <RefreshCw className={`w-3.5 h-3.5 text-[#94C000] ${loading ? 'animate-spin' : ''}`} />
+                <span>SYNC STREAM</span>
+              </button>
+            )}
+
+            <button
+              onClick={onClose}
+              className="p-2 text-stone-400 hover:text-white rounded-xl hover:bg-white/10 transition-colors cursor-pointer"
+              title="Close Control Station"
+            >
+              <X className="w-6 h-6" />
+            </button>
+          </div>
         </div>
 
-        {/* STEP 1: Admin Authentication Screen */}
+        {/* STEP 1: Admin Authentication Gate (VSHN Security Decryption Style) */}
         {!authenticated ? (
-          <div className="p-6 sm:p-12 max-w-md mx-auto text-center space-y-5 overflow-y-auto my-auto">
-            <div className="w-16 h-16 bg-[#F7F6F2] rounded-full flex items-center justify-center mx-auto text-[#3A5303] shadow-inner">
-              <Lock className="w-8 h-8" />
+          <div className="p-6 sm:p-12 max-w-md mx-auto text-center space-y-6 overflow-y-auto my-auto w-full">
+            <div className="w-20 h-20 bg-[#1c260b] text-[#94C000] rounded-3xl flex items-center justify-center mx-auto shadow-xl ring-4 ring-[#94C000]/30 relative">
+              <Lock className="w-9 h-9" />
+              <div className="absolute inset-0 rounded-3xl bg-[#94C000]/20 blur-lg -z-10" />
             </div>
+
             <div className="space-y-1.5">
-              <h3 className="text-xl font-serif text-stone-900">Admin Authentication</h3>
-              <p className="text-xs text-stone-500 font-light leading-relaxed">
-                Enter your master passcode to access live order fulfillments, product manager, and CRM database.
+              <span className="text-[10px] font-mono uppercase tracking-[0.25em] text-[#3A5303] font-bold block">
+                SECURITY SHIELD ACTIVATED
+              </span>
+              <h3 className="text-2xl font-bold font-mono tracking-tight text-stone-900 uppercase">
+                DECRYPT SYSTEM ACCESS
+              </h3>
+              <p className="text-xs text-stone-500 font-medium leading-relaxed max-w-xs mx-auto">
+                Authenticate master security key to decrypt operational metrics, live dispatch stream, and customer orders.
               </p>
             </div>
 
             {authError && (
-              <p className="text-xs text-red-600 font-semibold bg-red-50 p-3 rounded-xl border border-red-200">
-                {authError}
-              </p>
+              <div className="text-xs text-red-700 font-bold bg-red-50 p-3 rounded-2xl border border-red-200 font-mono">
+                ✕ ACCESS DENIED: {authError}
+              </div>
             )}
 
-            <form onSubmit={handleAdminAuth} className="space-y-4">
-              <input
-                type="password"
-                required
-                value={passcode}
-                onChange={(e) => setPasscode(e.target.value)}
-                className="w-full px-4 py-3 border border-stone-300 rounded-xl text-xs text-center font-bold tracking-widest bg-white text-stone-900 focus:outline-none focus:border-[#3A5303]"
-                placeholder="Passcode (default: admin123)"
-              />
+            <form onSubmit={handleAdminAuth} className="space-y-4 text-left">
+              <div>
+                <label className="block text-[10px] font-mono font-bold text-stone-600 uppercase tracking-widest mb-1.5">
+                  SECURITY PASSCODE
+                </label>
+                <input
+                  type="password"
+                  required
+                  value={passcode}
+                  onChange={(e) => setPasscode(e.target.value)}
+                  className="w-full px-4 py-3.5 border-2 border-stone-300 rounded-2xl text-sm font-mono font-bold tracking-widest bg-white text-stone-900 focus:outline-none focus:border-[#3A5303] shadow-xs"
+                  placeholder="••••••••"
+                  autoFocus
+                />
+                <span className="text-[10px] text-stone-400 font-mono mt-1 block">
+                  🧪 Developer key: Use password <strong className="text-stone-700">admin123</strong>
+                </span>
+              </div>
 
-              <div className="flex flex-col items-center justify-center py-1 scale-90 sm:scale-100">
+              <div className="flex flex-col items-center justify-center py-1 scale-95">
                 <SafeRecaptcha siteKey={siteKey} onVerify={setRecaptchaToken} />
               </div>
 
               <button
                 type="submit"
-                className="w-full py-3.5 bg-[#3A5303] hover:bg-[#2b3e02] text-white font-bold text-xs uppercase tracking-wider rounded-xl shadow-lg transition-all active:scale-98 cursor-pointer"
+                className="w-full py-4 bg-[#3A5303] hover:bg-[#2b3e02] text-white font-bold text-xs uppercase tracking-wider rounded-2xl shadow-xl hover:shadow-2xl transition-all active:scale-98 cursor-pointer flex items-center justify-center space-x-2 font-mono"
               >
-                Authenticate Access
+                <span>DECRYPT & UNLOCK DESK</span>
+                <span className="text-[#94C000]">➔</span>
               </button>
             </form>
           </div>
         ) : (
           /* STEP 2: Main Enterprise Operations Desk Dashboard */
-          <div className="p-4 sm:p-6 space-y-4 overflow-y-auto flex-1">
+          <div className="p-4 sm:p-6 space-y-5 overflow-y-auto flex-1 bg-stone-100">
             
-            {/* Top Navigation Tabs */}
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 border-b border-stone-200 pb-3">
-              <div className="flex items-center space-x-1.5 overflow-x-auto whitespace-nowrap scrollbar-none bg-[#F7F6F2] p-1.5 rounded-2xl border border-stone-200 text-xs font-semibold">
+            {/* Top Navigation Control Tabs (VSHN Segmented Control Style) */}
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-white p-2 rounded-2xl border border-stone-200 shadow-xs">
+              <div className="flex items-center space-x-1.5 overflow-x-auto whitespace-nowrap scrollbar-none p-0.5 text-xs font-semibold">
                 <button
                   onClick={() => setActiveTab('orders')}
-                  className={`px-3.5 py-2 rounded-xl transition-all flex items-center space-x-1.5 shrink-0 cursor-pointer ${
-                    activeTab === 'orders' ? 'bg-[#3A5303] text-white shadow-md font-bold' : 'text-stone-600 hover:text-stone-900'
+                  className={`px-4 py-2.5 rounded-xl transition-all flex items-center space-x-2 shrink-0 cursor-pointer font-mono ${
+                    activeTab === 'orders'
+                      ? 'bg-[#3A5303] text-white shadow-md font-bold ring-1 ring-[#94C000]/40'
+                      : 'text-stone-600 hover:text-stone-900 hover:bg-stone-100'
                   }`}
                 >
-                  <Package className="w-3.5 h-3.5" />
-                  <span>Orders ({combinedOrders.length})</span>
+                  <Package className="w-4 h-4 text-[#94C000]" />
+                  <span>ORDERS [{combinedOrders.length}]</span>
                 </button>
 
                 <button
                   onClick={() => setActiveTab('offers')}
-                  className={`px-3.5 py-2 rounded-xl transition-all flex items-center space-x-1.5 shrink-0 cursor-pointer ${
-                    activeTab === 'offers' ? 'bg-[#3A5303] text-white shadow-md font-bold' : 'text-stone-600 hover:text-stone-900'
+                  className={`px-4 py-2.5 rounded-xl transition-all flex items-center space-x-2 shrink-0 cursor-pointer font-mono ${
+                    activeTab === 'offers'
+                      ? 'bg-[#3A5303] text-white shadow-md font-bold ring-1 ring-[#94C000]/40'
+                      : 'text-stone-600 hover:text-stone-900 hover:bg-stone-100'
                   }`}
                 >
-                  <Megaphone className="w-3.5 h-3.5 text-amber-400" />
-                  <span>Offer Ticker ({announcements.length})</span>
+                  <Megaphone className="w-4 h-4 text-amber-400" />
+                  <span>OFFER TICKER [{announcements.length}]</span>
                 </button>
 
                 <button
                   onClick={() => setActiveTab('products')}
-                  className={`px-3.5 py-2 rounded-xl transition-all flex items-center space-x-1.5 shrink-0 cursor-pointer ${
-                    activeTab === 'products' ? 'bg-[#3A5303] text-white shadow-md font-bold' : 'text-stone-600 hover:text-stone-900'
+                  className={`px-4 py-2.5 rounded-xl transition-all flex items-center space-x-2 shrink-0 cursor-pointer font-mono ${
+                    activeTab === 'products'
+                      ? 'bg-[#3A5303] text-white shadow-md font-bold ring-1 ring-[#94C000]/40'
+                      : 'text-stone-600 hover:text-stone-900 hover:bg-stone-100'
                   }`}
                 >
-                  <ShoppingCart className="w-3.5 h-3.5 text-[#94C000]" />
-                  <span>Catalog ({products.length})</span>
+                  <ShoppingCart className="w-4 h-4 text-[#94C000]" />
+                  <span>CATALOG [{products.length}]</span>
                 </button>
 
                 <button
                   onClick={() => setActiveTab('reviews')}
-                  className={`px-3.5 py-2 rounded-xl transition-all flex items-center space-x-1.5 shrink-0 cursor-pointer ${
-                    activeTab === 'reviews' ? 'bg-[#3A5303] text-white shadow-md font-bold' : 'text-stone-600 hover:text-stone-900'
+                  className={`px-4 py-2.5 rounded-xl transition-all flex items-center space-x-2 shrink-0 cursor-pointer font-mono ${
+                    activeTab === 'reviews'
+                      ? 'bg-[#3A5303] text-white shadow-md font-bold ring-1 ring-[#94C000]/40'
+                      : 'text-stone-600 hover:text-stone-900 hover:bg-stone-100'
                   }`}
                 >
-                  <MessageSquare className="w-3.5 h-3.5 text-amber-400" />
-                  <span>Reviews ({gasReviews.length})</span>
+                  <MessageSquare className="w-4 h-4 text-amber-400" />
+                  <span>REVIEWS [{gasReviews.length}]</span>
                 </button>
                 
                 <button
                   onClick={() => setActiveTab('promos')}
-                  className={`px-3.5 py-2 rounded-xl transition-all flex items-center space-x-1.5 shrink-0 cursor-pointer ${
-                    activeTab === 'promos' ? 'bg-[#3A5303] text-white shadow-md font-bold' : 'text-stone-600 hover:text-stone-900'
+                  className={`px-4 py-2.5 rounded-xl transition-all flex items-center space-x-2 shrink-0 cursor-pointer font-mono ${
+                    activeTab === 'promos'
+                      ? 'bg-[#3A5303] text-white shadow-md font-bold ring-1 ring-[#94C000]/40'
+                      : 'text-stone-600 hover:text-stone-900 hover:bg-stone-100'
                   }`}
                 >
-                  <Tag className="w-3.5 h-3.5 text-[#94C000]" />
-                  <span>Promos ({promoCodes.length})</span>
+                  <Tag className="w-4 h-4 text-[#94C000]" />
+                  <span>PROMOS [{promoCodes.length}]</span>
                 </button>
 
                 <button
                   onClick={() => setActiveTab('crm')}
-                  className={`px-3.5 py-2 rounded-xl transition-all flex items-center space-x-1.5 shrink-0 cursor-pointer ${
-                    activeTab === 'crm' ? 'bg-[#3A5303] text-white shadow-md font-bold' : 'text-stone-600 hover:text-stone-900'
+                  className={`px-4 py-2.5 rounded-xl transition-all flex items-center space-x-2 shrink-0 cursor-pointer font-mono ${
+                    activeTab === 'crm'
+                      ? 'bg-[#3A5303] text-white shadow-md font-bold ring-1 ring-[#94C000]/40'
+                      : 'text-stone-600 hover:text-stone-900 hover:bg-stone-100'
                   }`}
                 >
-                  <Users className="w-3.5 h-3.5" />
-                  <span>CRM ({customerList.length})</span>
+                  <Users className="w-4 h-4" />
+                  <span>CRM [{customerList.length}]</span>
                 </button>
 
                 <button
                   onClick={() => setActiveTab('analytics')}
-                  className={`px-3.5 py-2 rounded-xl transition-all flex items-center space-x-1.5 shrink-0 cursor-pointer ${
-                    activeTab === 'analytics' ? 'bg-[#3A5303] text-white shadow-md font-bold' : 'text-stone-600 hover:text-stone-900'
+                  className={`px-4 py-2.5 rounded-xl transition-all flex items-center space-x-2 shrink-0 cursor-pointer font-mono ${
+                    activeTab === 'analytics'
+                      ? 'bg-[#3A5303] text-white shadow-md font-bold ring-1 ring-[#94C000]/40'
+                      : 'text-stone-600 hover:text-stone-900 hover:bg-stone-100'
                   }`}
                 >
-                  <BarChart3 className="w-3.5 h-3.5" />
-                  <span>Analytics</span>
+                  <BarChart3 className="w-4 h-4" />
+                  <span>ANALYTICS</span>
                 </button>
 
                 <button
                   onClick={() => setActiveTab('gas')}
-                  className={`px-3.5 py-2 rounded-xl transition-all flex items-center space-x-1.5 shrink-0 cursor-pointer ${
-                    activeTab === 'gas' ? 'bg-[#3A5303] text-white shadow-md font-bold' : 'text-stone-600 hover:text-stone-900'
+                  className={`px-4 py-2.5 rounded-xl transition-all flex items-center space-x-2 shrink-0 cursor-pointer font-mono ${
+                    activeTab === 'gas'
+                      ? 'bg-[#3A5303] text-white shadow-md font-bold ring-1 ring-[#94C000]/40'
+                      : 'text-stone-600 hover:text-stone-900 hover:bg-stone-100'
                   }`}
                 >
-                  <Database className="w-3.5 h-3.5 text-[#94C000]" />
-                  <span>Sync</span>
+                  <Database className="w-4 h-4 text-[#94C000]" />
+                  <span>CLOUD SYNC</span>
                 </button>
               </div>
 
@@ -672,37 +728,78 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                   fetchReviewsFromGAS();
                 }}
                 disabled={loading}
-                className="w-full sm:w-auto px-4 py-2 bg-[#F7F6F2] hover:bg-stone-200 border border-stone-300 text-stone-800 text-xs font-semibold rounded-xl flex items-center justify-center space-x-2 transition-colors shrink-0 cursor-pointer"
+                className="sm:hidden w-full px-4 py-2.5 bg-stone-900 text-white font-mono text-xs font-bold rounded-xl flex items-center justify-center space-x-2"
               >
-                <RefreshCw className={`w-3.5 h-3.5 text-[#3A5303] ${loading ? 'animate-spin' : ''}`} />
-                <span>Sync Order Stream</span>
+                <RefreshCw className={`w-3.5 h-3.5 text-[#94C000] ${loading ? 'animate-spin' : ''}`} />
+                <span>SYNC STREAM</span>
               </button>
             </div>
 
-            {/* Metrics KPI Cards */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-              <div className="bg-[#F7F6F2] p-4 rounded-2xl border border-stone-200 space-y-1">
-                <span className="text-[10px] font-bold uppercase tracking-widest text-stone-500">Gross Sales</span>
-                <p className="text-2xl font-serif text-[#3A5303] font-bold">₹{totalRevenue}</p>
-                <p className="text-[10px] text-emerald-700 font-semibold">Live Revenue</p>
+            {/* Metrics Executive KPI Cards */}
+            <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
+              <div className="bg-white p-4 rounded-2xl border border-stone-200 shadow-xs space-y-1 relative overflow-hidden group">
+                <div className="w-1.5 h-full bg-[#3A5303] absolute left-0 top-0 bottom-0" />
+                <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-stone-500 block pl-1">
+                  GROSS REVENUE SECURED
+                </span>
+                <p className="text-2xl font-bold font-mono text-[#3A5303] tracking-tight pl-1">
+                  ₹{totalRevenue.toLocaleString('en-IN')}
+                </p>
+                <span className="text-[10px] font-medium text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md inline-block ml-1">
+                  ✓ Verified Stream
+                </span>
               </div>
 
-              <div className="bg-[#F7F6F2] p-4 rounded-2xl border border-stone-200 space-y-1">
-                <span className="text-[10px] font-bold uppercase tracking-widest text-stone-500">Processing</span>
-                <p className="text-2xl font-serif text-amber-700 font-bold">{processingCount}</p>
-                <p className="text-[10px] text-stone-400">Awaiting dispatch</p>
+              <div className="bg-white p-4 rounded-2xl border border-stone-200 shadow-xs space-y-1 relative overflow-hidden">
+                <div className="w-1.5 h-full bg-amber-500 absolute left-0 top-0 bottom-0" />
+                <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-stone-500 block pl-1">
+                  PROCESSING QUEUE
+                </span>
+                <p className="text-2xl font-bold font-mono text-amber-700 tracking-tight pl-1">
+                  {processingCount}
+                </p>
+                <span className="text-[10px] font-medium text-amber-700 bg-amber-50 px-2 py-0.5 rounded-md inline-block ml-1">
+                  Awaiting Dispatch
+                </span>
               </div>
 
-              <div className="bg-[#F7F6F2] p-4 rounded-2xl border border-stone-200 space-y-1">
-                <span className="text-[10px] font-bold uppercase tracking-widest text-stone-500">Offer Messages</span>
-                <p className="text-2xl font-serif text-[#3A5303] font-bold">{announcements.length}</p>
-                <p className="text-[10px] text-stone-400">Live moving ticker text</p>
+              <div className="bg-white p-4 rounded-2xl border border-stone-200 shadow-xs space-y-1 relative overflow-hidden">
+                <div className="w-1.5 h-full bg-blue-500 absolute left-0 top-0 bottom-0" />
+                <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-stone-500 block pl-1">
+                  SHIPPED IN-TRANSIT
+                </span>
+                <p className="text-2xl font-bold font-mono text-blue-700 tracking-tight pl-1">
+                  {shippedCount}
+                </p>
+                <span className="text-[10px] font-medium text-blue-700 bg-blue-50 px-2 py-0.5 rounded-md inline-block ml-1">
+                  En-route ETA Active
+                </span>
               </div>
 
-              <div className="bg-[#F7F6F2] p-4 rounded-2xl border border-stone-200 space-y-1">
-                <span className="text-[10px] font-bold uppercase tracking-widest text-stone-500">Store Lineup</span>
-                <p className="text-2xl font-serif text-stone-900 font-bold">{products.length}</p>
-                <p className="text-[10px] text-stone-400">Active produce items</p>
+              <div className="bg-white p-4 rounded-2xl border border-stone-200 shadow-xs space-y-1 relative overflow-hidden">
+                <div className="w-1.5 h-full bg-[#94C000] absolute left-0 top-0 bottom-0" />
+                <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-stone-500 block pl-1">
+                  OFFER TICKERS
+                </span>
+                <p className="text-2xl font-bold font-mono text-stone-900 tracking-tight pl-1">
+                  {announcements.length}
+                </p>
+                <span className="text-[10px] font-medium text-stone-600 bg-stone-100 px-2 py-0.5 rounded-md inline-block ml-1">
+                  Live Marquee Lines
+                </span>
+              </div>
+
+              <div className="bg-white p-4 rounded-2xl border border-stone-200 shadow-xs space-y-1 relative overflow-hidden col-span-2 lg:col-span-1">
+                <div className="w-1.5 h-full bg-stone-800 absolute left-0 top-0 bottom-0" />
+                <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-stone-500 block pl-1">
+                  STORE CATALOG
+                </span>
+                <p className="text-2xl font-bold font-mono text-stone-900 tracking-tight pl-1">
+                  {products.length}
+                </p>
+                <span className="text-[10px] font-medium text-stone-600 bg-stone-100 px-2 py-0.5 rounded-md inline-block ml-1">
+                  Produce Lineup
+                </span>
               </div>
             </div>
 
@@ -710,66 +807,70 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
             {activeTab === 'orders' && (
               <div className="space-y-4">
                 {/* Search & Filter Controls */}
-                <div className="flex flex-col sm:flex-row items-center justify-between gap-2.5 bg-stone-50 p-3 rounded-2xl border border-stone-200">
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-white p-3.5 rounded-2xl border border-stone-200 shadow-xs">
                   <div className="relative w-full">
                     <input
                       type="text"
                       placeholder="Search Order ID, Customer Name, Email, Address..."
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
-                      className="w-full pl-8 pr-3 py-2 text-xs border border-stone-300 rounded-xl bg-white text-stone-900 font-medium focus:outline-none focus:border-[#3A5303]"
+                      className="w-full pl-9 pr-4 py-2.5 text-xs border border-stone-300 rounded-xl bg-stone-50 text-stone-900 font-semibold focus:outline-none focus:border-[#3A5303] focus:bg-white transition-all placeholder:text-stone-400"
                     />
-                    <Search className="w-3.5 h-3.5 text-stone-400 absolute left-2.5 top-3" />
+                    <Search className="w-4 h-4 text-stone-400 absolute left-3 top-3" />
                   </div>
 
-                  <div className="w-full sm:w-auto">
+                  <div className="w-full sm:w-auto shrink-0">
                     <select
                       value={statusFilter}
                       onChange={(e) => setStatusFilter(e.target.value)}
-                      className="w-full px-3 py-2 border border-stone-300 rounded-xl text-xs bg-white text-stone-900 font-semibold focus:outline-none"
+                      className="w-full px-4 py-2.5 border border-stone-300 rounded-xl text-xs bg-stone-50 text-stone-900 font-bold font-mono focus:outline-none cursor-pointer"
                     >
-                      <option value="all">All Statuses ({combinedOrders.length})</option>
-                      <option value="processing">Processing ({processingCount})</option>
-                      <option value="shipped">Shipped ({shippedCount})</option>
-                      <option value="delivered">Delivered ({deliveredCount})</option>
-                      <option value="cancelled">Cancelled</option>
+                      <option value="all">ALL STATUSES ({combinedOrders.length})</option>
+                      <option value="processing">PROCESSING ({processingCount})</option>
+                      <option value="shipped">SHIPPED ({shippedCount})</option>
+                      <option value="delivered">DELIVERED ({deliveredCount})</option>
+                      <option value="cancelled">CANCELLED</option>
                     </select>
                   </div>
                 </div>
 
-                {/* Orders Table */}
-                <div className="bg-white rounded-2xl border border-stone-200 overflow-hidden shadow-xs">
-                  <div className="hidden sm:block max-h-[380px] overflow-y-auto">
-                    <table className="w-full text-left text-xs">
-                      <thead className="bg-[#3A5303] text-white font-bold sticky top-0 z-10">
+                {/* Orders Data Table */}
+                <div className="bg-white rounded-2xl border border-stone-200 overflow-hidden shadow-sm">
+                  <div className="hidden sm:block max-h-[420px] overflow-y-auto">
+                    <table className="w-full text-left text-xs border-collapse">
+                      <thead className="bg-stone-900 text-stone-200 font-mono font-bold uppercase tracking-wider text-[11px] sticky top-0 z-10">
                         <tr>
-                          <th className="p-3.5">Order ID & Date</th>
-                          <th className="p-3.5">Customer</th>
-                          <th className="p-3.5">Items Purchased</th>
-                          <th className="p-3.5">Total Paid</th>
-                          <th className="p-3.5">Status</th>
-                          <th className="p-3.5 text-right">Order Inspector & Actions</th>
+                          <th className="p-4 border-b border-stone-800">Order ID & Date</th>
+                          <th className="p-4 border-b border-stone-800">Customer Profile</th>
+                          <th className="p-4 border-b border-stone-800">Produce Items</th>
+                          <th className="p-4 border-b border-stone-800">Amount</th>
+                          <th className="p-4 border-b border-stone-800">Status</th>
+                          <th className="p-4 border-b border-stone-800 text-right">Actions & Inspector</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-stone-100">
+                      <tbody className="divide-y divide-stone-100 font-medium">
                         {filteredOrders.length === 0 ? (
                           <tr>
-                            <td colSpan={6} className="text-center py-16 text-stone-400">
-                              No matching orders found.
+                            <td colSpan={6} className="text-center py-16 text-stone-400 font-mono">
+                              📂 NO MATCHING ORDERS FOUND
                             </td>
                           </tr>
                         ) : (
                           filteredOrders.map((ord) => (
-                            <tr key={ord.id} className="hover:bg-stone-50 transition-colors">
-                              <td className="p-3.5">
-                                <span className="font-bold text-[#3A5303] block text-sm">{ord.id}</span>
-                                <span className="text-[10px] text-stone-400">{ord.date}</span>
+                            <tr key={ord.id} className="hover:bg-stone-50/80 transition-colors">
+                              <td className="p-4">
+                                <span className="font-mono font-bold text-[#3A5303] bg-[#3A5303]/10 px-2.5 py-1 rounded-md text-xs border border-[#3A5303]/20 inline-block">
+                                  {ord.id}
+                                </span>
+                                <span className="text-[10px] text-stone-400 block font-mono mt-1">
+                                  {ord.date && ord.date.length > 25 ? `${ord.date.substring(0, 16)} IST` : ord.date}
+                                </span>
                               </td>
-                              <td className="p-3.5">
-                                <span className="font-semibold text-stone-900 block">
+                              <td className="p-4">
+                                <span className="font-bold text-stone-900 block text-xs">
                                   {ord.shippingAddress?.fullName || ord.customerName || 'Valued Customer'}
                                 </span>
-                                <span className="text-[10px] text-stone-500 block">
+                                <span className="text-[10px] text-stone-500 font-mono block">
                                   {ord.shippingAddress?.email || ord.customerEmail || 'N/A'}
                                 </span>
                               </td>
