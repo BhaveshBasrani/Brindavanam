@@ -334,32 +334,26 @@ export const Navbar: React.FC<NavbarProps> = ({
 
       {/* Mobile Drawer Menu */}
       {mobileMenuOpen && (
-        <div className="fixed inset-0 z-40 bg-black/60 backdrop-blur-xs xl:hidden" onClick={() => setMobileMenuOpen(false)}>
+        <div className="fixed inset-0 z-[60] bg-black/60 backdrop-blur-xs xl:hidden" onClick={() => setMobileMenuOpen(false)}>
           <div 
             className="w-4/5 max-w-xs bg-white h-full shadow-2xl p-6 flex flex-col justify-between"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="space-y-6">
               <div className="flex items-center justify-between border-b border-stone-200 pb-4">
-                <span className="text-xl font-serif text-[#3A5303] font-bold">Brindavanam</span>
-                <button onClick={() => setMobileMenuOpen(false)} className="p-1 text-stone-500 cursor-pointer">
+                <div className="flex items-center space-x-2">
+                  <div className="w-7 h-7 rounded-xl bg-[#3A5303] text-white flex items-center justify-center font-bold shadow-xs">
+                    <Leaf className="w-4 h-4 text-[#94C000]" />
+                  </div>
+                  <span className="text-xl font-serif text-[#3A5303] font-bold italic">Brindavanam</span>
+                </div>
+                <button onClick={() => setMobileMenuOpen(false)} className="p-1.5 text-stone-500 hover:text-stone-900 rounded-lg hover:bg-stone-100 transition-colors cursor-pointer">
                   <X className="w-5 h-5" />
                 </button>
               </div>
 
               <div className="space-y-2">
-                <p className="text-[10px] font-bold text-stone-400 uppercase tracking-widest">Categories</p>
-                <button
-                  onClick={() => {
-                    setSelectedCategory('all');
-                    setMobileMenuOpen(false);
-                  }}
-                  className={`w-full text-left px-3 py-2 rounded-xl text-xs font-semibold ${
-                    selectedCategory === 'all' ? 'bg-[#3A5303] text-white font-bold' : 'text-stone-700'
-                  }`}
-                >
-                  All Products
-                </button>
+                <p className="text-[10px] font-bold text-stone-400 uppercase tracking-widest px-1">Categories</p>
                 {categories.map((cat) => (
                   <button
                     key={cat.id}
@@ -367,8 +361,8 @@ export const Navbar: React.FC<NavbarProps> = ({
                       setSelectedCategory(cat.id);
                       setMobileMenuOpen(false);
                     }}
-                    className={`w-full text-left px-3 py-2 rounded-xl text-xs font-semibold ${
-                      selectedCategory === cat.id ? 'bg-[#3A5303] text-white font-bold' : 'text-stone-700'
+                    className={`w-full text-left px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all ${
+                      selectedCategory === cat.id ? 'bg-[#3A5303] text-white font-bold shadow-xs' : 'text-stone-700 hover:bg-stone-100'
                     }`}
                   >
                     {cat.label}

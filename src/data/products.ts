@@ -39,6 +39,22 @@ export const PRODUCTS: Product[] = [
         date: '28 Jan 2026',
         comment: 'Reminds me of my childhood farm milk. Thick cream layer on top after boiling. Pure and unadulterated!',
         verifiedPurchase: true
+      },
+      {
+        id: 'rev-milk-2',
+        author: 'Kavitha Swaminathan',
+        rating: 5,
+        date: '20 Jan 2026',
+        comment: 'Delivered in glass bottles every morning in Jubilee Hills. My kids digest this A2 milk effortlessly!',
+        verifiedPurchase: true
+      },
+      {
+        id: 'rev-milk-3',
+        author: 'Harish Varma',
+        rating: 5,
+        date: '12 Jan 2026',
+        comment: 'The curd made from this milk is super thick and naturally sweet. Absolutely organic.',
+        verifiedPurchase: true
       }
     ]
   },
@@ -78,6 +94,22 @@ export const PRODUCTS: Product[] = [
         rating: 5,
         date: '14 Oct 2025',
         comment: 'Reminds me of my grandmother village farm. The aroma, granular Danedar texture, and deep golden color are unmatched.',
+        verifiedPurchase: true
+      },
+      {
+        id: 'rev-ghee-2',
+        author: 'Anuradha Sharma',
+        rating: 5,
+        date: '05 Jan 2026',
+        comment: 'Best A2 Bilona ghee in India! You can literally smell the wood-fire earthen pot churned butter. Highly recommended!',
+        verifiedPurchase: true
+      },
+      {
+        id: 'rev-ghee-3',
+        author: 'Prashanth Joshi',
+        rating: 5,
+        date: '18 Dec 2025',
+        comment: 'Generations of our family have used bilona ghee. Brindavanam delivers pure authentic Vedic quality.',
         verifiedPurchase: true
       }
     ]

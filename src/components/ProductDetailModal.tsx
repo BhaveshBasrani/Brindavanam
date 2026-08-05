@@ -207,7 +207,7 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
                       activeTab === 'reviews' ? 'border-[#3A5303] text-[#3A5303]' : 'border-transparent text-stone-400'
                     }`}
                   >
-                    Patron Reviews ({product.reviews?.length || 0})
+                    Patron Reviews ({product.reviewsCount})
                   </button>
                 </div>
 

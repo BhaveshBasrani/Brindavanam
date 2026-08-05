@@ -282,7 +282,7 @@ function ProductDetailPageContent({ id }: { id: string }) {
                   : 'text-stone-400 hover:text-stone-800'
               }`}
             >
-              Patron Reviews ({product.reviews.length})
+              Patron Reviews ({product.reviewsCount})
             </button>
           </div>
 
