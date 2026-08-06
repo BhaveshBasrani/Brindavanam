@@ -70,7 +70,7 @@ function CartPageContent() {
       {/* Navigation */}
       <Navbar
         cartCount={cartTotalCount}
-        onOpenCart={() => {}}
+        onOpenCart={() => { }}
         onOpenAuth={() => setIsAuthOpen(true)}
         onOpenOrders={() => setIsOrdersOpen(true)}
         onOpenAdmin={() => setIsAdminOpen(true)}
@@ -81,7 +81,7 @@ function CartPageContent() {
       />
 
       <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 w-full">
-        
+
         {/* Breadcrumb Header with Prominent Home Button */}
         <div className="mb-8">
           <Link
@@ -89,7 +89,7 @@ function CartPageContent() {
             className="inline-flex items-center space-x-2 bg-[#3A5303] text-white hover:bg-[#2b3e02] px-5 py-2.5 rounded-2xl text-xs font-bold uppercase tracking-wider shadow-md hover:shadow-lg transition-all mb-4 cursor-pointer"
           >
             <ArrowLeft className="w-4 h-4 text-[#94C000]" />
-            <span>← Return to Home / Storefront</span>
+            <span>← Return to Home </span>
           </Link>
           <h1 className="text-3xl sm:text-4xl font-serif text-stone-900 font-bold">Your Organic Produce Cart</h1>
           <p className="text-xs text-stone-500 mt-1 font-light">Direct dispatch from Brindavanam Nature Centre</p>
@@ -113,10 +113,10 @@ function CartPageContent() {
           </div>
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            
+
             {/* Left Column: Cart Items List */}
             <div className="lg:col-span-2 space-y-4">
-              
+
               {/* Free Shipping Callout */}
               <div className="bg-white p-4.5 rounded-2xl border border-stone-200 shadow-xs space-y-2">
                 <div className="flex items-center justify-between text-xs">
@@ -222,7 +222,7 @@ function CartPageContent() {
 
             {/* Right Column: Order Summary & Checkout Card */}
             <div className="space-y-6">
-              
+
               <div className="bg-white p-6 rounded-3xl border border-stone-200 shadow-sm space-y-6">
                 <h3 className="text-lg font-serif font-bold text-stone-900 border-b border-stone-100 pb-3">
                   Order Summary
