@@ -28,16 +28,12 @@ jobs:
           node-version: 20
           cache: 'npm'
 
-      - name: Setup Pages
-        id: pages
-        uses: actions/configure-pages@v5
-
       - name: Install Dependencies
         run: npm ci || npm install
 
       - name: Build Next.js Static Site
         env:
-          NEXT_PUBLIC_BASE_PATH: ${{ steps.pages.outputs.base_path }}
+          NEXT_PUBLIC_BASE_PATH: ''
           NEXT_PUBLIC_FIREBASE_API_KEY: ${{ secrets.NEXT_PUBLIC_FIREBASE_API_KEY }}
           NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: ${{ secrets.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN }}
           NEXT_PUBLIC_FIREBASE_PROJECT_ID: ${{ secrets.NEXT_PUBLIC_FIREBASE_PROJECT_ID }}
@@ -50,15 +46,10 @@ jobs:
           NEXT_PUBLIC_GAS_WEB_APP_URL: ${{ secrets.NEXT_PUBLIC_GAS_WEB_APP_URL }}
         run: npm run build
 
-      - name: Prune Source Maps & Cache
-        run: |
-          find ./out -name "*.map" -type f -delete || true
-          rm -rf ./out/cache || true
-
       - name: Upload Pages Artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: './out'
+          path: 'out'
 
   deploy:
     name: Deploy to GitHub Pages
