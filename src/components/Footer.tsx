@@ -35,7 +35,7 @@ export const Footer: React.FC = () => {
               <li>Vedic Bilona Method</li>
               <li>Marachekku Wood Pressing</li>
               <li>Zero Chemical Solvents</li>
-              <li>Glass Jar Packaging</li>
+              <li>Unadulterated Zero Preservatives</li>
               <li>100% Lab Tested Batches</li>
             </ul>
           </div>

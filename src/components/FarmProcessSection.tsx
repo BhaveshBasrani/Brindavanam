@@ -21,8 +21,8 @@ export const FarmProcessSection: React.FC = () => {
     },
     {
       num: '04',
-      title: 'Glass Jar Packaging',
-      desc: 'No chemical refining, no mineral oils, and zero plastic leaching. Pure unadulterated nature.'
+      title: 'Zero Chemical Refining',
+      desc: 'No chemical solvents, no mineral oils, and zero bleach. Pure unadulterated nature.'
     }
   ];
 

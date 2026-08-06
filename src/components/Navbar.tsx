@@ -160,9 +160,12 @@ export const Navbar: React.FC<NavbarProps> = ({
                     key={cat.id}
                     onClick={() => {
                       setSelectedCategory(cat.id);
-                      if (cat.id === 'all') {
-                        window.scrollTo({ top: 0, behavior: 'smooth' });
-                      }
+                      setTimeout(() => {
+                        const el = document.getElementById('catalog');
+                        if (el) {
+                          el.scrollIntoView({ behavior: 'smooth' });
+                        }
+                      }, 50);
                     }}
                     className={`px-3.5 py-1.5 rounded-full transition-all duration-200 whitespace-nowrap shrink-0 cursor-pointer font-bold ${
                       isActive
@@ -403,6 +406,12 @@ export const Navbar: React.FC<NavbarProps> = ({
                       onClick={() => {
                         setSelectedCategory(cat.id);
                         setMobileMenuOpen(false);
+                        setTimeout(() => {
+                          const el = document.getElementById('catalog');
+                          if (el) {
+                            el.scrollIntoView({ behavior: 'smooth' });
+                          }
+                        }, 100);
                       }}
                       className={`w-full text-left px-4 py-3 rounded-xl text-xs font-bold transition-all flex items-center justify-between cursor-pointer ${
                         selectedCategory === cat.id 

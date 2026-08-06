@@ -102,16 +102,14 @@ function HomePageContent() {
 
       <main className="flex-1">
         
-        {/* Top Hero Banner (Only shown on main 'all' view with no search filter to avoid blocking category products) */}
-        {selectedCategory === 'all' && !searchQuery && (
-          <HeroBanner onShopNow={() => {
-            const element = document.getElementById('catalog');
-            element?.scrollIntoView({ behavior: 'smooth' });
-          }} />
-        )}
+        {/* Top Hero Banner */}
+        <HeroBanner onShopNow={() => {
+          const element = document.getElementById('catalog');
+          element?.scrollIntoView({ behavior: 'smooth' });
+        }} />
 
         {/* Store Catalog Section */}
-        <section id="catalog" className={`px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto ${selectedCategory !== 'all' || searchQuery ? 'pt-28 sm:pt-32 pb-16' : 'py-12 sm:py-16'}`}>
+        <section id="catalog" className="py-12 sm:py-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto scroll-mt-20">
           <div className="flex flex-col md:flex-row md:items-end justify-between mb-8">
             <div>
               <span className="text-xs uppercase tracking-[0.2em] font-bold text-[#3A5303] mb-1.5 block">
@@ -140,7 +138,7 @@ function HomePageContent() {
               </button>
             </div>
           ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5 sm:gap-6">
               {filteredProducts.map((product) => (
                 <ProductCard
                   key={product.id}

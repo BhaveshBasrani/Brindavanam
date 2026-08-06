@@ -21,8 +21,8 @@ export const PRODUCTS: Product[] = [
       'https://i.pinimg.com/736x/0c/c1/32/0cc1327f65c7e4a0975a15ad399750ec.jpg'
     ],
     variants: [
-      { id: 'milk-1l', weight: '1 Litre Glass Bottle', price: 130, originalPrice: 150, inStock: true },
-      { id: 'milk-2l', weight: '2 Litres Glass Bottle', price: 260, originalPrice: 300, inStock: true },
+      { id: 'milk-1l', weight: '1 Litre', price: 130, originalPrice: 150, inStock: true },
+      { id: 'milk-2l', weight: '2 Litres', price: 260, originalPrice: 300, inStock: true },
     ],
     nutritionalInfo: [
       { label: 'Energy', value: '68 kcal per 100ml' },
@@ -53,8 +53,8 @@ export const PRODUCTS: Product[] = [
       'https://images.pexels.com/photos/20689447/pexels-photo-20689447.jpeg?_gl=1*qqa97x*_ga*MTI2MzM2MDI2Ni4xNzg1MzQ0OTYz*_ga_8JE65Q40S6*czE3ODUzNDQ5NjIkbzEkZzEkdDE3ODUzNDUwMjEkajEkbDAkaDA.'
     ],
     variants: [
-      { id: 'ghee-500g', weight: '½ KG (500ml) Glass Jar', price: 2200, originalPrice: 2400, inStock: true },
-      { id: 'ghee-1kg', weight: '1 KG (1000ml) Glass Jar', price: 4000, originalPrice: 4400, inStock: true },
+      { id: 'ghee-500g', weight: '500 ml (½ KG)', price: 2200, originalPrice: 2400, inStock: true },
+      { id: 'ghee-1kg', weight: '1 Litre (1 KG)', price: 4000, originalPrice: 4400, inStock: true },
     ],
     nutritionalInfo: [
       { label: 'Energy', value: '898 kcal per 100g' },
@@ -84,8 +84,8 @@ export const PRODUCTS: Product[] = [
       'https://images.pexels.com/photos/209345/pexels-photo-209345.jpeg?_gl=1*lg6nef*_ga*MTI2MzM2MDI2Ni4xNzg1MzQ0OTYz*_ga_8JE65Q40S6*czE3ODUzNDQ5NjIkbzEkZzEkdDE3ODUzNDQ5OTQkajI4JGwwJGgw'
     ],
     variants: [
-      { id: 'peanut-1l', weight: '1 Litre Glass Bottle', price: 400, originalPrice: 450, inStock: true },
-      { id: 'peanut-5l', weight: '5 Litres Tin Can', price: 1950, originalPrice: 2200, inStock: true },
+      { id: 'peanut-1l', weight: '1 Litre', price: 400, originalPrice: 450, inStock: true },
+      { id: 'peanut-5l', weight: '5 Litres', price: 1950, originalPrice: 2200, inStock: true },
     ],
     nutritionalInfo: [
       { label: 'Energy', value: '884 kcal per 100g' },
@@ -115,8 +115,8 @@ export const PRODUCTS: Product[] = [
       'https://i.pinimg.com/736x/a1/14/35/a114356e1d87a7b36c49bf5e200b4329.jpg'
     ],
     variants: [
-      { id: 'sesame-1l', weight: '1 Litre Glass Bottle', price: 500, originalPrice: 560, inStock: true },
-      { id: 'sesame-5l', weight: '5 Litres Tin Can', price: 2450, originalPrice: 2750, inStock: true },
+      { id: 'sesame-1l', weight: '1 Litre', price: 500, originalPrice: 560, inStock: true },
+      { id: 'sesame-5l', weight: '5 Litres', price: 2450, originalPrice: 2750, inStock: true },
     ],
     nutritionalInfo: [
       { label: 'Energy', value: '884 kcal per 100g' },
@@ -145,8 +145,8 @@ export const PRODUCTS: Product[] = [
       'https://i.pinimg.com/736x/7b/72/ec/7b72ec0a7388518616a22806131e3aae.jpg'
     ],
     variants: [
-      { id: 'kusuma-1l', weight: '1 Litre Glass Bottle', price: 520, originalPrice: 580, inStock: true },
-      { id: 'kusuma-5l', weight: '5 Litres Tin Can', price: 2550, originalPrice: 2850, inStock: true },
+      { id: 'kusuma-1l', weight: '1 Litre', price: 520, originalPrice: 580, inStock: true },
+      { id: 'kusuma-5l', weight: '5 Litres', price: 2550, originalPrice: 2850, inStock: true },
     ],
     nutritionalInfo: [
       { label: 'Energy', value: '884 kcal per 100g' },
@@ -175,8 +175,8 @@ export const PRODUCTS: Product[] = [
       'https://i.pinimg.com/736x/13/18/8d/13188d1e419f405b39e9dc48669c823e.jpg'
     ],
     variants: [
-      { id: 'mustard-1l', weight: '1 Litre Glass Bottle', price: 380, originalPrice: 430, inStock: true },
-      { id: 'mustard-5l', weight: '5 Litres Tin Can', price: 1850, originalPrice: 2100, inStock: true },
+      { id: 'mustard-1l', weight: '1 Litre', price: 380, originalPrice: 430, inStock: true },
+      { id: 'mustard-5l', weight: '5 Litres', price: 1850, originalPrice: 2100, inStock: true },
     ],
     nutritionalInfo: [
       { label: 'Energy', value: '884 kcal per 100g' },
@@ -205,8 +205,8 @@ export const PRODUCTS: Product[] = [
       'https://images.pexels.com/photos/11809347/pexels-photo-11809347.jpeg?_gl=1*1y4fvrj*_ga*MTI2MzM2MDI2Ni4xNzg1MzQ0OTYz*_ga_8JE65Q40S6*czE3ODUzNDQ5NzEkajUxJGwwJGgw'
     ],
     variants: [
-      { id: 'coco-1l', weight: '1 Litre Glass Bottle', price: 680, originalPrice: 750, inStock: true },
-      { id: 'coco-500ml', weight: '500 ml Glass Jar', price: 350, originalPrice: 400, inStock: true },
+      { id: 'coco-1l', weight: '1 Litre', price: 680, originalPrice: 750, inStock: true },
+      { id: 'coco-500ml', weight: '500 ml', price: 350, originalPrice: 400, inStock: true },
     ],
     nutritionalInfo: [
       { label: 'Energy', value: '862 kcal per 100g' },
@@ -236,9 +236,9 @@ export const PRODUCTS: Product[] = [
       'https://images.unsplash.com/photo-1589647363585-f4a7d3877b10?q=80&w=1172&auto=format&fit=crop'
     ],
     variants: [
-      { id: 'paneer-250g', weight: '250g (¼ KG) Vacuum Pack', price: 300, originalPrice: 340, inStock: true },
-      { id: 'paneer-500g', weight: '500g (½ KG) Vacuum Pack', price: 600, originalPrice: 680, inStock: true },
-      { id: 'paneer-1kg', weight: '1000g (1 KG) Vacuum Pack', price: 1200, originalPrice: 1350, inStock: true },
+      { id: 'paneer-250g', weight: '250g', price: 300, originalPrice: 340, inStock: true },
+      { id: 'paneer-500g', weight: '500g', price: 600, originalPrice: 680, inStock: true },
+      { id: 'paneer-1kg', weight: '1 KG', price: 1200, originalPrice: 1350, inStock: true },
     ],
     nutritionalInfo: [
       { label: 'Energy', value: '298 kcal per 100g' },
@@ -268,8 +268,8 @@ export const PRODUCTS: Product[] = [
       'https://i.pinimg.com/736x/7f/4f/82/7f4f8291d388e9ab37c955181c227f08.jpg'
     ],
     variants: [
-      { id: 'eggs-6', weight: '6 Eggs Pack', price: 90, originalPrice: 115, inStock: true },
-      { id: 'eggs-12', weight: '12 Eggs (1 Dozen) Pack', price: 170, originalPrice: 210, inStock: true },
+      { id: 'eggs-6', weight: '6 Eggs', price: 90, originalPrice: 115, inStock: true },
+      { id: 'eggs-12', weight: '12 Eggs', price: 170, originalPrice: 210, inStock: true },
     ],
     nutritionalInfo: [
       { label: 'Energy', value: '155 kcal per 100g' },
