@@ -139,8 +139,13 @@ export const Navbar: React.FC<NavbarProps> = ({
               
               <Link 
                 href="/" 
-                onClick={() => setSelectedCategory('all')}
-                className="flex items-center space-x-2 group shrink-0"
+                onClick={(e) => {
+                  setSelectedCategory('all');
+                  if (typeof window !== 'undefined') {
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }
+                }}
+                className="flex items-center space-x-2 group shrink-0 cursor-pointer"
               >
                 <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-gradient-to-br from-[#3A5303] to-[#253702] text-white flex items-center justify-center font-bold shadow-sm ring-2 ring-[#94C000]/30 shrink-0 group-hover:scale-105 transition-transform">
                   <Leaf className="w-4 h-4 sm:w-5 sm:h-5 text-[#94C000]" />
@@ -371,12 +376,22 @@ export const Navbar: React.FC<NavbarProps> = ({
                 
                 {/* Header inside Mobile Drawer */}
                 <div className="flex items-center justify-between border-b border-stone-200 pb-4 pt-1">
-                  <div className="flex items-center space-x-2">
+                  <Link 
+                    href="/"
+                    onClick={() => {
+                      setSelectedCategory('all');
+                      setMobileMenuOpen(false);
+                      if (typeof window !== 'undefined') {
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                      }
+                    }}
+                    className="flex items-center space-x-2 cursor-pointer group"
+                  >
                     <div className="w-8 h-8 rounded-xl bg-[#3A5303] text-white flex items-center justify-center font-bold shadow-sm">
                       <Leaf className="w-4 h-4 text-[#94C000]" />
                     </div>
                     <span className="text-xl font-serif text-[#3A5303] font-bold italic">Brindavanam</span>
-                  </div>
+                  </Link>
                   <button 
                     onClick={() => setMobileMenuOpen(false)} 
                     className="p-2 text-stone-500 hover:text-stone-900 rounded-xl bg-stone-100 transition-colors cursor-pointer"

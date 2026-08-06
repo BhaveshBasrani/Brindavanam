@@ -29,10 +29,10 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   };
 
   return (
-    <div className="bg-white rounded-3xl border border-stone-200/90 p-4 sm:p-5 flex flex-col justify-between hover:border-[#3A5303] transition-all duration-300 group shadow-xs hover:shadow-md">
+    <div className="bg-white rounded-3xl border border-stone-200/90 p-4 sm:p-5 flex flex-col justify-between hover:border-[#3A5303] transition-all duration-300 group shadow-xs hover:shadow-md h-full">
       <div>
         {/* Product Image Link to Detail Page */}
-        <div className="relative aspect-[16/10] sm:aspect-[16/11] rounded-2xl overflow-hidden bg-stone-100 mb-3.5">
+        <div className="relative aspect-[16/11] rounded-2xl overflow-hidden bg-stone-100 mb-3">
           <Link href={`/products/${product.id}`} className="block w-full h-full">
             <img
               src={imgSrc}
@@ -44,17 +44,17 @@ export const ProductCard: React.FC<ProductCardProps> = ({
           </Link>
           
           {product.badge && (
-            <span className="absolute top-3 left-3 bg-[#3A5303] text-white text-[9px] uppercase tracking-wider font-bold px-2.5 py-1 rounded-md shadow-xs">
+            <span className="absolute top-2.5 left-2.5 bg-[#3A5303] text-white text-[9px] uppercase tracking-wider font-bold px-2.5 py-1 rounded-md shadow-xs">
               {product.badge}
             </span>
           )}
 
           <button
             onClick={() => onQuickView(product)}
-            className="absolute top-3 right-3 p-2 bg-white/90 hover:bg-white text-stone-800 rounded-full shadow-md transition-all active:scale-90"
+            className="absolute top-2.5 right-2.5 p-2 bg-white/90 hover:bg-white text-stone-800 rounded-full shadow-md transition-all active:scale-90"
             title="Quick View Details"
           >
-            <Eye className="w-4 h-4 text-[#3A5303]" />
+            <Eye className="w-3.5 h-3.5 text-[#3A5303]" />
           </button>
         </div>
 
@@ -67,7 +67,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 
           <Link
             href={`/products/${product.id}`}
-            className="text-base sm:text-lg font-serif font-bold text-stone-900 group-hover:text-[#3A5303] transition-colors leading-snug block"
+            className="text-base sm:text-lg font-serif font-bold text-stone-900 group-hover:text-[#3A5303] transition-colors leading-snug block line-clamp-1"
             title={product.name}
           >
             {product.name}
@@ -105,7 +105,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 
           <button
             onClick={handleAdd}
-            className={`px-4 sm:px-5 py-2.5 text-xs font-bold uppercase tracking-wider rounded-xl transition-all active:scale-95 shadow-md flex items-center space-x-1.5 cursor-pointer ${
+            className={`px-4 sm:px-5 py-2.5 text-xs font-bold uppercase tracking-wider rounded-xl transition-all active:scale-95 shadow-md flex items-center space-x-1.5 cursor-pointer shrink-0 ${
               added
                 ? 'bg-emerald-700 text-white'
                 : 'bg-[#3A5303] hover:bg-[#2b3e02] text-white'
@@ -119,7 +119,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
             ) : (
               <>
                 <ShoppingBag className="w-3.5 h-3.5 text-[#94C000]" />
-                <span>Add to Bag</span>
+                <span>+ Add</span>
               </>
             )}
           </button>

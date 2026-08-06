@@ -109,24 +109,24 @@ function HomePageContent() {
         }} />
 
         {/* Store Catalog Section */}
-        <section id="catalog" className="py-12 sm:py-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto scroll-mt-20">
-          <div className="flex flex-col md:flex-row md:items-end justify-between mb-8">
+        <section id="catalog" className="py-6 sm:py-8 px-3 sm:px-6 lg:px-8 max-w-7xl mx-auto scroll-mt-20">
+          <div className="flex flex-col md:flex-row md:items-end justify-between mb-4">
             <div>
-              <span className="text-xs uppercase tracking-[0.2em] font-bold text-[#3A5303] mb-1.5 block">
+              <span className="text-[10px] uppercase tracking-[0.2em] font-bold text-[#3A5303] mb-1 block">
                 100% Certified Farm Produce
               </span>
-              <h2 className="text-2xl sm:text-3xl font-serif text-stone-900 font-normal">
+              <h2 className="text-xl sm:text-2xl font-serif text-stone-900 font-bold">
                 {getCategoryTitle()}
               </h2>
             </div>
-            <p className="text-xs sm:text-sm text-stone-600 max-w-md mt-2 md:mt-0 font-light leading-relaxed">
+            <p className="text-xs text-stone-500 max-w-md mt-1 md:mt-0 font-light leading-snug">
               Every item is hand-bottled at our farm in Hyderabad without heat processing, chemicals, or artificial preservatives.
             </p>
           </div>
 
           {filteredProducts.length === 0 ? (
-            <div className="text-center py-20 bg-white rounded-3xl border border-stone-200 shadow-sm">
-              <p className="text-stone-500 font-serif text-lg">No organic produce found matching your filter.</p>
+            <div className="text-center py-16 bg-white rounded-3xl border border-stone-200 shadow-sm">
+              <p className="text-stone-500 font-serif text-base">No organic produce found matching your filter.</p>
               <button
                 onClick={() => {
                   setSelectedCategory('all');
@@ -138,7 +138,13 @@ function HomePageContent() {
               </button>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5 sm:gap-6">
+            <div className={`grid gap-6 ${
+              filteredProducts.length === 1
+                ? 'grid-cols-1 max-w-md'
+                : filteredProducts.length === 2
+                ? 'grid-cols-1 sm:grid-cols-2 max-w-3xl'
+                : 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4'
+            }`}>
               {filteredProducts.map((product) => (
                 <ProductCard
                   key={product.id}

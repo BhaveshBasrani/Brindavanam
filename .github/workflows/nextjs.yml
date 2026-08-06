@@ -1,4 +1,4 @@
-name: Deploy Brindavanam to GitHub Pages
+name: Deploy Next.js site to Pages
 
 on:
   push:
@@ -18,7 +18,6 @@ jobs:
   build:
     name: Build Next.js Static Export
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
