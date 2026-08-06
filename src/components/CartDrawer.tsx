@@ -104,13 +104,23 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
             {/* Free Shipping Progress Indicator (₹2000 Min) */}
             <div className="mt-4 bg-white p-3 rounded-xl border border-stone-200 text-xs">
               {rawSubtotal >= freeShippingThreshold ? (
-                <p className="text-emerald-700 font-bold flex items-center">
-                  <Truck className="w-4 h-4 mr-1.5 text-[#3A5303]" /> 🎉 Congratulations! You qualify for FREE Delivery
-                </p>
+                <div>
+                  <p className="text-emerald-700 font-bold flex items-center">
+                    <Truck className="w-4 h-4 mr-1.5 text-[#3A5303] shrink-0" /> 🎉 Congratulations! You qualify for FREE Delivery
+                  </p>
+                  <p className="text-[11px] text-stone-600 font-medium mt-1 leading-snug">
+                    Please make sure the total order amount exceeds ₹5,000 to qualify for an additional 10% discount.
+                  </p>
+                </div>
               ) : (
-                <p className="text-stone-600 font-medium">
-                  Add <span className="font-bold text-[#3A5303]">₹{freeShippingThreshold - rawSubtotal}</span> more for <span className="font-bold text-emerald-700">FREE Shipping (₹2000 Min)</span>
-                </p>
+                <div>
+                  <p className="text-stone-600 font-medium">
+                    Add <span className="font-bold text-[#3A5303]">₹{freeShippingThreshold - rawSubtotal}</span> more for <span className="font-bold text-emerald-700">FREE Shipping (₹2000 Min)</span>
+                  </p>
+                  <p className="text-[11px] text-stone-500 font-normal mt-0.5 leading-snug">
+                    Please make sure the total order amount exceeds ₹5,000 to qualify for an additional 10% discount.
+                  </p>
+                </div>
               )}
               <div className="w-full bg-stone-200 h-2 rounded-full mt-2 overflow-hidden">
                 <div

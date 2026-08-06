@@ -102,24 +102,26 @@ function HomePageContent() {
 
       <main className="flex-1">
         
-        {/* Top Hero Banner (Title reduced 50-60%, pagination dots removed) */}
-        <HeroBanner onShopNow={() => {
-          const element = document.getElementById('catalog');
-          element?.scrollIntoView({ behavior: 'smooth' });
-        }} />
+        {/* Top Hero Banner (Only shown on main 'all' view with no search filter to avoid blocking category products) */}
+        {selectedCategory === 'all' && !searchQuery && (
+          <HeroBanner onShopNow={() => {
+            const element = document.getElementById('catalog');
+            element?.scrollIntoView({ behavior: 'smooth' });
+          }} />
+        )}
 
         {/* Store Catalog Section */}
-        <section id="catalog" className="py-16 sm:py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-          <div className="flex flex-col md:flex-row md:items-end justify-between mb-12">
+        <section id="catalog" className={`px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto ${selectedCategory !== 'all' || searchQuery ? 'pt-28 sm:pt-32 pb-16' : 'py-12 sm:py-16'}`}>
+          <div className="flex flex-col md:flex-row md:items-end justify-between mb-8">
             <div>
-              <span className="text-xs uppercase tracking-[0.2em] font-bold text-[#3A5303] mb-2 block">
+              <span className="text-xs uppercase tracking-[0.2em] font-bold text-[#3A5303] mb-1.5 block">
                 100% Certified Farm Produce
               </span>
-              <h2 className="text-3xl sm:text-4xl font-serif text-stone-900">
+              <h2 className="text-2xl sm:text-3xl font-serif text-stone-900 font-normal">
                 {getCategoryTitle()}
               </h2>
             </div>
-            <p className="text-xs sm:text-sm text-stone-600 max-w-md mt-2 md:mt-0 font-light">
+            <p className="text-xs sm:text-sm text-stone-600 max-w-md mt-2 md:mt-0 font-light leading-relaxed">
               Every item is hand-bottled at our farm in Hyderabad without heat processing, chemicals, or artificial preservatives.
             </p>
           </div>
@@ -138,7 +140,7 @@ function HomePageContent() {
               </button>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
               {filteredProducts.map((product) => (
                 <ProductCard
                   key={product.id}

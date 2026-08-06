@@ -105,7 +105,7 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({ onShopNow }) => {
             </div>
 
             {/* Key Value Props */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1 text-left max-w-lg mx-auto lg:mx-0 text-xs font-medium text-stone-700">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1 text-left max-w-lg mx-auto lg:mx-0 text-xs font-medium text-stone-700">
               <div className="flex items-center space-x-2 bg-white/80 p-2 rounded-xl border border-stone-200/80 shadow-xs">
                 <CheckCircle2 className="w-3.5 h-3.5 text-[#3A5303] shrink-0" />
                 <span>Wood-Fire Hand Churned</span>
@@ -113,10 +113,6 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({ onShopNow }) => {
               <div className="flex items-center space-x-2 bg-white/80 p-2 rounded-xl border border-stone-200/80 shadow-xs">
                 <CheckCircle2 className="w-3.5 h-3.5 text-[#3A5303] shrink-0" />
                 <span>Zero Chemicals or Bleach</span>
-              </div>
-              <div className="flex items-center space-x-2 bg-white/80 p-2 rounded-xl border border-stone-200/80 shadow-xs">
-                <CheckCircle2 className="w-3.5 h-3.5 text-[#3A5303] shrink-0" />
-                <span>Glass Packaging</span>
               </div>
             </div>
 

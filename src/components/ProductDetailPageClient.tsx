@@ -112,14 +112,14 @@ function ProductDetailPageContent({ id }: { id: string }) {
         setSelectedCategory={() => {}}
       />
 
-      <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 w-full">
-        {/* Breadcrumb */}
-        <div className="mb-8 pt-16 lg:pt-20">
+      <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 sm:pt-28 pb-12 w-full">
+        {/* Breadcrumb Header */}
+        <div className="mb-4">
           <Link
             href="/"
-            className="inline-flex items-center text-xs text-stone-500 hover:text-[#3A5303] transition-colors font-medium"
+            className="inline-flex items-center text-xs text-stone-500 hover:text-[#3A5303] transition-colors font-bold uppercase tracking-wider bg-white px-3 py-1.5 rounded-full border border-stone-200 shadow-xs"
           >
-            <ArrowLeft className="w-3.5 h-3.5 mr-1" /> Back to Storefront
+            <ArrowLeft className="w-3.5 h-3.5 mr-1.5 text-[#3A5303]" /> Back to Storefront
           </Link>
         </div>
 

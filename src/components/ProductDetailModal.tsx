@@ -119,7 +119,7 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
 
             <div className="pt-4 flex items-center space-x-2 text-[11px] text-stone-500 font-medium">
               <ShieldCheck className="w-4 h-4 text-[#3A5303]" />
-              <span>100% Certified Organic • Glass Bottle Sealed • Express Dispatch</span>
+              <span>100% Certified Organic • Native Farm Pure • Express Dispatch</span>
             </div>
           </div>
 

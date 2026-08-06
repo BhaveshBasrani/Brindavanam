@@ -82,14 +82,14 @@ function CartPageContent() {
 
       <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 w-full">
         
-        {/* Breadcrumb Header */}
+        {/* Breadcrumb Header with Prominent Home Button */}
         <div className="mb-8">
           <Link
             href="/"
-            className="inline-flex items-center text-xs font-semibold text-stone-500 hover:text-[#3A5303] transition-colors mb-4"
+            className="inline-flex items-center space-x-2 bg-[#3A5303] text-white hover:bg-[#2b3e02] px-5 py-2.5 rounded-2xl text-xs font-bold uppercase tracking-wider shadow-md hover:shadow-lg transition-all mb-4 cursor-pointer"
           >
-            <ArrowLeft className="w-4 h-4 mr-1" />
-            Back to Produce Store
+            <ArrowLeft className="w-4 h-4 text-[#94C000]" />
+            <span>← Return to Home / Storefront</span>
           </Link>
           <h1 className="text-3xl sm:text-4xl font-serif text-stone-900 font-bold">Your Organic Produce Cart</h1>
           <p className="text-xs text-stone-500 mt-1 font-light">Direct dispatch from Brindavanam Nature Centre</p>
@@ -108,7 +108,7 @@ function CartPageContent() {
               href="/"
               className="inline-block px-8 py-3 bg-[#3A5303] text-white font-bold text-xs uppercase tracking-wider rounded-xl hover:bg-[#2b3e02] shadow-md transition-all"
             >
-              Browse Organic Lineup
+              ← Return to Home / Storefront
             </Link>
           </div>
         ) : (
@@ -118,19 +118,29 @@ function CartPageContent() {
             <div className="lg:col-span-2 space-y-4">
               
               {/* Free Shipping Callout */}
-              <div className="bg-white p-4 rounded-2xl border border-stone-200 shadow-xs space-y-2">
+              <div className="bg-white p-4.5 rounded-2xl border border-stone-200 shadow-xs space-y-2">
                 <div className="flex items-center justify-between text-xs">
                   {rawSubtotal >= freeShippingThreshold ? (
-                    <span className="font-bold text-emerald-700 flex items-center">
-                      <Truck className="w-4 h-4 mr-1.5 text-[#3A5303]" />
-                      🎉 You unlocked FREE Express Delivery (Orders ₹2000+)!
-                    </span>
+                    <div>
+                      <span className="font-bold text-emerald-700 flex items-center text-xs sm:text-sm">
+                        <Truck className="w-4 h-4 mr-1.5 text-[#3A5303] shrink-0" />
+                        🎉 Congratulations! You qualify for FREE Delivery
+                      </span>
+                      <p className="text-[11px] text-stone-600 font-medium mt-1">
+                        Please make sure the total order amount exceeds ₹5,000 to qualify for an additional 10% discount.
+                      </p>
+                    </div>
                   ) : (
-                    <span className="text-stone-600 font-medium">
-                      Add <span className="font-bold text-[#3A5303]">₹{freeShippingThreshold - rawSubtotal}</span> more for <span className="font-bold text-emerald-700">FREE Shipping (₹2000 Min)</span>
-                    </span>
+                    <div>
+                      <span className="text-stone-700 font-medium">
+                        Add <span className="font-bold text-[#3A5303]">₹{freeShippingThreshold - rawSubtotal}</span> more for <span className="font-bold text-emerald-700">FREE Shipping (₹2000 Min)</span>
+                      </span>
+                      <p className="text-[11px] text-stone-500 font-normal mt-0.5">
+                        Please make sure the total order amount exceeds ₹5,000 to qualify for an additional 10% discount.
+                      </p>
+                    </div>
                   )}
-                  <span className="font-bold text-stone-500">{progressToFreeShipping}%</span>
+                  <span className="font-bold text-stone-500 shrink-0 ml-2">{progressToFreeShipping}%</span>
                 </div>
                 <div className="w-full bg-stone-100 h-2 rounded-full overflow-hidden">
                   <div
