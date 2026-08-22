@@ -202,6 +202,11 @@ function HomePageContent() {
           setQuickViewProduct(null);
           setIsCartDrawerOpen(true);
         }}
+        onBuyNow={(p, v, q) => {
+          addToCart(p, v, q);
+          setQuickViewProduct(null);
+          setIsCheckoutOpen(true);
+        }}
       />
 
       {/* Checkout Modal */}

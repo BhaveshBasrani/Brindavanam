@@ -23,9 +23,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   const [imgSrc, setImgSrc] = useState<string>(product.images[0] || FALLBACK_IMAGE);
 
   const handleAdd = () => {
-    onAddToCart(product, selectedVariant, 1);
-    setAdded(true);
-    setTimeout(() => setAdded(false), 1500);
+    onQuickView(product);
   };
 
   return (
