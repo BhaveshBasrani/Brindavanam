@@ -165,7 +165,7 @@ function HomePageContent() {
         ) : (
           /* VIEW B: DEFAULT HOME PAGE VIEW (When All Products is NOT clicked) */
           <div className="pt-24 sm:pt-28">
-            {/* Pure. Natural. Honest. Nature Centre Section with 4 Pillars & Green Commitment Card */}
+            {/* Pure. Natural. Honest. Farms Section with 4 Pillars & Green Commitment Card */}
             <BrindavanamNatureSection onSelectCategory={handleSetSelectedCategory} />
 
             {/* Customer Reviews & Testimonials */}

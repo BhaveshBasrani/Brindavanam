@@ -76,7 +76,7 @@ const DEFAULT_REVIEWS: CustomerReviewItem[] = [
     produceTag: 'milk',
     produceName: 'Pure A2 Desi Cow Raw Milk',
     headline: 'Fresh Morning Farm Milk Delivery — Thick Cream Layer Every Day!',
-    review: 'Finding real A2 Gir Cow milk in Hyderabad used to be a struggle until we found Brindavanam Nature Centre. The daily delivery is eco-friendly, and the thick cream top makes the richest curd we’ve ever tasted.',
+    review: 'Finding real A2 Gir Cow milk in Hyderabad used to be a struggle until we found Brindavanam Farms. The daily delivery is eco-friendly, and the thick cream top makes the richest curd we’ve ever tasted.',
     verified: true,
     likes: 115,
     date: '1 Week Ago',
@@ -176,7 +176,7 @@ export const TestimonialSection: React.FC = () => {
               Loved By Wellness Families & Home Chefs Across India
             </h2>
             <p className="text-stone-400 text-sm font-light leading-relaxed">
-              Read real stories from thousands of families in Jubilee Hills, Banjara Hills, Gachibowli & pan-India who trust Brindavanam Nature Centre for their daily A2 Bilona Ghee, Wood-Pressed Oils & Fresh Produce.
+              Read real stories from thousands of families in Jubilee Hills, Banjara Hills, Gachibowli & pan-India who trust Brindavanam Farms for their daily A2 Bilona Ghee, Wood-Pressed Oils & Fresh Produce.
             </p>
           </div>
 
@@ -336,7 +336,7 @@ export const TestimonialSection: React.FC = () => {
               <div className="text-center py-10 space-y-3">
                 <CheckCircle2 className="w-12 h-12 text-[#94C000] mx-auto animate-bounce" />
                 <h4 className="text-lg font-serif text-white">Thank You for Your Feedback!</h4>
-                <p className="text-xs text-stone-300">Your review has been saved and published live across Brindavanam Nature Centre.</p>
+                <p className="text-xs text-stone-300">Your review has been saved and published live across Brindavanam Farms.</p>
               </div>
             ) : (
               <form onSubmit={handleSubmitReview} className="space-y-4 text-xs">

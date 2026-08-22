@@ -225,7 +225,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
         key: razorpayKey,
         amount: totalAmount * 100,
         currency: 'INR',
-        name: 'Brindavanam Nature Centre',
+        name: 'Brindavanam Farms',
         description: '100% Pure A2 Bilona Ghee & Wood-Pressed Lineup',
         image: 'https://images.pexels.com/photos/20689447/pexels-photo-20689447.jpeg',
         handler: function (response: any) {
@@ -566,7 +566,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
             <Loader2 className="w-12 h-12 text-[#3A5303] animate-spin mx-auto" />
             <h3 className="text-xl font-serif text-stone-900 font-bold">Registering Order & Generating Invoice...</h3>
             <p className="text-xs text-stone-500 font-light max-w-sm mx-auto">
-              Please wait while your order is saved to Brindavanam Nature Centre and an official tax invoice email is dispatched.
+              Please wait while your order is saved to Brindavanam Farms and an official tax invoice email is dispatched.
             </p>
           </div>
         )}

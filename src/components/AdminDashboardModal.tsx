@@ -254,7 +254,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
       <!DOCTYPE html>
       <html>
         <head>
-          <title>Official Invoice #${order.id} - Brindavanam Nature Centre</title>
+          <title>Official Invoice #${order.id} - Brindavanam Farms</title>
           <style>
             @page { size: A4; margin: 12mm; }
             body { font-family: 'Helvetica Neue', Arial, sans-serif; color: #1c260b; margin: 0; padding: 24px; background: #ffffff; }
@@ -275,7 +275,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
         <body>
           <div class="header">
             <div>
-              <div class="brand">Brindavanam Nature Centre</div>
+              <div class="brand">Brindavanam Farms</div>
               <div class="subbrand">Hyderabad, Telangana, India</div>
               <div style="font-size: 11px; color: #555; margin-top: 4px;">Official Contact: brundavanamteam@gmail.com</div>
             </div>
@@ -328,7 +328,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
           </div>
 
           <div class="footer">
-            <div>Brindavanam Nature Centre • Hyderabad</div>
+            <div>Brindavanam Farms • Hyderabad</div>
             <div style="font-weight: bold; color: #94C000;">Powered By Rendervoid</div>
           </div>
 
@@ -472,7 +472,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
       name: newProdName,
       subtitle: newProdSubtitle || 'Fresh Organic Farm Harvest',
       category: newProdCategory,
-      description: newProdDescription || 'Handcrafted at Brindavanam Nature Centre with traditional Vedic methods.',
+      description: newProdDescription || 'Handcrafted at Brindavanam Farms with traditional Vedic methods.',
       healthBenefits: ['100% Pure Organic', 'Zero Preservatives', 'Rich in essential nutrients'],
       extractionMethod: 'Traditional Marachekku Wood Pressed / Hand-Churned Bilona',
       badge: newProdBadge,

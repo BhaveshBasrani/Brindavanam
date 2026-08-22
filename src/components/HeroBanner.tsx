@@ -63,7 +63,7 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({ onShopNow }) => {
             
             <div className="inline-flex items-center space-x-2 px-3.5 py-1 rounded-full bg-[#3A5303]/10 border border-[#3A5303]/20 text-[#3A5303] text-[11px] font-bold uppercase tracking-widest mx-auto lg:mx-0">
               <Sparkles className="w-3.5 h-3.5 text-[#94C000]" />
-              <span>Brindavanam Nature Centre</span>
+              <span>Brindavanam Farms</span>
             </div>
 
             {/* Client Requested Headline */}
@@ -73,7 +73,7 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({ onShopNow }) => {
 
             {/* Client Requested Brand Mission Statement */}
             <p className="text-stone-600 text-xs sm:text-sm font-light leading-relaxed max-w-2xl mx-auto lg:mx-0">
-              Welcome to Brindavanam Nature Centre, where every product is prepared with care, purity, and respect for nature. We believe that healthy food begins with healthy farming, happy animals, and honest practices. Our mission is to bring farm-fresh, chemical-free products directly to your family.
+              Welcome to Brindavanam Farms, where every product is prepared with care, purity, and respect for nature. We believe that healthy food begins with healthy farming, happy animals, and honest practices. Our mission is to bring farm-fresh, chemical-free products directly to your family.
             </p>
 
             {/* Dynamic Product Spotlight Tag (Clickable to jump to catalog) */}

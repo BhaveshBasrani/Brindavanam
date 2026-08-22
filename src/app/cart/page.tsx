@@ -92,7 +92,7 @@ function CartPageContent() {
             <span>← Return to Home </span>
           </Link>
           <h1 className="text-3xl sm:text-4xl font-serif text-stone-900 font-bold">Your Organic Produce Cart</h1>
-          <p className="text-xs text-stone-500 mt-1 font-light">Direct dispatch from Brindavanam Nature Centre</p>
+          <p className="text-xs text-stone-500 mt-1 font-light">Direct dispatch from Brindavanam Farms</p>
         </div>
 
         {cartItems.length === 0 ? (

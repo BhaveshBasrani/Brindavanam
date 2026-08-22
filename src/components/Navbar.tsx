@@ -524,7 +524,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 )}
 
                 <div className="text-[10px] text-stone-400 text-center font-medium">
-                  © 2026 Brindavanam Nature Centre
+                  © 2026 Brindavanam Farms
                 </div>
               </div>
 

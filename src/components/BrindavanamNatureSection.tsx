@@ -15,13 +15,13 @@ export const BrindavanamNatureSection: React.FC<BrindavanamNatureSectionProps> =
         {/* Intro Header */}
         <div className="text-center max-w-3xl mx-auto space-y-4">
           <span className="text-xs uppercase tracking-[0.2em] font-bold text-[#3A5303] bg-[#3A5303]/10 px-4 py-1.5 rounded-full inline-block">
-            Brindavanam Nature Centre
+            Brindavanam Farms
           </span>
           <h2 className="text-3xl sm:text-5xl font-serif text-stone-900 font-normal">
             Pure. Natural. Honest.
           </h2>
           <p className="text-sm sm:text-base text-stone-600 font-light leading-relaxed">
-            Welcome to Brindavanam Nature Centre, where every product is prepared with care, purity, and respect for nature. We believe that healthy food begins with healthy farming, happy animals, and honest practices. Our mission is to bring farm-fresh, chemical-free products directly to your family.
+            Welcome to Brindavanam Farms, where every product is prepared with care, purity, and respect for nature. We believe that healthy food begins with healthy farming, happy animals, and honest practices. Our mission is to bring farm-fresh, chemical-free products directly to your family.
           </p>
         </div>
 
@@ -194,7 +194,7 @@ export const BrindavanamNatureSection: React.FC<BrindavanamNatureSectionProps> =
         <div className="bg-[#3A5303] text-white p-8 sm:p-10 rounded-3xl text-center space-y-3 shadow-xl">
           <h3 className="text-xl sm:text-2xl font-serif font-normal">Our Commitment to Your Family</h3>
           <p className="text-xs sm:text-sm text-stone-200 font-light max-w-3xl mx-auto leading-relaxed">
-            At Brindavanam Nature Centre, purity is our commitment. We believe food should be as nature intended—fresh, wholesome, and free from unnecessary chemicals. Every product reflects our dedication to quality, sustainability, and the well-being of your family.
+            At Brindavanam Farms, purity is our commitment. We believe food should be as nature intended—fresh, wholesome, and free from unnecessary chemicals. Every product reflects our dedication to quality, sustainability, and the well-being of your family.
           </p>
           <div className="pt-2">
             <button
