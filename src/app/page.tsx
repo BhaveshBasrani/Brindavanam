@@ -50,41 +50,11 @@ function HomePageContent() {
   const handleSetSelectedCategory = (cat: string) => {
     setSelectedCategory(cat);
     if (cat) {
-      isProgrammaticScroll.current = true;
-      setTimeout(() => {
-        isProgrammaticScroll.current = false;
-      }, 1200);
-
-      // If this category contains a single product, automatically open the product page modal
-      if (cat !== 'all') {
-        const matchingProducts = products.filter((p) => p.category === cat);
-        if (matchingProducts.length === 1) {
-          setTimeout(() => {
-            setQuickViewProduct(matchingProducts[0]);
-          }, 350);
-        }
+      if (typeof window !== 'undefined') {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
       }
     }
   };
-
-  useEffect(() => {
-    const handleScroll = () => {
-      if (isProgrammaticScroll.current) return;
-      const catalogEl = document.getElementById('catalog');
-      if (catalogEl) {
-        const rect = catalogEl.getBoundingClientRect();
-        // When user scrolls back up into hero area so catalog is well below top
-        if (rect.top > 250) {
-          setSelectedCategory('');
-        }
-      } else if (window.scrollY < 200) {
-        setSelectedCategory('');
-      }
-    };
-
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
 
   useEffect(() => {
     const checkAdminHash = () => {
@@ -142,76 +112,69 @@ function HomePageContent() {
       />
 
       <main className="flex-1">
-        
-        {/* Top Hero Banner */}
-        <HeroBanner onShopNow={() => {
-          handleSetSelectedCategory('all');
-          setTimeout(() => {
-            const element = document.getElementById('catalog');
-            if (element) {
-              element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }
-          }, 50);
-        }} />
+        {selectedCategory ? (
+          /* VIEW A: ALL PRODUCTS / CATEGORY VIEW - Catalog at the top without Hero section */
+          <div className="pt-28 sm:pt-32 pb-16">
+            <section id="catalog" className="py-6 sm:py-8 px-3 sm:px-6 lg:px-8 max-w-7xl mx-auto scroll-mt-28">
+              <div className="flex flex-col md:flex-row md:items-end justify-between mb-6">
+                <div>
+                  <span className="text-[10px] uppercase tracking-[0.2em] font-bold text-[#3A5303] mb-1 block">
+                    100% Certified Farm Produce
+                  </span>
+                  <h2 className="text-xl sm:text-2xl font-serif text-stone-900 font-bold">
+                    {getCategoryTitle()}
+                  </h2>
+                </div>
+                <p className="text-xs text-stone-500 max-w-md mt-1 md:mt-0 font-light leading-snug">
+                  Every item is hand-bottled at our farm in Hyderabad without heat processing, chemicals, or artificial preservatives.
+                </p>
+              </div>
 
-        {/* Store Catalog Section */}
-        <section id="catalog" className="py-6 sm:py-8 px-3 sm:px-6 lg:px-8 max-w-7xl mx-auto scroll-mt-28">
-          <div className="flex flex-col md:flex-row md:items-end justify-between mb-4">
-            <div>
-              <span className="text-[10px] uppercase tracking-[0.2em] font-bold text-[#3A5303] mb-1 block">
-                100% Certified Farm Produce
-              </span>
-              <h2 className="text-xl sm:text-2xl font-serif text-stone-900 font-bold">
-                {getCategoryTitle()}
-              </h2>
-            </div>
-            <p className="text-xs text-stone-500 max-w-md mt-1 md:mt-0 font-light leading-snug">
-              Every item is hand-bottled at our farm in Hyderabad without heat processing, chemicals, or artificial preservatives.
-            </p>
+              {filteredProducts.length === 0 ? (
+                <div className="text-center py-16 bg-white rounded-3xl border border-stone-200 shadow-sm">
+                  <p className="text-stone-500 font-serif text-base">No organic produce found matching your filter.</p>
+                  <button
+                    onClick={() => {
+                      setSelectedCategory('all');
+                      setSearchQuery('');
+                    }}
+                    className="mt-4 px-6 py-2 bg-[#3A5303] text-white rounded-full text-xs font-bold uppercase tracking-wider cursor-pointer"
+                  >
+                    Reset Catalog Filter
+                  </button>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                  {filteredProducts.map((product) => (
+                    <ProductCard
+                      key={product.id}
+                      product={product}
+                      onQuickView={(p) => setQuickViewProduct(p)}
+                      onAddToCart={addToCart}
+                    />
+                  ))}
+                </div>
+              )}
+            </section>
+
+            {/* Secondary Nature & Reviews section below products */}
+            <BrindavanamNatureSection onSelectCategory={handleSetSelectedCategory} />
+            <TestimonialSection />
+            <FarmProcessSection />
           </div>
+        ) : (
+          /* VIEW B: DEFAULT HOME PAGE VIEW (When All Products is NOT clicked) */
+          <div className="pt-24 sm:pt-28">
+            {/* Pure. Natural. Honest. Nature Centre Section with 4 Pillars & Green Commitment Card */}
+            <BrindavanamNatureSection onSelectCategory={handleSetSelectedCategory} />
 
-          {filteredProducts.length === 0 ? (
-            <div className="text-center py-16 bg-white rounded-3xl border border-stone-200 shadow-sm">
-              <p className="text-stone-500 font-serif text-base">No organic produce found matching your filter.</p>
-              <button
-                onClick={() => {
-                  setSelectedCategory('all');
-                  setSearchQuery('');
-                }}
-                className="mt-4 px-6 py-2 bg-[#3A5303] text-white rounded-full text-xs font-bold uppercase tracking-wider"
-              >
-                Reset Catalog Filter
-              </button>
-            </div>
-          ) : (
-            <div className={`grid gap-6 ${
-              filteredProducts.length === 1
-                ? 'grid-cols-1 max-w-md'
-                : filteredProducts.length === 2
-                ? 'grid-cols-1 sm:grid-cols-2 max-w-3xl'
-                : 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4'
-            }`}>
-              {filteredProducts.map((product) => (
-                <ProductCard
-                  key={product.id}
-                  product={product}
-                  onQuickView={(p) => setQuickViewProduct(p)}
-                  onAddToCart={addToCart}
-                />
-              ))}
-            </div>
-          )}
-        </section>
+            {/* Customer Reviews & Testimonials */}
+            <TestimonialSection />
 
-        {/* Brindavanam Nature Centre Section (Pure. Natural. Honest.) */}
-        <BrindavanamNatureSection />
-
-        {/* Crazyyy Looking Testimonials Section */}
-        <TestimonialSection />
-
-        {/* Standard of Integrity / Our Ancient Extraction Method (Placed at bottom per Changes.pdf Page 3) */}
-        <FarmProcessSection />
-
+            {/* Ancient Extraction Process & Vedic Standards */}
+            <FarmProcessSection />
+          </div>
+        )}
       </main>
 
       <Footer />

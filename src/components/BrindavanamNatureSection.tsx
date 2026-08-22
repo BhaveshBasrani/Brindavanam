@@ -3,7 +3,11 @@
 import React from 'react';
 import { CheckCircle2 as CheckIcon, Milk, Package, Leaf, Egg, Droplets } from 'lucide-react';
 
-export const BrindavanamNatureSection: React.FC = () => {
+interface BrindavanamNatureSectionProps {
+  onSelectCategory?: (category: string) => void;
+}
+
+export const BrindavanamNatureSection: React.FC<BrindavanamNatureSectionProps> = ({ onSelectCategory }) => {
   return (
     <section id="brindavanam-nature" className="py-16 sm:py-24 bg-white border-y border-stone-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-16">
@@ -193,9 +197,12 @@ export const BrindavanamNatureSection: React.FC = () => {
             At Brindavanam Nature Centre, purity is our commitment. We believe food should be as nature intended—fresh, wholesome, and free from unnecessary chemicals. Every product reflects our dedication to quality, sustainability, and the well-being of your family.
           </p>
           <div className="pt-2">
-            <span className="inline-block px-5 py-2 bg-[#94C000] text-[#1c260b] text-xs font-extrabold rounded-full uppercase tracking-wider">
+            <button
+              onClick={() => onSelectCategory && onSelectCategory('all')}
+              className="inline-block px-6 py-2.5 bg-[#94C000] hover:bg-[#a6d600] text-[#1c260b] text-xs font-extrabold rounded-full uppercase tracking-wider transition-transform active:scale-95 cursor-pointer shadow-md"
+            >
               From Our Farm to Your Home — Naturally.
-            </span>
+            </button>
           </div>
         </div>
 
