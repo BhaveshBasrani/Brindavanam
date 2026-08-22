@@ -41,10 +41,50 @@ function HomePageContent() {
     onOrderSuccess,
   } = useStore();
 
-  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [selectedCategory, setSelectedCategory] = useState<string>('');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
   const [isCartDrawerOpen, setIsCartDrawerOpen] = useState(false);
+  const isProgrammaticScroll = React.useRef(false);
+
+  const handleSetSelectedCategory = (cat: string) => {
+    setSelectedCategory(cat);
+    if (cat) {
+      isProgrammaticScroll.current = true;
+      setTimeout(() => {
+        isProgrammaticScroll.current = false;
+      }, 1200);
+
+      // If this category contains a single product, automatically open the product page modal
+      if (cat !== 'all') {
+        const matchingProducts = products.filter((p) => p.category === cat);
+        if (matchingProducts.length === 1) {
+          setTimeout(() => {
+            setQuickViewProduct(matchingProducts[0]);
+          }, 350);
+        }
+      }
+    }
+  };
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (isProgrammaticScroll.current) return;
+      const catalogEl = document.getElementById('catalog');
+      if (catalogEl) {
+        const rect = catalogEl.getBoundingClientRect();
+        // When user scrolls back up into hero area so catalog is well below top
+        if (rect.top > 250) {
+          setSelectedCategory('');
+        }
+      } else if (window.scrollY < 200) {
+        setSelectedCategory('');
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   useEffect(() => {
     const checkAdminHash = () => {
@@ -62,7 +102,8 @@ function HomePageContent() {
   }, [setIsAdminOpen]);
 
   const filteredProducts = products.filter((product) => {
-    const matchesCategory = selectedCategory === 'all' || product.category === selectedCategory;
+    const matchesCategory =
+      !selectedCategory || selectedCategory === 'all' || product.category === selectedCategory;
     const matchesSearch =
       product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       product.subtitle.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -97,19 +138,24 @@ function HomePageContent() {
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
         selectedCategory={selectedCategory}
-        setSelectedCategory={setSelectedCategory}
+        setSelectedCategory={handleSetSelectedCategory}
       />
 
       <main className="flex-1">
         
         {/* Top Hero Banner */}
         <HeroBanner onShopNow={() => {
-          const element = document.getElementById('catalog');
-          element?.scrollIntoView({ behavior: 'smooth' });
+          handleSetSelectedCategory('all');
+          setTimeout(() => {
+            const element = document.getElementById('catalog');
+            if (element) {
+              element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+          }, 50);
         }} />
 
         {/* Store Catalog Section */}
-        <section id="catalog" className="py-6 sm:py-8 px-3 sm:px-6 lg:px-8 max-w-7xl mx-auto scroll-mt-20">
+        <section id="catalog" className="py-6 sm:py-8 px-3 sm:px-6 lg:px-8 max-w-7xl mx-auto scroll-mt-28">
           <div className="flex flex-col md:flex-row md:items-end justify-between mb-4">
             <div>
               <span className="text-[10px] uppercase tracking-[0.2em] font-bold text-[#3A5303] mb-1 block">

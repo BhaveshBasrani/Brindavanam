@@ -33,7 +33,7 @@ function CartPageContent() {
     onOrderSuccess,
   } = useStore();
 
-  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [selectedCategory, setSelectedCategory] = useState<string>('');
   const [searchQuery, setSearchQuery] = useState<string>('');
 
   const [promoInput, setPromoInput] = useState('');
@@ -124,10 +124,10 @@ function CartPageContent() {
                     <div>
                       <span className="font-bold text-emerald-700 flex items-center text-xs sm:text-sm">
                         <Truck className="w-4 h-4 mr-1.5 text-[#3A5303] shrink-0" />
-                        🎉 Congratulations! You qualify for FREE Delivery
+                        <span>You qualify for FREE Farm Express Delivery</span>
                       </span>
                       <p className="text-[11px] text-stone-600 font-medium mt-1">
-                        Please make sure the total order amount exceeds ₹5,000 to qualify for an additional 10% discount.
+                        Orders exceeding ₹5,000 automatically receive an additional 10% bulk discount.
                       </p>
                     </div>
                   ) : (
@@ -136,7 +136,7 @@ function CartPageContent() {
                         Add <span className="font-bold text-[#3A5303]">₹{freeShippingThreshold - rawSubtotal}</span> more for <span className="font-bold text-emerald-700">FREE Shipping (₹2000 Min)</span>
                       </span>
                       <p className="text-[11px] text-stone-500 font-normal mt-0.5">
-                        Please make sure the total order amount exceeds ₹5,000 to qualify for an additional 10% discount.
+                        Orders exceeding ₹5,000 automatically receive an additional 10% bulk discount.
                       </p>
                     </div>
                   )}
@@ -154,7 +154,7 @@ function CartPageContent() {
               {rawSubtotal >= 5000 && (
                 <div className="bg-emerald-50 p-3.5 rounded-2xl border border-emerald-200 text-xs text-emerald-900 flex items-center space-x-2 font-semibold">
                   <Sparkles className="w-4 h-4 text-emerald-700 shrink-0" />
-                  <span>🎉 Order above ₹5000! Automatic 10% Farm Bulk Discount (₹{bulkDiscount}) applied!</span>
+                  <span>Bulk Farm Order Above ₹5000! Automatic 10% Farm Bulk Discount (₹{bulkDiscount}) applied!</span>
                 </div>
               )}
 

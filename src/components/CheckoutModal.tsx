@@ -217,7 +217,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
     }
 
     setErrorMessage('');
-    const razorpayKey = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || 'rzp_test_brindavanam1902';
+    const razorpayKey = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || 'rzp_live_SioAW0l1hBfU36';
     const win = window as any;
 
     if (typeof window !== 'undefined' && win.Razorpay) {

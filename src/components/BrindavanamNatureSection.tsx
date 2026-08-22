@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { CheckCircle2 as CheckIcon } from 'lucide-react';
+import { CheckCircle2 as CheckIcon, Milk, Package, Leaf, Egg, Droplets } from 'lucide-react';
 
 export const BrindavanamNatureSection: React.FC = () => {
   return (
@@ -27,8 +27,8 @@ export const BrindavanamNatureSection: React.FC = () => {
           {/* Pillar 1: A2 Desi Cow Milk */}
           <div className="bg-[#F7F6F2] p-8 rounded-3xl border border-stone-200/80 space-y-4 shadow-xs">
             <div className="flex items-center space-x-3">
-              <div className="w-12 h-12 rounded-2xl bg-[#3A5303] text-white flex items-center justify-center font-bold text-xl shadow-sm">
-                🥛
+              <div className="w-12 h-12 rounded-2xl bg-[#3A5303] text-[#94C000] flex items-center justify-center font-bold text-xl shadow-sm ring-2 ring-[#94C000]/20">
+                <Milk className="w-6 h-6" />
               </div>
               <div>
                 <h3 className="text-xl font-serif font-bold text-stone-900">A2 Desi Cow Milk</h3>
@@ -70,8 +70,8 @@ export const BrindavanamNatureSection: React.FC = () => {
           {/* Pillar 2: Fresh Paneer */}
           <div className="bg-[#F7F6F2] p-8 rounded-3xl border border-stone-200/80 space-y-4 shadow-xs">
             <div className="flex items-center space-x-3">
-              <div className="w-12 h-12 rounded-2xl bg-[#3A5303] text-white flex items-center justify-center font-bold text-xl shadow-sm">
-                🧀
+              <div className="w-12 h-12 rounded-2xl bg-[#3A5303] text-[#94C000] flex items-center justify-center font-bold text-xl shadow-sm ring-2 ring-[#94C000]/20">
+                <Package className="w-6 h-6" />
               </div>
               <div>
                 <h3 className="text-xl font-serif font-bold text-stone-900">Fresh Desi Paneer</h3>
@@ -109,8 +109,8 @@ export const BrindavanamNatureSection: React.FC = () => {
           {/* Pillar 3: Wood-Pressed Oils */}
           <div className="bg-[#F7F6F2] p-8 rounded-3xl border border-stone-200/80 space-y-4 shadow-xs">
             <div className="flex items-center space-x-3">
-              <div className="w-12 h-12 rounded-2xl bg-[#3A5303] text-white flex items-center justify-center font-bold text-xl shadow-sm">
-                🌿
+              <div className="w-12 h-12 rounded-2xl bg-[#3A5303] text-[#94C000] flex items-center justify-center font-bold text-xl shadow-sm ring-2 ring-[#94C000]/20">
+                <Droplets className="w-6 h-6" />
               </div>
               <div>
                 <h3 className="text-xl font-serif font-bold text-stone-900">Wood-Pressed Oils</h3>
@@ -148,8 +148,8 @@ export const BrindavanamNatureSection: React.FC = () => {
           {/* Pillar 4: Farm Fresh Eggs */}
           <div className="bg-[#F7F6F2] p-8 rounded-3xl border border-stone-200/80 space-y-4 shadow-xs">
             <div className="flex items-center space-x-3">
-              <div className="w-12 h-12 rounded-2xl bg-[#3A5303] text-white flex items-center justify-center font-bold text-xl shadow-sm">
-                🥚
+              <div className="w-12 h-12 rounded-2xl bg-[#3A5303] text-[#94C000] flex items-center justify-center font-bold text-xl shadow-sm ring-2 ring-[#94C000]/20">
+                <Egg className="w-6 h-6" />
               </div>
               <div>
                 <h3 className="text-xl font-serif font-bold text-stone-900">Farm Fresh Eggs</h3>

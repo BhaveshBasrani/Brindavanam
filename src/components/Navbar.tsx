@@ -78,6 +78,46 @@ export const Navbar: React.FC<NavbarProps> = ({
   const repeatMultiplier = Math.max(1, Math.ceil(minItemsRequired / rawItems.length));
   const marqueeItems = Array(repeatMultiplier).fill(rawItems).flat();
 
+  const scrollToCatalog = (catId?: string) => {
+    if (catId !== undefined) {
+      setSelectedCategory(catId);
+    }
+    if (typeof window !== 'undefined') {
+      if (window.location.pathname !== '/') {
+        window.location.href = '/#catalog';
+        return;
+      }
+      
+      const el = document.getElementById('catalog');
+      if (el) {
+        const yOffset = -95;
+        const targetY = Math.max(0, el.getBoundingClientRect().top + window.pageYOffset + yOffset);
+        const startY = window.pageYOffset;
+        const diff = targetY - startY;
+        const duration = 650;
+        let startTime: number | null = null;
+
+        const animateScroll = (currentTime: number) => {
+          if (!startTime) startTime = currentTime;
+          const elapsed = currentTime - startTime;
+          const progress = Math.min(elapsed / duration, 1);
+          // easeInOutCubic curve
+          const ease = progress < 0.5 
+            ? 4 * progress * progress * progress 
+            : 1 - Math.pow(-2 * progress + 2, 3) / 2;
+          
+          window.scrollTo(0, startY + diff * ease);
+
+          if (progress < 1) {
+            window.requestAnimationFrame(animateScroll);
+          }
+        };
+
+        window.requestAnimationFrame(animateScroll);
+      }
+    }
+  };
+
   return (
     <>
       {/* Dynamic Floating Header Wrapper */}
@@ -140,8 +180,9 @@ export const Navbar: React.FC<NavbarProps> = ({
               <Link 
                 href="/" 
                 onClick={(e) => {
-                  setSelectedCategory('all');
-                  if (typeof window !== 'undefined') {
+                  setSelectedCategory('');
+                  if (typeof window !== 'undefined' && window.location.pathname === '/') {
+                    e.preventDefault();
                     window.scrollTo({ top: 0, behavior: 'smooth' });
                   }
                 }}
@@ -163,15 +204,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 return (
                   <button
                     key={cat.id}
-                    onClick={() => {
-                      setSelectedCategory(cat.id);
-                      setTimeout(() => {
-                        const el = document.getElementById('catalog');
-                        if (el) {
-                          el.scrollIntoView({ behavior: 'smooth' });
-                        }
-                      }, 50);
-                    }}
+                    onClick={() => scrollToCatalog(cat.id)}
                     className={`px-3.5 py-1.5 rounded-full transition-all duration-200 whitespace-nowrap shrink-0 cursor-pointer font-bold ${
                       isActive
                         ? 'bg-[#3A5303] text-white shadow-md'
@@ -231,12 +264,12 @@ export const Navbar: React.FC<NavbarProps> = ({
                         referrerPolicy="no-referrer"
                       />
                     ) : (
-                      <div className="w-6 h-6 rounded-full bg-[#3A5303] text-white flex items-center justify-center text-[10px] font-bold shrink-0">
-                        {user.displayName ? user.displayName.charAt(0).toUpperCase() : 'P'}
+                      <div className="w-6 h-6 rounded-full bg-[#3A5303] text-white flex items-center justify-center font-bold text-[11px] ring-2 ring-[#94C000]/40 shrink-0">
+                        {(user.displayName || user.email || 'U').charAt(0).toUpperCase()}
                       </div>
                     )}
                     <span className="hidden sm:inline-block max-w-[85px] truncate font-semibold text-stone-900">
-                      {user.displayName ? user.displayName.split(' ')[0] : 'Account'}
+                      {user.displayName ? user.displayName.split(' ')[0] : (user.email ? user.email.split('@')[0] : 'Account')}
                     </span>
                   </button>
 
@@ -258,13 +291,17 @@ export const Navbar: React.FC<NavbarProps> = ({
                               referrerPolicy="no-referrer"
                             />
                           ) : (
-                            <div className="w-9 h-9 rounded-full bg-[#3A5303] text-white flex items-center justify-center text-sm font-bold shrink-0">
-                              {user.displayName ? user.displayName.charAt(0).toUpperCase() : 'P'}
+                            <div className="w-9 h-9 rounded-full bg-[#3A5303] text-white flex items-center justify-center font-bold text-sm ring-2 ring-[#94C000]/40 shrink-0">
+                              {(user.displayName || user.email || 'U').charAt(0).toUpperCase()}
                             </div>
                           )}
                           <div className="min-w-0 flex-1">
-                            <p className="text-xs font-bold text-stone-900 truncate">{user.displayName || 'Valued Patron'}</p>
-                            <p className="text-[10px] text-stone-500 truncate">{user.email}</p>
+                            <p className="text-xs font-bold text-stone-900 truncate">
+                              {user.displayName || (user.email ? user.email.split('@')[0] : 'Customer')}
+                            </p>
+                            <p className="text-[10px] text-stone-500 truncate">
+                              {user.email || 'Signed in'}
+                            </p>
                           </div>
                         </div>
 
@@ -378,10 +415,11 @@ export const Navbar: React.FC<NavbarProps> = ({
                 <div className="flex items-center justify-between border-b border-stone-200 pb-4 pt-1">
                   <Link 
                     href="/"
-                    onClick={() => {
-                      setSelectedCategory('all');
+                    onClick={(e) => {
+                      setSelectedCategory('');
                       setMobileMenuOpen(false);
-                      if (typeof window !== 'undefined') {
+                      if (typeof window !== 'undefined' && window.location.pathname === '/') {
+                        e.preventDefault();
                         window.scrollTo({ top: 0, behavior: 'smooth' });
                       }
                     }}
@@ -419,14 +457,8 @@ export const Navbar: React.FC<NavbarProps> = ({
                     <button
                       key={cat.id}
                       onClick={() => {
-                        setSelectedCategory(cat.id);
                         setMobileMenuOpen(false);
-                        setTimeout(() => {
-                          const el = document.getElementById('catalog');
-                          if (el) {
-                            el.scrollIntoView({ behavior: 'smooth' });
-                          }
-                        }, 100);
+                        setTimeout(() => scrollToCatalog(cat.id), 150);
                       }}
                       className={`w-full text-left px-4 py-3 rounded-xl text-xs font-bold transition-all flex items-center justify-between cursor-pointer ${
                         selectedCategory === cat.id 
@@ -447,15 +479,24 @@ export const Navbar: React.FC<NavbarProps> = ({
                   <div className="bg-[#F7F6F2] p-3 rounded-xl border border-stone-200 flex items-center justify-between">
                     <div className="flex items-center space-x-2.5 min-w-0">
                       {user.photoURL ? (
-                        <img src={user.photoURL} alt="" className="w-8 h-8 rounded-full object-cover ring-2 ring-[#3A5303] shrink-0" />
+                        <img
+                          src={user.photoURL}
+                          alt=""
+                          className="w-8 h-8 rounded-full object-cover ring-2 ring-[#3A5303] shrink-0"
+                          referrerPolicy="no-referrer"
+                        />
                       ) : (
-                        <div className="w-8 h-8 rounded-full bg-[#3A5303] text-white flex items-center justify-center font-bold text-xs shrink-0">
-                          {user.displayName ? user.displayName.charAt(0).toUpperCase() : 'P'}
+                        <div className="w-8 h-8 rounded-full bg-[#3A5303] text-white flex items-center justify-center font-bold text-xs shrink-0 ring-2 ring-[#94C000]/40">
+                          {(user.displayName || user.email || 'U').charAt(0).toUpperCase()}
                         </div>
                       )}
                       <div className="min-w-0 flex-1">
-                        <p className="text-xs font-bold text-stone-900 truncate">{user.displayName || 'Patron'}</p>
-                        <p className="text-[10px] text-stone-500 truncate">{user.email}</p>
+                        <p className="text-xs font-bold text-stone-900 truncate">
+                          {user.displayName || (user.email ? user.email.split('@')[0] : 'Customer')}
+                        </p>
+                        <p className="text-[10px] text-stone-500 truncate">
+                          {user.email || 'Signed in'}
+                        </p>
                       </div>
                     </div>
                     <button

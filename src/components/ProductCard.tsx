@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { Product, ProductVariant } from '@/types/store';
-import { ShoppingBag, Eye, Check } from 'lucide-react';
+import { ShoppingBag, Eye, Check, Star } from 'lucide-react';
 
 interface ProductCardProps {
   product: Product;
@@ -61,7 +61,10 @@ export const ProductCard: React.FC<ProductCardProps> = ({
         {/* Product Info */}
         <div className="space-y-1">
           <div className="flex items-center justify-between text-xs text-stone-500 font-medium mb-1">
-            <span className="text-amber-600 font-bold">★ {product.rating} ({product.reviewsCount})</span>
+            <span className="text-stone-700 font-bold flex items-center">
+              <Star className="w-3.5 h-3.5 text-amber-500 fill-amber-400 inline mr-1" />
+              <span>{product.rating} ({product.reviewsCount})</span>
+            </span>
             <span className="uppercase text-[10px] tracking-wider text-[#3A5303] font-bold bg-[#3A5303]/10 px-2 py-0.5 rounded">{product.category}</span>
           </div>
 

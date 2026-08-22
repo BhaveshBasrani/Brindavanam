@@ -46,7 +46,7 @@ export const Footer: React.FC = () => {
             <div className="space-y-1.5 text-xs text-stone-400 font-light">
               <p className="font-bold text-white">Brindavanam Nature Centre</p>
               <p>Hyderabad, Telangana, India</p>
-              <p className="font-mono text-stone-300">brindavanam1902@gmail.com</p>
+              <p className="font-mono text-stone-300">brundavanamteam@gmail.com</p>
             </div>
           </div>
 

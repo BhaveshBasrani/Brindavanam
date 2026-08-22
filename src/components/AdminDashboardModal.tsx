@@ -5,9 +5,10 @@ import {
   X, ShieldAlert, RefreshCw, Package, Search, Lock, 
   DollarSign, Users, BarChart3, Database, Printer, Clock,
   Tag, Plus, Trash2, ToggleLeft, ToggleRight, Phone, Mail, Edit3, Save,
-  ShoppingCart, Leaf, Star, MessageSquare, Megaphone, RotateCcw
+  ShoppingCart, Leaf, Star, MessageSquare, Megaphone, RotateCcw,
+  AlertCircle, ArrowRight, FolderOpen
 } from 'lucide-react';
-import { Order, Product, ShippingAddress } from '@/types/store';
+import { Order, Product, ProductVariant, ShippingAddress } from '@/types/store';
 import { useStore } from '@/context/StoreContext';
 import { SafeRecaptcha } from '@/components/SafeRecaptcha';
 
@@ -25,7 +26,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
   const { 
     products, addProduct, updateProduct, deleteProduct,
     promoCodes, addPromoCode, togglePromoCode, deletePromoCode,
-    announcements, addAnnouncement, editAnnouncement, deleteAnnouncement, resetAnnouncements,
+    announcements, addAnnouncement, editAnnouncement, deleteAnnouncement, resetAnnouncements, syncAnnouncementsToCloud,
     updateOrderDetails, deleteOrder 
   } = useStore();
 
@@ -40,6 +41,12 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
   const [loading, setLoading] = useState(false);
   const [statusFilter, setStatusFilter] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
+
+  // Announcement Cloud Sync States
+  const [isSyncingOffers, setIsSyncingOffers] = useState(false);
+  const [isAddingOffer, setIsAddingOffer] = useState(false);
+  const [isUpdatingOffer, setIsUpdatingOffer] = useState(false);
+  const [offerSyncFeedback, setOfferSyncFeedback] = useState('');
 
   // Order Inspector Drawer State
   const [inspectingOrder, setInspectingOrder] = useState<Order | null>(null);
@@ -57,8 +64,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
   const [editProdName, setEditProdName] = useState('');
   const [editProdSubtitle, setEditProdSubtitle] = useState('');
   const [editProdCategory, setEditProdCategory] = useState<'ghee' | 'oil' | 'paneer' | 'milk' | 'eggs'>('ghee');
-  const [editProdPrice, setEditProdPrice] = useState<number>(0);
-  const [editProdWeight, setEditProdWeight] = useState('');
+  const [editProdVariants, setEditProdVariants] = useState<ProductVariant[]>([]);
   const [editProdImage, setEditProdImage] = useState('');
   const [editProdBadge, setEditProdBadge] = useState('');
 
@@ -79,8 +85,9 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
   const [newProdSubtitle, setNewProdSubtitle] = useState('');
   const [newProdCategory, setNewProdCategory] = useState<'ghee' | 'oil' | 'paneer' | 'milk' | 'eggs'>('ghee');
   const [newProdDescription, setNewProdDescription] = useState('');
-  const [newProdPrice, setNewProdPrice] = useState<number>(950);
-  const [newProdWeight, setNewProdWeight] = useState('500 ml Glass Jar');
+  const [newProdVariants, setNewProdVariants] = useState<ProductVariant[]>([
+    { id: 'var-1', weight: '500 ml Glass Jar', price: 950, originalPrice: 1100, inStock: true }
+  ]);
   const [newProdImage, setNewProdImage] = useState('');
   const [newProdBadge, setNewProdBadge] = useState('100% Organic Farm Fresh');
 
@@ -93,7 +100,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
   const [adminRevComment, setAdminRevComment] = useState('');
 
   const siteKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || '6Lfpvm4tAAAAAC_wsr8Cg2-OCEyhOwzqPb5gtfmr';
-  const gasUrl = process.env.NEXT_PUBLIC_GAS_WEB_APP_URL || 'https://script.google.com/macros/s/AKfycbwqHEdFL5zR_cCPSUkvb91nudf72H9K1CdFYPEyHgP_XInRSaHQU0TiZEtadcYHpQPS/exec';
+  const gasUrl = process.env.NEXT_PUBLIC_GAS_WEB_APP_URL || 'https://script.google.com/macros/s/AKfycbxwcmwfICPKEBKgREmobTj69fhqenkej1qGagtfh9kXSoZSTP16gUw8mkMGYtDmE4Gwag/exec';
 
   const fetchOrdersFromGAS = async () => {
     setLoading(true);
@@ -157,14 +164,21 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
     setEditProdName(p.name);
     setEditProdSubtitle(p.subtitle || '');
     setEditProdCategory(p.category);
-    setEditProdPrice(p.variants[0]?.price || 0);
-    setEditProdWeight(p.variants[0]?.weight || '');
     setEditProdImage(p.images[0] || '');
     setEditProdBadge(p.badge || '100% Certified Organic');
+    setEditProdVariants(
+      p.variants && p.variants.length > 0
+        ? JSON.parse(JSON.stringify(p.variants))
+        : [{ id: `var-${Date.now()}`, weight: '1 Litre', price: 500, originalPrice: 600, inStock: true }]
+    );
   };
 
   const handleSaveEditedProduct = () => {
     if (!editingProduct) return;
+
+    const validVariants = editProdVariants.length > 0 
+      ? editProdVariants 
+      : [{ id: `var-${Date.now()}`, weight: 'Standard Pack', price: 500, originalPrice: 600, inStock: true }];
 
     const updatedProd: Product = {
       ...editingProduct,
@@ -173,15 +187,13 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
       category: editProdCategory,
       badge: editProdBadge,
       images: [editProdImage || editingProduct.images[0]],
-      variants: [
-        {
-          ...editingProduct.variants[0],
-          price: editProdPrice,
-          weight: editProdWeight,
-          originalPrice: Math.round(editProdPrice * 1.15),
-        },
-        ...editingProduct.variants.slice(1),
-      ],
+      variants: validVariants.map((v, i) => ({
+        id: v.id || `var-${i}-${Date.now()}`,
+        weight: v.weight || 'Standard Pack',
+        price: Number(v.price) || 0,
+        originalPrice: v.originalPrice || Math.round((Number(v.price) || 0) * 1.15),
+        inStock: v.inStock !== undefined ? v.inStock : true,
+      })),
     };
 
     updateProduct(updatedProd);
@@ -194,10 +206,22 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
     setEditAnnouncementText(currentText);
   };
 
-  const handleSaveEditedAnnouncement = () => {
+  const handleSaveEditedAnnouncement = async () => {
     if (editingAnnouncementIdx === null) return;
-    editAnnouncement(editingAnnouncementIdx, editAnnouncementText);
+    setIsUpdatingOffer(true);
+    await editAnnouncement(editingAnnouncementIdx, editAnnouncementText);
+    setIsUpdatingOffer(false);
     setEditingAnnouncementIdx(null);
+    setOfferSyncFeedback('✓ Announcement updated and live on ticker!');
+    setTimeout(() => setOfferSyncFeedback(''), 4000);
+  };
+
+  const handleManualCloudSync = async () => {
+    setIsSyncingOffers(true);
+    const success = await syncAnnouncementsToCloud();
+    setIsSyncingOffers(false);
+    setOfferSyncFeedback(success ? '✓ Synced & Uploaded to Google Apps Script!' : '✓ Saved to Local Storage & Active Live!');
+    setTimeout(() => setOfferSyncFeedback(''), 4000);
   };
 
   // High-Resolution Standalone Print Window Trigger
@@ -253,7 +277,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
             <div>
               <div class="brand">Brindavanam Nature Centre</div>
               <div class="subbrand">Hyderabad, Telangana, India</div>
-              <div style="font-size: 11px; color: #555; margin-top: 4px;">Official Contact: brindavanam1902@gmail.com</div>
+              <div style="font-size: 11px; color: #555; margin-top: 4px;">Official Contact: brundavanamteam@gmail.com</div>
             </div>
             <div style="text-align: right;">
               <span class="badge">OFFICIAL TAX INVOICE</span>
@@ -424,16 +448,24 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
     setNewPromoDesc('');
   };
 
-  const handleAddOfferTicker = (e: React.FormEvent) => {
+  const handleAddOfferTicker = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newOfferText.trim()) return;
-    addAnnouncement(newOfferText);
+    setIsAddingOffer(true);
+    await addAnnouncement(newOfferText);
     setNewOfferText('');
+    setIsAddingOffer(false);
+    setOfferSyncFeedback('✓ New offer added and live on ticker!');
+    setTimeout(() => setOfferSyncFeedback(''), 4000);
   };
 
   const handleCreateProduct = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newProdName.trim()) return;
+
+    const validVariants = newProdVariants.length > 0 
+      ? newProdVariants 
+      : [{ id: `var-${Date.now()}`, weight: 'Standard Pack', price: 950, originalPrice: 1100, inStock: true }];
 
     const newProd: Product = {
       id: `custom-${Date.now()}`,
@@ -445,19 +477,17 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
       extractionMethod: 'Traditional Marachekku Wood Pressed / Hand-Churned Bilona',
       badge: newProdBadge,
       rating: 5.0,
-      reviewsCount: 12,
+      reviewsCount: 0,
       images: [
         newProdImage || 'https://images.pexels.com/photos/20689447/pexels-photo-20689447.jpeg'
       ],
-      variants: [
-        {
-          id: `var-${Date.now()}`,
-          weight: newProdWeight,
-          price: newProdPrice,
-          originalPrice: Math.round(newProdPrice * 1.15),
-          inStock: true,
-        }
-      ],
+      variants: validVariants.map((v, i) => ({
+        id: v.id || `var-${i}-${Date.now()}`,
+        weight: v.weight || 'Standard Pack',
+        price: Number(v.price) || 0,
+        originalPrice: v.originalPrice || Math.round((Number(v.price) || 0) * 1.15),
+        inStock: v.inStock !== undefined ? v.inStock : true,
+      })),
       nutritionalInfo: [
         { label: 'Purity', value: '100% Certified Organic' }
       ],
@@ -468,7 +498,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
     setNewProdName('');
     setNewProdSubtitle('');
     setNewProdDescription('');
-    setNewProdPrice(950);
+    setNewProdVariants([{ id: `var-${Date.now()}`, weight: '500 ml Glass Jar', price: 950, originalPrice: 1100, inStock: true }]);
     setNewProdImage('');
   };
 
@@ -543,10 +573,10 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                 }}
                 disabled={loading}
                 className="hidden sm:flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-xs font-mono font-bold text-stone-200 border border-white/15 transition-all cursor-pointer"
-                title="Sync stream with Google Sheet"
+                title="Sync stream with Database"
               >
                 <RefreshCw className={`w-3.5 h-3.5 text-[#94C000] ${loading ? 'animate-spin' : ''}`} />
-                <span>SYNC STREAM</span>
+                <span>SYNC DATABASE</span>
               </button>
             )}
 
@@ -581,8 +611,9 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
             </div>
 
             {authError && (
-              <div className="text-xs text-red-700 font-bold bg-red-50 p-3 rounded-2xl border border-red-200 font-mono">
-                ✕ ACCESS DENIED: {authError}
+              <div className="text-xs text-red-700 font-bold bg-red-50 p-3 rounded-2xl border border-red-200 font-mono flex items-center space-x-2">
+                <AlertCircle className="w-4 h-4 text-red-600 shrink-0" />
+                <span>ACCESS DENIED: {authError}</span>
               </div>
             )}
 
@@ -601,7 +632,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                   autoFocus
                 />
                 <span className="text-[10px] text-stone-400 font-mono mt-1 block">
-                  🧪 Developer key: Use password <strong className="text-stone-700">admin123</strong>
+                  Developer key: Use password <strong className="text-stone-700">admin123</strong>
                 </span>
               </div>
 
@@ -614,7 +645,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                 className="w-full py-4 bg-[#3A5303] hover:bg-[#2b3e02] text-white font-bold text-xs uppercase tracking-wider rounded-2xl shadow-xl hover:shadow-2xl transition-all active:scale-98 cursor-pointer flex items-center justify-center space-x-2 font-mono"
               >
                 <span>DECRYPT & UNLOCK DESK</span>
-                <span className="text-[#94C000]">➔</span>
+                <ArrowRight className="w-4 h-4 text-[#94C000]" />
               </button>
             </form>
           </div>
@@ -718,7 +749,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                   }`}
                 >
                   <Database className="w-4 h-4 text-[#94C000]" />
-                  <span>CLOUD SYNC</span>
+                  <span>DATABASE</span>
                 </button>
               </div>
 
@@ -731,7 +762,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                 className="sm:hidden w-full px-4 py-2.5 bg-stone-900 text-white font-mono text-xs font-bold rounded-xl flex items-center justify-center space-x-2"
               >
                 <RefreshCw className={`w-3.5 h-3.5 text-[#94C000] ${loading ? 'animate-spin' : ''}`} />
-                <span>SYNC STREAM</span>
+                <span>SYNC DATABASE</span>
               </button>
             </div>
 
@@ -852,7 +883,10 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                         {filteredOrders.length === 0 ? (
                           <tr>
                             <td colSpan={6} className="text-center py-16 text-stone-400 font-mono">
-                              📂 NO MATCHING ORDERS FOUND
+                              <div className="flex flex-col items-center justify-center space-y-2">
+                                <FolderOpen className="w-6 h-6 text-stone-400" />
+                                <span>NO MATCHING ORDERS FOUND</span>
+                              </div>
                             </td>
                           </tr>
                         ) : (
@@ -923,26 +957,77 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
               </div>
             )}
 
-            {/* TAB 2: Offer Ticker Announcement Manager (With Edit Support for Default & Custom Items) */}
+            {/* TAB 2: Offer Ticker Announcement Manager (With Cloud Save & Round Loader) */}
             {activeTab === 'offers' && (
               <div className="space-y-4">
-                <form onSubmit={handleAddOfferTicker} className="bg-[#F7F6F2] p-4 rounded-2xl border border-stone-200 space-y-3">
-                  <div className="flex justify-between items-center">
-                    <h3 className="text-xs font-serif font-bold text-stone-900 flex items-center space-x-1.5">
+                
+                {/* Cloud Sync & Action Header Bar */}
+                <div className="bg-white p-4 rounded-2xl border border-stone-200 shadow-xs flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                  <div>
+                    <div className="flex items-center space-x-2">
                       <Megaphone className="w-4 h-4 text-[#3A5303]" />
-                      <span>Add Live Top Ticker Announcement / Offer</span>
-                    </h3>
+                      <h3 className="text-sm font-bold font-mono uppercase text-stone-900">
+                        Live Top Marquee Ticker [{announcements.length} Active]
+                      </h3>
+                    </div>
+                    <p className="text-xs text-stone-500 mt-0.5">
+                      Edits update immediately across all storefront headers and synchronize to Database.
+                    </p>
+                  </div>
+
+                  <div className="flex items-center space-x-2 w-full sm:w-auto">
+                    <button
+                      type="button"
+                      onClick={handleManualCloudSync}
+                      disabled={isSyncingOffers}
+                      className="flex-1 sm:flex-initial px-4 py-2.5 bg-[#3A5303] hover:bg-[#2b3e02] text-white font-bold text-xs uppercase rounded-xl shadow-sm flex items-center justify-center space-x-2 transition-all cursor-pointer disabled:opacity-75 ring-1 ring-[#94C000]/30 font-mono"
+                      title="Upload and sync ticker text to Database"
+                    >
+                      {isSyncingOffers ? (
+                        <>
+                          <RefreshCw className="w-4 h-4 text-[#94C000] animate-spin" />
+                          <span>UPLOADING TO DATABASE...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Save className="w-4 h-4 text-[#94C000]" />
+                          <span>SAVE & UPLOAD TO DATABASE</span>
+                        </>
+                      )}
+                    </button>
 
                     <button
                       type="button"
-                      onClick={resetAnnouncements}
-                      className="px-3 py-1.5 bg-amber-50 text-amber-900 border border-amber-200 hover:bg-amber-100 rounded-xl font-bold text-[10px] flex items-center space-x-1 cursor-pointer transition-colors"
+                      onClick={async () => {
+                        setIsSyncingOffers(true);
+                        await resetAnnouncements();
+                        setIsSyncingOffers(false);
+                        setOfferSyncFeedback('✓ Reset to factory default offers!');
+                        setTimeout(() => setOfferSyncFeedback(''), 4000);
+                      }}
+                      disabled={isSyncingOffers}
+                      className="px-3 py-2.5 bg-amber-50 text-amber-900 border border-amber-200 hover:bg-amber-100 rounded-xl font-bold text-xs flex items-center space-x-1 cursor-pointer transition-colors"
                       title="Reset back to default offers"
                     >
-                      <RotateCcw className="w-3 h-3 text-amber-700" />
-                      <span>Reset To Default Offers</span>
+                      <RotateCcw className="w-3.5 h-3.5 text-amber-700" />
+                      <span className="hidden sm:inline">Reset Defaults</span>
                     </button>
                   </div>
+                </div>
+
+                {/* Feedback Banner */}
+                {offerSyncFeedback && (
+                  <div className="p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl text-xs font-bold font-mono flex items-center space-x-2 animate-in fade-in duration-150">
+                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                    <span>{offerSyncFeedback}</span>
+                  </div>
+                )}
+
+                {/* Add New Offer Form */}
+                <form onSubmit={handleAddOfferTicker} className="bg-[#F7F6F2] p-4 rounded-2xl border border-stone-200 space-y-3">
+                  <h4 className="text-xs font-bold text-stone-800 uppercase tracking-wider font-mono">
+                    Add New Offer Ticker Line
+                  </h4>
 
                   <div className="flex gap-2">
                     <input
@@ -951,21 +1036,40 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                       value={newOfferText}
                       onChange={(e) => setNewOfferText(e.target.value)}
                       className="flex-1 px-3.5 py-2 text-xs border border-stone-300 rounded-xl bg-white text-stone-900 font-medium focus:outline-none focus:border-[#3A5303] placeholder:text-stone-400"
-                      placeholder="e.g. 🌸 FESTIVE HARVEST SALE: FREE SHIPPING ON ALL ORDERS ABOVE ₹2000"
+                      placeholder="e.g. FESTIVE HARVEST SALE: FREE SHIPPING ON ALL ORDERS ABOVE ₹2000"
                     />
 
                     <button
                       type="submit"
-                      className="px-5 py-2 bg-[#3A5303] text-white font-bold text-xs uppercase rounded-xl hover:bg-[#2b3e02] shadow-sm flex items-center space-x-1 shrink-0 cursor-pointer"
+                      disabled={isAddingOffer}
+                      className="px-5 py-2 bg-[#3A5303] text-white font-bold text-xs uppercase rounded-xl hover:bg-[#2b3e02] shadow-sm flex items-center space-x-1.5 shrink-0 cursor-pointer disabled:opacity-75 font-mono"
                     >
-                      <Plus className="w-3.5 h-3.5" />
-                      <span>Add Offer</span>
+                      {isAddingOffer ? (
+                        <>
+                          <RefreshCw className="w-3.5 h-3.5 text-[#94C000] animate-spin" />
+                          <span>ADDING...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Plus className="w-3.5 h-3.5" />
+                          <span>ADD OFFER</span>
+                        </>
+                      )}
                     </button>
                   </div>
                 </form>
 
                 {/* List of active announcement ticker items (Supports Editing Any Item) */}
                 <div className="space-y-2">
+                  <div className="flex justify-between items-center px-1">
+                    <span className="text-[10px] font-mono uppercase tracking-widest text-stone-400 font-bold">
+                      Active Ticker Queue
+                    </span>
+                    <span className="text-[10px] text-stone-500 font-medium">
+                      Changes appear instantly on the top banner
+                    </span>
+                  </div>
+
                   {announcements.map((text, idx) => (
                     <div key={idx} className="bg-white p-3.5 rounded-2xl border border-stone-200 flex items-center justify-between text-xs space-x-3 shadow-xs">
                       <div className="flex items-center space-x-2.5 min-w-0 flex-1">
@@ -982,7 +1086,11 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                           <Edit3 className="w-4 h-4" />
                         </button>
                         <button
-                          onClick={() => deleteAnnouncement(idx)}
+                          onClick={async () => {
+                            await deleteAnnouncement(idx);
+                            setOfferSyncFeedback('✓ Announcement deleted from ticker queue.');
+                            setTimeout(() => setOfferSyncFeedback(''), 3000);
+                          }}
                           className="p-1.5 text-stone-400 hover:text-red-600 rounded-lg hover:bg-red-50 cursor-pointer"
                           title="Delete Offer Announcement"
                         >
@@ -1044,30 +1152,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    <div>
-                      <label className="block text-[10px] font-bold text-stone-700 uppercase mb-1">Price (₹ INR) *</label>
-                      <input
-                        type="number"
-                        required
-                        value={newProdPrice}
-                        onChange={(e) => setNewProdPrice(parseInt(e.target.value) || 0)}
-                        className="w-full px-3 py-2 text-xs border border-stone-300 rounded-xl bg-white text-stone-900 font-medium focus:outline-none focus:border-[#3A5303]"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-[10px] font-bold text-stone-700 uppercase mb-1">Weight / Unit *</label>
-                      <input
-                        type="text"
-                        required
-                        value={newProdWeight}
-                        onChange={(e) => setNewProdWeight(e.target.value)}
-                        className="w-full px-3 py-2 text-xs border border-stone-300 rounded-xl bg-white text-stone-900 font-medium focus:outline-none focus:border-[#3A5303]"
-                        placeholder="500g Glass Jar"
-                      />
-                    </div>
-
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
                       <label className="block text-[10px] font-bold text-stone-700 uppercase mb-1">Image URL</label>
                       <input
@@ -1078,11 +1163,96 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                         placeholder="https://..."
                       />
                     </div>
+
+                    <div>
+                      <label className="block text-[10px] font-bold text-stone-700 uppercase mb-1">Badge / Tag</label>
+                      <input
+                        type="text"
+                        value={newProdBadge}
+                        onChange={(e) => setNewProdBadge(e.target.value)}
+                        className="w-full px-3 py-2 text-xs border border-stone-300 rounded-xl bg-white text-stone-900 font-medium focus:outline-none focus:border-[#3A5303]"
+                        placeholder="100% Organic Farm Fresh"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Dynamic Multi-Variant List */}
+                  <div className="bg-white p-3.5 rounded-2xl border border-stone-200 space-y-2.5">
+                    <div className="flex justify-between items-center">
+                      <label className="block text-[10px] font-mono font-bold text-stone-800 uppercase tracking-wider">
+                        Weights / Measurement Units & Pricing ({newProdVariants.length})
+                      </label>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setNewProdVariants([
+                            ...newProdVariants,
+                            { id: `var-${Date.now()}`, weight: '1 Litre', price: 950, originalPrice: 1100, inStock: true }
+                          ]);
+                        }}
+                        className="px-2.5 py-1 bg-[#3A5303]/10 hover:bg-[#3A5303]/20 text-[#3A5303] text-[10px] font-bold uppercase rounded-lg flex items-center space-x-1 cursor-pointer transition-colors"
+                      >
+                        <Plus className="w-3 h-3" />
+                        <span>Add Another Weight / Unit</span>
+                      </button>
+                    </div>
+
+                    <div className="space-y-2">
+                      {newProdVariants.map((v, vIdx) => (
+                        <div key={vIdx} className="flex items-center gap-2 bg-[#F7F6F2] p-2 rounded-xl border border-stone-200">
+                          <div className="flex-1">
+                            <input
+                              type="text"
+                              required
+                              value={v.weight}
+                              onChange={(e) => {
+                                const copy = [...newProdVariants];
+                                copy[vIdx].weight = e.target.value;
+                                setNewProdVariants(copy);
+                              }}
+                              placeholder="e.g. 500 ml / 1 Litre / 5 Litres / 1 KG"
+                              className="w-full px-3 py-1.5 text-xs bg-white border border-stone-300 rounded-lg text-stone-900 font-semibold focus:outline-none focus:border-[#3A5303]"
+                            />
+                          </div>
+
+                          <div className="w-32">
+                            <div className="relative">
+                              <span className="absolute left-2.5 top-1.5 text-stone-400 font-bold text-xs">₹</span>
+                              <input
+                                type="number"
+                                required
+                                value={v.price}
+                                onChange={(e) => {
+                                  const copy = [...newProdVariants];
+                                  copy[vIdx].price = parseInt(e.target.value) || 0;
+                                  setNewProdVariants(copy);
+                                }}
+                                placeholder="Price"
+                                className="w-full pl-6 pr-2 py-1.5 text-xs bg-white border border-stone-300 rounded-lg text-stone-900 font-bold focus:outline-none focus:border-[#3A5303]"
+                              />
+                            </div>
+                          </div>
+
+                          {newProdVariants.length > 1 && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setNewProdVariants(newProdVariants.filter((_, i) => i !== vIdx));
+                              }}
+                              className="p-1.5 text-stone-400 hover:text-red-600 rounded-lg cursor-pointer"
+                              title="Delete measurement variant"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          )}
+                        </div>
+                      ))}
+                    </div>
                   </div>
 
                   <button
                     type="submit"
-                    className="px-6 py-2.5 bg-[#3A5303] hover:bg-[#2b3e02] text-white font-bold text-xs uppercase rounded-xl shadow-md flex items-center space-x-1.5 cursor-pointer"
+                    className="px-6 py-2.5 bg-[#3A5303] hover:bg-[#2b3e02] text-white font-bold text-xs uppercase rounded-xl shadow-md flex items-center space-x-1.5 cursor-pointer font-mono"
                   >
                     <Plus className="w-4 h-4" />
                     <span>Publish Produce to Store Catalog</span>
@@ -1218,7 +1388,10 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                           <div className="flex items-center space-x-2">
                             <span className="font-bold text-stone-900">{r.name}</span>
                             <span className="text-[10px] text-stone-400">({r.location})</span>
-                            <span className="text-amber-500 font-bold">★ {r.rating}</span>
+                            <span className="text-amber-600 font-bold flex items-center">
+                              <Star className="w-3 h-3 text-amber-500 fill-amber-400 inline mr-0.5" />
+                              <span>{r.rating}</span>
+                            </span>
                           </div>
                           <p className="font-bold text-[#3A5303]">{r.headline}</p>
                           <p className="text-stone-600 text-[11px] font-light">{r.review}</p>
@@ -1348,10 +1521,10 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
               </div>
             )}
 
-            {/* TAB 8: Sync Monitor */}
+            {/* TAB 8: Database Sync Monitor */}
             {activeTab === 'gas' && (
               <div className="bg-[#F7F6F2] p-4 rounded-2xl border border-stone-200 space-y-2 text-xs">
-                <p className="font-bold text-stone-900">Apps Script Live Endpoint URL:</p>
+                <p className="font-bold text-stone-900">Database Live Endpoint URL:</p>
                 <p className="font-mono text-stone-600 text-[10px] break-all bg-white p-3 rounded-xl border border-stone-200 select-all">
                   {gasUrl}
                 </p>
@@ -1389,38 +1562,6 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
 
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-[10px] font-bold text-stone-700 uppercase mb-1">Price (INR ₹)</label>
-                    <input
-                      type="number"
-                      value={editProdPrice}
-                      onChange={(e) => setEditProdPrice(parseInt(e.target.value) || 0)}
-                      className="w-full px-3 py-2 border border-stone-300 rounded-xl bg-white text-stone-900 font-semibold focus:outline-none focus:border-[#3A5303]"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-[10px] font-bold text-stone-700 uppercase mb-1">Weight / Variant</label>
-                    <input
-                      type="text"
-                      value={editProdWeight}
-                      onChange={(e) => setEditProdWeight(e.target.value)}
-                      className="w-full px-3 py-2 border border-stone-300 rounded-xl bg-white text-stone-900 font-semibold focus:outline-none focus:border-[#3A5303]"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-[10px] font-bold text-stone-700 uppercase mb-1">Image URL</label>
-                  <input
-                    type="url"
-                    value={editProdImage}
-                    onChange={(e) => setEditProdImage(e.target.value)}
-                    className="w-full px-3 py-2 border border-stone-300 rounded-xl bg-white text-stone-900 font-semibold focus:outline-none focus:border-[#3A5303]"
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
                     <label className="block text-[10px] font-bold text-stone-700 uppercase mb-1">Category</label>
                     <select
                       value={editProdCategory}
@@ -1443,6 +1584,90 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                       onChange={(e) => setEditProdBadge(e.target.value)}
                       className="w-full px-3 py-2 border border-stone-300 rounded-xl bg-white text-stone-900 font-semibold focus:outline-none focus:border-[#3A5303]"
                     />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-[10px] font-bold text-stone-700 uppercase mb-1">Image URL</label>
+                  <input
+                    type="url"
+                    value={editProdImage}
+                    onChange={(e) => setEditProdImage(e.target.value)}
+                    className="w-full px-3 py-2 border border-stone-300 rounded-xl bg-white text-stone-900 font-semibold focus:outline-none focus:border-[#3A5303]"
+                  />
+                </div>
+
+                {/* Dynamic Variants Editor */}
+                <div className="bg-[#F7F6F2] p-3.5 rounded-2xl border border-stone-200 space-y-2.5">
+                  <div className="flex justify-between items-center">
+                    <label className="block text-[10px] font-mono font-bold text-stone-800 uppercase tracking-wider">
+                      Weights / Pack Sizes & Prices ({editProdVariants.length})
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setEditProdVariants([
+                          ...editProdVariants,
+                          { id: `var-${Date.now()}`, weight: '1 Litre', price: 500, originalPrice: 600, inStock: true }
+                        ]);
+                      }}
+                      className="px-2.5 py-1 bg-[#3A5303] text-white hover:bg-[#2b3e02] text-[10px] font-bold uppercase rounded-lg flex items-center space-x-1 cursor-pointer"
+                    >
+                      <Plus className="w-3 h-3" />
+                      <span>Add Weight / Size</span>
+                    </button>
+                  </div>
+
+                  <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
+                    {editProdVariants.map((v, vIdx) => (
+                      <div key={vIdx} className="flex items-center gap-2 bg-white p-2 rounded-xl border border-stone-200">
+                        <div className="flex-1">
+                          <input
+                            type="text"
+                            required
+                            value={v.weight}
+                            onChange={(e) => {
+                              const copy = [...editProdVariants];
+                              copy[vIdx].weight = e.target.value;
+                              setEditProdVariants(copy);
+                            }}
+                            placeholder="e.g. 500 ml / 1 Litre / 5 Litres"
+                            className="w-full px-3 py-1.5 text-xs bg-stone-50 border border-stone-300 rounded-lg text-stone-900 font-semibold focus:outline-none focus:border-[#3A5303]"
+                          />
+                        </div>
+
+                        <div className="w-28">
+                          <div className="relative">
+                            <span className="absolute left-2 top-1.5 text-stone-400 font-bold text-xs">₹</span>
+                            <input
+                              type="number"
+                              required
+                              value={v.price}
+                              onChange={(e) => {
+                                const copy = [...editProdVariants];
+                                copy[vIdx].price = parseInt(e.target.value) || 0;
+                                setEditProdVariants(copy);
+                              }}
+                              placeholder="Price"
+                              className="w-full pl-5 pr-1.5 py-1.5 text-xs bg-stone-50 border border-stone-300 rounded-lg text-stone-900 font-bold focus:outline-none focus:border-[#3A5303]"
+                            />
+                          </div>
+                        </div>
+
+                        {editProdVariants.length > 1 && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setEditProdVariants(editProdVariants.filter((_, i) => i !== vIdx));
+                            }}
+                            className="p-1.5 text-stone-400 hover:text-red-600 rounded-lg cursor-pointer"
+                            title="Remove variant"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        )}
+                      </div>
+                    ))}
                   </div>
                 </div>
               </div>
@@ -1497,16 +1722,27 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
               <div className="flex justify-end space-x-2 pt-2 border-t border-stone-200">
                 <button
                   onClick={() => setEditingAnnouncementIdx(null)}
+                  disabled={isUpdatingOffer}
                   className="px-4 py-2 border border-stone-300 rounded-xl text-stone-700 text-xs font-bold cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleSaveEditedAnnouncement}
-                  className="px-5 py-2 bg-[#3A5303] text-white rounded-xl text-xs font-bold uppercase hover:bg-[#2b3e02] flex items-center space-x-1 cursor-pointer"
+                  disabled={isUpdatingOffer}
+                  className="px-5 py-2 bg-[#3A5303] text-white rounded-xl text-xs font-bold uppercase hover:bg-[#2b3e02] flex items-center space-x-1.5 cursor-pointer disabled:opacity-75"
                 >
-                  <Save className="w-3.5 h-3.5" />
-                  <span>Update Announcement</span>
+                  {isUpdatingOffer ? (
+                    <>
+                      <RefreshCw className="w-3.5 h-3.5 text-[#94C000] animate-spin" />
+                      <span>Saving & Uploading...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Save className="w-3.5 h-3.5" />
+                      <span>Update Announcement</span>
+                    </>
+                  )}
                 </button>
               </div>
 

@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowRight, Sparkles, CheckCircle2, ShieldCheck, Leaf, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ArrowRight, Sparkles, CheckCircle2, ShieldCheck, Leaf, ChevronLeft, ChevronRight, Star } from 'lucide-react';
 import { PRODUCTS } from '@/data/products';
 
 interface HeroBannerProps {
@@ -63,17 +63,17 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({ onShopNow }) => {
             
             <div className="inline-flex items-center space-x-2 px-3.5 py-1 rounded-full bg-[#3A5303]/10 border border-[#3A5303]/20 text-[#3A5303] text-[11px] font-bold uppercase tracking-widest mx-auto lg:mx-0">
               <Sparkles className="w-3.5 h-3.5 text-[#94C000]" />
-              <span>Artisanal Organic Produce • Native Heirloom Farms</span>
+              <span>Brindavanam Nature Centre</span>
             </div>
 
-            {/* Compact Headline */}
-            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-serif text-stone-900 leading-[1.2] font-normal">
-              Pure Wood-Pressed Oils <br className="hidden sm:inline" />
-              <span className="italic text-[#3A5303] font-normal">& A2 Desi Cow Bilona Ghee</span>
+            {/* Client Requested Headline */}
+            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-serif text-stone-900 leading-[1.15] font-normal">
+              Pure. Natural. Honest.
             </h1>
 
+            {/* Client Requested Brand Mission Statement */}
             <p className="text-stone-600 text-xs sm:text-sm font-light leading-relaxed max-w-2xl mx-auto lg:mx-0">
-              Handcrafted in small batches using ancient Vedic methods. Slow wood-fire hand-churned Gir Cow Bilona Ghee, zero-heat Marachekku pressed oils, and fresh unadulterated Paneer.
+              Welcome to Brindavanam Nature Centre, where every product is prepared with care, purity, and respect for nature. We believe that healthy food begins with healthy farming, happy animals, and honest practices. Our mission is to bring farm-fresh, chemical-free products directly to your family.
             </p>
 
             {/* Dynamic Product Spotlight Tag (Clickable to jump to catalog) */}
@@ -172,14 +172,14 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({ onShopNow }) => {
               <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/10 to-transparent" />
               
               <div className="absolute bottom-6 left-6 right-6 text-white space-y-1.5 text-left">
-                <span className="px-3 py-1 rounded-full bg-[#94C000] text-[#1c260b] text-[10px] font-bold uppercase tracking-wider inline-block">
-                  {currentProduct.badge || '100% Certified Organic'}
-                </span>
                 <h3 className="text-2xl font-serif font-normal">{currentProduct.name}</h3>
                 <p className="text-xs text-stone-200 font-light">{currentProduct.extractionMethod}</p>
                 <div className="pt-2 flex items-center justify-between font-bold text-sm text-[#94C000]">
                   <span>Starting at ₹{currentProduct.variants[0].price}</span>
-                  <span className="text-xs text-white/80 font-normal">★ {currentProduct.rating} ({currentProduct.reviewsCount} reviews)</span>
+                  <span className="text-xs text-white/90 font-normal flex items-center">
+                    <Star className="w-3.5 h-3.5 text-amber-400 fill-amber-400 inline mr-1" />
+                    <span>{currentProduct.rating} ({currentProduct.reviewsCount} reviews)</span>
+                  </span>
                 </div>
               </div>
             </div>

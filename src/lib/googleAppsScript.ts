@@ -1,13 +1,13 @@
 import { Order, Product, ShippingAddress } from '@/types/store';
 import { PromoCodeItem } from '@/context/StoreContext';
 
-const gasUrl = process.env.NEXT_PUBLIC_GAS_WEB_APP_URL || 'https://script.google.com/macros/s/AKfycbwqHEdFL5zR_cCPSUkvb91nudf72H9K1CdFYPEyHgP_XInRSaHQU0TiZEtadcYHpQPS/exec';
+const gasUrl = process.env.NEXT_PUBLIC_GAS_WEB_APP_URL || 'https://script.google.com/macros/s/AKfycbxwcmwfICPKEBKgREmobTj69fhqenkej1qGagtfh9kXSoZSTP16gUw8mkMGYtDmE4Gwag/exec';
 
 export const DEFAULT_OFFER_ANNOUNCEMENTS = [
-  "🌸 FESTIVE HARVEST SALE: FREE SHIPPING ON ALL ORDERS ABOVE ₹2000 PAN-INDIA",
-  "🌿 100% PURE A2 DESI COW BILONA GHEE — TRADITIONALLY HAND-CHURNED IN EARTHEN POTS",
-  "⚡ AUTOMATIC 10% BULK FARM DISCOUNT APPLIED ON ₹5000+ PURCHASES",
-  "🌾 WOOD-PRESSED COLD-EXTRACTED OILS — KUSUMA, SESAME & MUSTARD OILS DIRECT FROM FARM"
+  "FESTIVE HARVEST SALE: FREE SHIPPING ON ALL ORDERS ABOVE ₹2000 PAN-INDIA",
+  "100% PURE A2 DESI COW BILONA GHEE — TRADITIONALLY HAND-CHURNED IN EARTHEN POTS",
+  "AUTOMATIC 10% BULK FARM DISCOUNT APPLIED ON ₹5000+ PURCHASES",
+  "WOOD-PRESSED COLD-EXTRACTED OILS — KUSUMA, SESAME & MUSTARD OILS DIRECT FROM FARM"
 ];
 
 export const sendOrderToGoogleAppsScript = async (order: Order): Promise<{ success: boolean; message: string }> => {
@@ -98,7 +98,6 @@ export const syncPromosToGAS = async (promos: PromoCodeItem[]): Promise<boolean>
     const data = await response.json();
     return data.status === 'success';
   } catch (err) {
-    console.warn('Apps Script Promo Sync notice:', err);
     return false;
   }
 };
@@ -112,7 +111,6 @@ export const fetchPromosFromGAS = async (): Promise<PromoCodeItem[] | null> => {
     }
     return null;
   } catch (err) {
-    console.warn('Apps Script Promo Fetch notice:', err);
     return null;
   }
 };
@@ -130,7 +128,6 @@ export const syncProductsToGAS = async (products: Product[]): Promise<boolean> =
     const data = await response.json();
     return data.status === 'success';
   } catch (err) {
-    console.warn('Apps Script Product Sync notice:', err);
     return false;
   }
 };
@@ -144,7 +141,6 @@ export const fetchProductsFromGAS = async (): Promise<Product[] | null> => {
     }
     return null;
   } catch (err) {
-    console.warn('Apps Script Product Fetch notice:', err);
     return null;
   }
 };
@@ -156,10 +152,9 @@ export const fetchAnnouncementsFromGAS = async (): Promise<string[] | null> => {
     if (data.status === 'success' && Array.isArray(data.announcements) && data.announcements.length > 0) {
       return data.announcements;
     }
-    return DEFAULT_OFFER_ANNOUNCEMENTS;
+    return null;
   } catch (err) {
-    console.warn('Announcements fetch notice:', err);
-    return DEFAULT_OFFER_ANNOUNCEMENTS;
+    return null;
   }
 };
 
@@ -169,14 +164,13 @@ export const saveAnnouncementsToGAS = async (announcements: string[]): Promise<b
       method: 'POST',
       headers: { 'Content-Type': 'text/plain;charset=utf-8' },
       body: JSON.stringify({
-        action: 'updateAnnouncements',
+        action: 'save_announcements',
         announcements,
       }),
     });
     const data = await response.json();
     return data.status === 'success';
   } catch (err) {
-    console.warn('Announcements save notice:', err);
     return false;
   }
 };

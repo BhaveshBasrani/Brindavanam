@@ -22,10 +22,10 @@
  */
 
 var DEFAULT_ANNOUNCEMENTS = [
-  "🌸 FESTIVE HARVEST SALE: FREE SHIPPING ON ALL ORDERS ABOVE ₹2000 PAN-INDIA",
-  "🌿 100% PURE A2 DESI COW BILONA GHEE — TRADITIONALLY HAND-CHURNED IN EARTHEN POTS",
-  "⚡ AUTOMATIC 10% BULK FARM DISCOUNT APPLIED ON ₹5000+ PURCHASES",
-  "🌾 WOOD-PRESSED COLD-EXTRACTED OILS — KUSUMA, SESAME & MUSTARD OILS DIRECT FROM FARM"
+  "FESTIVE HARVEST SALE: FREE SHIPPING ON ALL ORDERS ABOVE ₹2000 PAN-INDIA",
+  "100% PURE A2 DESI COW BILONA GHEE — TRADITIONALLY HAND-CHURNED IN EARTHEN POTS",
+  "AUTOMATIC 10% BULK FARM DISCOUNT APPLIED ON ₹5000+ PURCHASES",
+  "WOOD-PRESSED COLD-EXTRACTED OILS — KUSUMA, SESAME & MUSTARD OILS DIRECT FROM FARM"
 ];
 
 function doGet(e) {
@@ -825,7 +825,7 @@ function updateCustomerCRMRecord(ss, name, email, phone, city) {
 function sendWholesomeInvoiceEmail(email, name, orderId, total, items, address, eta) {
   if (!email) return;
 
-  var subject = "🌸 Order Confirmed & Official Invoice #" + orderId + " - Brindavanam Nature Centre";
+  var subject = "Order Confirmed & Official Invoice #" + orderId + " - Brindavanam Nature Centre";
   var htmlBody = 
     "<div style='font-family: Georgia, serif; max-width: 650px; margin: 0 auto; border: 1px solid #d4cfc5; border-radius: 20px; overflow: hidden; background-color: #faf9f6; shadow: 0 10px 30px rgba(0,0,0,0.05);'>" +
       "<div style='background-color: #3A5303; padding: 36px 24px; text-align: center; color: white; border-bottom: 5px solid #94C000;'>" +
@@ -834,7 +834,7 @@ function sendWholesomeInvoiceEmail(email, name, orderId, total, items, address, 
         "<p style='color: #e2ded4; font-size: 12px; margin: 0; font-family: sans-serif; font-weight: 300;'>Pure • Natural • Honest — Direct from Hyderabad Farm</p>" +
       "</div>" +
       "<div style='padding: 36px 30px; color: #2c2a29; font-size: 15px; line-height: 1.7;'>" +
-        "<p style='font-size: 20px; color: #3A5303; margin-top: 0; font-weight: normal;'>Namaste " + name + " 🙏</p>" +
+        "<p style='font-size: 20px; color: #3A5303; margin-top: 0; font-weight: normal;'>Namaste " + name + ",</p>" +
         "<p>Thank you for welcoming <strong>Brindavanam Nature Centre</strong> into your home. Your order has been registered at our native farm in Hyderabad and is being freshly prepared using traditional wood-fire hand-churning and zero-heat Marachekku pressing methods.</p>" +
         
         "<div style='background-color: #ffffff; border: 1px solid #e2ded4; border-radius: 16px; padding: 24px; margin: 28px 0; box-shadow: 0 4px 12px rgba(0,0,0,0.03);'>" +
@@ -852,7 +852,7 @@ function sendWholesomeInvoiceEmail(email, name, orderId, total, items, address, 
           "\"Our Gir cows roam freely in native green pastures, and our wood-pressed oils are extracted with zero chemicals or bleach. Every glass jar carries the warmth of Vedic purity.\"" +
         "</div>" +
 
-        "<p style='font-size: 13px; color: #5c5855;'>With warm farm blessings,<br><strong style='color: #3A5303; font-size: 14px;'>Brindavanam Nature Centre Team</strong><br><a href='mailto:brindavanam1902@gmail.com' style='color: #3A5303; font-weight: bold;'>brindavanam1902@gmail.com</a></p>" +
+        "<p style='font-size: 13px; color: #5c5855;'>With warm farm blessings,<br><strong style='color: #3A5303; font-size: 14px;'>Brindavanam Nature Centre Team</strong><br><a href='mailto:brundavanamteam@gmail.com' style='color: #3A5303; font-weight: bold;'>brundavanamteam@gmail.com</a></p>" +
       "</div>" +
 
       "<div style='background-color: #1c260b; padding: 24px; text-align: center; color: #a39e93; font-size: 11px; font-family: sans-serif;'>" +
@@ -877,7 +877,7 @@ function sendWholesomeInvoiceEmail(email, name, orderId, total, items, address, 
 function sendStatusUpdateEmail(email, name, orderId, newStatus, trackingUrl, eta) {
   if (!email) return;
 
-  var subject = "🚚 Order #" + orderId + " Update: " + newStatus + " - Brindavanam Nature Centre";
+  var subject = "Order #" + orderId + " Transit Status: " + newStatus + " - Brindavanam Nature Centre";
   var htmlBody = 
     "<div style='font-family: Georgia, serif; max-width: 600px; margin: 0 auto; border: 1px solid #d4cfc5; border-radius: 16px; overflow: hidden; background-color: #ffffff; shadow: 0 8px 24px rgba(0,0,0,0.04);'>" +
       "<div style='background-color: #3A5303; padding: 28px; text-align: center; color: white; border-bottom: 4px solid #94C000;'>" +
@@ -891,7 +891,7 @@ function sendStatusUpdateEmail(email, name, orderId, newStatus, trackingUrl, eta
         (trackingUrl ? "<div style='background-color: #F7F6F2; border: 1px solid #e0ddd5; border-radius: 12px; margin: 20px 0; padding: 16px;'><p style='margin: 0 0 6px 0; font-size: 12px; text-transform: uppercase; font-weight: bold; color: #3A5303;'>Live Parcel Tracking URL:</p><a href='" + trackingUrl + "' target='_blank' style='color: #3A5303; font-weight: bold; font-family: monospace; word-break: break-all; font-size: 13px;'>" + trackingUrl + "</a></div>" : "") +
         (eta ? "<p style='font-size: 14px;'><strong>Approx Date of Arrival (ETA):</strong> <span style='color: #3A5303; font-weight: bold;'>" + eta + "</span></p>" : "") +
 
-        "<p style='margin-top: 24px; font-size: 12px; color: #666;'>If you have any questions about your parcel, reply to this mail or contact us at <a href='mailto:brindavanam1902@gmail.com' style='color: #3A5303; font-weight: bold;'>brindavanam1902@gmail.com</a>.</p>" +
+        "<p style='margin-top: 24px; font-size: 12px; color: #666;'>If you have any questions about your parcel, reply to this mail or contact us at <a href='mailto:brundavanamteam@gmail.com' style='color: #3A5303; font-weight: bold;'>brundavanamteam@gmail.com</a>.</p>" +
       "</div>" +
       "<div style='background-color: #1c260b; padding: 18px; text-align: center; color: #aaa; font-size: 10px; font-family: sans-serif;'>" +
         "© 2026 Brindavanam Nature Centre • Hyderabad • Handcrafted Farm Produce" +
@@ -913,12 +913,12 @@ function sendStatusUpdateEmail(email, name, orderId, newStatus, trackingUrl, eta
  * 3. INSTANT ADMIN ORDER NOTIFICATION ALERT EMAIL
  */
 function sendAdminOrderNotificationEmail(name, email, phone, orderId, total, items, address) {
-  var adminEmail = "brindavanam1902@gmail.com";
-  var subject = "🔔 NEW ORDER RECEIVED #" + orderId + " (₹" + total + ") - Brindavanam Nature";
+  var adminEmail = "brundavanamteam@gmail.com";
+  var subject = "NEW ORDER RECEIVED #" + orderId + " (₹" + total + ") - Brindavanam Nature";
   var htmlBody = 
     "<div style='font-family: sans-serif; max-width: 600px; margin: 0 auto; border: 2px solid #3A5303; border-radius: 16px; padding: 24px; background-color: #ffffff;'>" +
       "<div style='background-color: #3A5303; color: white; padding: 16px; border-radius: 12px; text-align: center; margin-bottom: 20px;'>" +
-        "<h2 style='margin: 0;'>New Farm Order Received! 🎉</h2>" +
+        "<h2 style='margin: 0;'>New Farm Order Received</h2>" +
         "<p style='margin: 4px 0 0 0; font-size: 12px; color: #94C000; font-weight: bold;'>Order ID: #" + orderId + "</p>" +
       "</div>" +
       "<p style='font-size: 14px;'><strong>Customer Name:</strong> " + name + "</p>" +
@@ -927,7 +927,7 @@ function sendAdminOrderNotificationEmail(name, email, phone, orderId, total, ite
       "<p style='font-size: 14px;'><strong>Items Purchased:</strong> " + items + "</p>" +
       "<p style='font-size: 16px; color: #3A5303; font-weight: bold;'>Total Amount Paid: ₹" + total + "</p>" +
       "<p style='font-size: 14px;'><strong>Delivery Address:</strong> " + address + "</p>" +
-      "<div style='margin-top: 20px; border-top: 1px solid #eee; pt-10; text-align: center; font-size: 11px; color: #777;'>" +
+      "<div style='margin-top: 20px; border-top: 1px solid #eee; padding-top: 12px; text-align: center; font-size: 11px; color: #777;'>" +
         "Open your Admin Operations Desk to inspect and update ETA / Tracking info." +
       "</div>" +
     "</div>";

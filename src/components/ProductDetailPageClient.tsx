@@ -108,7 +108,7 @@ function ProductDetailPageContent({ id }: { id: string }) {
         onOpenAdmin={() => setIsAdminOpen(true)}
         searchQuery=""
         setSearchQuery={() => {}}
-        selectedCategory="all"
+        selectedCategory=""
         setSelectedCategory={() => {}}
       />
 
@@ -361,8 +361,11 @@ function ProductDetailPageContent({ id }: { id: string }) {
                           </span>
                           <span className="text-[10px] text-stone-400">{r.date}</span>
                         </div>
-                        <div className="text-amber-400 text-xs font-mono">
-                          {'★'.repeat(r.rating)} <span className="text-stone-700 font-bold">{r.rating}.0</span>
+                        <div className="flex items-center space-x-1">
+                          {[...Array(r.rating)].map((_, sIdx) => (
+                            <Star key={sIdx} className="w-3.5 h-3.5 text-amber-500 fill-amber-400" />
+                          ))}
+                          <span className="text-stone-700 font-bold text-xs ml-1">{r.rating}.0</span>
                         </div>
                         <p className="text-stone-600 text-xs font-light leading-relaxed">{r.comment}</p>
                       </div>

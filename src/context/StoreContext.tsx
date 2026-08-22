@@ -44,11 +44,12 @@ interface StoreContextType {
   addProduct: (product: Product) => void;
   updateProduct: (product: Product) => void;
   deleteProduct: (productId: string) => void;
-  addAnnouncement: (text: string) => void;
-  editAnnouncement: (index: number, text: string) => void;
-  deleteAnnouncement: (index: number) => void;
-  updateAnnouncements: (list: string[]) => void;
-  resetAnnouncements: () => void;
+  addAnnouncement: (text: string) => Promise<boolean>;
+  editAnnouncement: (index: number, text: string) => Promise<boolean>;
+  deleteAnnouncement: (index: number) => Promise<boolean>;
+  updateAnnouncements: (list: string[]) => Promise<boolean>;
+  resetAnnouncements: () => Promise<boolean>;
+  syncAnnouncementsToCloud: () => Promise<boolean>;
   updateOrderDetails: (orderId: string, details: Partial<Order>) => Promise<void>;
   deleteOrder: (orderId: string) => Promise<void>;
   triggerCheckout: (discount: number, promo: string) => void;
@@ -195,7 +196,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       return {
         success: true,
         discountAmount: subtotal,
-        message: '⚡ Master Developer Test Code Activated! Razorpay Bypassed (100% Free Test Order).',
+        message: 'Master Developer Test Code Activated! Razorpay Bypassed (100% Free Test Order).',
       };
     }
 
@@ -281,47 +282,56 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     });
   };
 
-  const addAnnouncement = (text: string) => {
-    if (!text.trim()) return;
-    setAnnouncements((prev) => {
-      const updated = [text.trim(), ...prev];
+  const addAnnouncement = async (text: string): Promise<boolean> => {
+    if (!text.trim()) return false;
+    const cleanText = text.trim();
+    const updated = [cleanText, ...announcements.filter((a) => a !== cleanText)];
+    setAnnouncements(updated);
+    if (typeof window !== 'undefined') {
       localStorage.setItem('brindavanam_announcements', JSON.stringify(updated));
-      saveAnnouncementsToGAS(updated);
-      return updated;
-    });
+    }
+    return await saveAnnouncementsToGAS(updated);
   };
 
-  const editAnnouncement = (index: number, text: string) => {
-    if (!text.trim()) return;
-    setAnnouncements((prev) => {
-      const updated = [...prev];
-      updated[index] = text.trim();
+  const editAnnouncement = async (index: number, text: string): Promise<boolean> => {
+    if (!text.trim()) return false;
+    const updated = [...announcements];
+    updated[index] = text.trim();
+    setAnnouncements(updated);
+    if (typeof window !== 'undefined') {
       localStorage.setItem('brindavanam_announcements', JSON.stringify(updated));
-      saveAnnouncementsToGAS(updated);
-      return updated;
-    });
+    }
+    return await saveAnnouncementsToGAS(updated);
   };
 
-  const deleteAnnouncement = (index: number) => {
-    setAnnouncements((prev) => {
-      const updated = prev.filter((_, i) => i !== index);
-      const final = updated.length > 0 ? updated : DEFAULT_OFFER_ANNOUNCEMENTS;
+  const deleteAnnouncement = async (index: number): Promise<boolean> => {
+    const updated = announcements.filter((_, i) => i !== index);
+    const final = updated.length > 0 ? updated : DEFAULT_OFFER_ANNOUNCEMENTS;
+    setAnnouncements(final);
+    if (typeof window !== 'undefined') {
       localStorage.setItem('brindavanam_announcements', JSON.stringify(final));
-      saveAnnouncementsToGAS(final);
-      return final;
-    });
+    }
+    return await saveAnnouncementsToGAS(final);
   };
 
-  const updateAnnouncements = (list: string[]) => {
+  const updateAnnouncements = async (list: string[]): Promise<boolean> => {
     setAnnouncements(list);
-    localStorage.setItem('brindavanam_announcements', JSON.stringify(list));
-    saveAnnouncementsToGAS(list);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('brindavanam_announcements', JSON.stringify(list));
+    }
+    return await saveAnnouncementsToGAS(list);
   };
 
-  const resetAnnouncements = () => {
+  const syncAnnouncementsToCloud = async (): Promise<boolean> => {
+    return await saveAnnouncementsToGAS(announcements);
+  };
+
+  const resetAnnouncements = async (): Promise<boolean> => {
     setAnnouncements(DEFAULT_OFFER_ANNOUNCEMENTS);
-    localStorage.setItem('brindavanam_announcements', JSON.stringify(DEFAULT_OFFER_ANNOUNCEMENTS));
-    resetAnnouncementsInGAS();
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('brindavanam_announcements', JSON.stringify(DEFAULT_OFFER_ANNOUNCEMENTS));
+    }
+    return await resetAnnouncementsInGAS();
   };
 
   const updateOrderDetails = async (orderId: string, details: Partial<Order>) => {
@@ -428,6 +438,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         deleteAnnouncement,
         updateAnnouncements,
         resetAnnouncements,
+        syncAnnouncementsToCloud,
         updateOrderDetails,
         deleteOrder,
         triggerCheckout,

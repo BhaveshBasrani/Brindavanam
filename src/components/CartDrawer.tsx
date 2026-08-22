@@ -106,10 +106,11 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
               {rawSubtotal >= freeShippingThreshold ? (
                 <div>
                   <p className="text-emerald-700 font-bold flex items-center">
-                    <Truck className="w-4 h-4 mr-1.5 text-[#3A5303] shrink-0" /> 🎉 Congratulations! You qualify for FREE Delivery
+                    <Truck className="w-4 h-4 mr-1.5 text-[#3A5303] shrink-0" />
+                    <span>You qualify for FREE Farm Express Delivery</span>
                   </p>
                   <p className="text-[11px] text-stone-600 font-medium mt-1 leading-snug">
-                    Please make sure the total order amount exceeds ₹5,000 to qualify for an additional 10% discount.
+                    Orders exceeding ₹5,000 automatically receive an additional 10% bulk discount.
                   </p>
                 </div>
               ) : (
@@ -118,7 +119,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                     Add <span className="font-bold text-[#3A5303]">₹{freeShippingThreshold - rawSubtotal}</span> more for <span className="font-bold text-emerald-700">FREE Shipping (₹2000 Min)</span>
                   </p>
                   <p className="text-[11px] text-stone-500 font-normal mt-0.5 leading-snug">
-                    Please make sure the total order amount exceeds ₹5,000 to qualify for an additional 10% discount.
+                    Orders exceeding ₹5,000 automatically receive an additional 10% bulk discount.
                   </p>
                 </div>
               )}
@@ -134,7 +135,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
             {rawSubtotal >= 5000 && (
               <div className="mt-2 bg-emerald-50 p-2.5 rounded-xl border border-emerald-200 text-xs text-emerald-900 flex items-center space-x-1.5 font-bold">
                 <Sparkles className="w-4 h-4 text-emerald-700 shrink-0" />
-                <span>🎉 Order above ₹5000! Automatic 10% Bulk Discount (₹{bulkDiscount}) applied!</span>
+                <span>Bulk Farm Order Above ₹5000! Automatic 10% Discount (₹{bulkDiscount}) Applied.</span>
               </div>
             )}
           </div>

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { X, Package, Clock, Truck, CheckCircle2, RefreshCw, ShieldCheck, MapPin, CreditCard, Star } from 'lucide-react';
+import { X, Package, Clock, Truck, CheckCircle2, RefreshCw, ShieldCheck, MapPin, CreditCard, Star, Leaf } from 'lucide-react';
 import { Order } from '@/types/store';
 import { useAuth } from '@/context/AuthContext';
 
@@ -20,7 +20,7 @@ export const UserOrdersModal: React.FC<UserOrdersModalProps> = ({
   const [gasOrders, setGasOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(false);
 
-  const gasUrl = process.env.NEXT_PUBLIC_GAS_WEB_APP_URL || 'https://script.google.com/macros/s/AKfycbwqHEdFL5zR_cCPSUkvb91nudf72H9K1CdFYPEyHgP_XInRSaHQU0TiZEtadcYHpQPS/exec';
+  const gasUrl = process.env.NEXT_PUBLIC_GAS_WEB_APP_URL || 'https://script.google.com/macros/s/AKfycbxwcmwfICPKEBKgREmobTj69fhqenkej1qGagtfh9kXSoZSTP16gUw8mkMGYtDmE4Gwag/exec';
 
   const fetchUserOrdersFromGAS = async () => {
     if (!user?.email) return;
@@ -157,7 +157,7 @@ export const UserOrdersModal: React.FC<UserOrdersModalProps> = ({
                               />
                             ) : (
                               <div className="w-10 h-10 rounded-lg bg-[#3A5303] text-white flex items-center justify-center font-bold text-xs">
-                                🌿
+                                <Leaf className="w-5 h-5 text-[#94C000]" />
                               </div>
                             )}
                             <div>

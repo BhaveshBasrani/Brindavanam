@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Star, ShieldCheck, Heart, Sparkles, Quote, ThumbsUp, CheckCircle2, Award, UserCheck, Plus, MessageSquare } from 'lucide-react';
+import { Star, ShieldCheck, Heart, Sparkles, Quote, ThumbsUp, CheckCircle2, Award, UserCheck, Plus, MessageSquare, X } from 'lucide-react';
 import { useStore } from '@/context/StoreContext';
 
 interface CustomerReviewItem {
@@ -328,7 +328,7 @@ export const TestimonialSection: React.FC = () => {
                 <h3 className="text-lg font-serif font-bold text-white">Share Your Farm Experience</h3>
               </div>
               <button onClick={() => setIsSubmitOpen(false)} className="text-stone-400 hover:text-white cursor-pointer">
-                ✕
+                <X className="w-5 h-5" />
               </button>
             </div>
 
@@ -387,11 +387,12 @@ export const TestimonialSection: React.FC = () => {
                           key={star}
                           type="button"
                           onClick={() => setNewRating(star)}
-                          className={`px-2 py-1.5 rounded-lg border text-xs font-bold transition-colors cursor-pointer ${
+                          className={`px-2.5 py-1.5 rounded-lg border text-xs font-bold transition-colors cursor-pointer flex items-center space-x-1 ${
                             newRating >= star ? 'bg-amber-400/20 border-amber-400 text-amber-400' : 'bg-white/5 border-stone-700 text-stone-500'
                           }`}
                         >
-                          ★ {star}
+                          <Star className="w-3 h-3 fill-current shrink-0" />
+                          <span>{star}</span>
                         </button>
                       ))}
                     </div>

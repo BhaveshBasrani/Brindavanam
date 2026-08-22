@@ -7,7 +7,8 @@ import {
   createUserWithEmailAndPassword, 
   signInWithPopup, 
   signOut, 
-  onAuthStateChanged 
+  onAuthStateChanged,
+  updateProfile
 } from 'firebase/auth';
 import { auth, googleProvider } from '@/lib/firebase';
 import { UserProfile } from '@/types/store';
@@ -18,7 +19,7 @@ interface AuthContextType {
   loginWithEmail: (email: string, pass: string) => Promise<void>;
   signUpWithEmail: (email: string, pass: string, name: string) => Promise<void>;
   loginWithGoogle: () => Promise<void>;
-  demoLogin: (email?: string, name?: string) => void;
+  demoLogin: (email?: string, name?: string, photo?: string) => void;
   logout: () => Promise<void>;
 }
 
@@ -32,17 +33,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const unsubscribe = onAuthStateChanged(auth, (firebaseUser: User | null) => {
         if (firebaseUser) {
-          setUser({
+          const storedEmail = typeof window !== 'undefined' ? localStorage.getItem('brindavanam_user_email') : null;
+          const resolvedEmail = firebaseUser.email || storedEmail || '';
+          const fallbackName = resolvedEmail ? resolvedEmail.split('@')[0] : 'Patron';
+          const resolvedName = firebaseUser.displayName || fallbackName;
+          const resolvedPhoto = firebaseUser.photoURL || undefined;
+
+          const activeProfile: UserProfile = {
             uid: firebaseUser.uid,
-            email: firebaseUser.email || '',
-            displayName: firebaseUser.displayName || firebaseUser.email?.split('@')[0] || 'Organic Patron',
-            photoURL: firebaseUser.photoURL || undefined
-          });
+            email: resolvedEmail,
+            displayName: resolvedName,
+            photoURL: resolvedPhoto
+          };
+
+          setUser(activeProfile);
+          if (typeof window !== 'undefined') {
+            localStorage.setItem('brindavanam_mock_user', JSON.stringify(activeProfile));
+          }
         } else {
           const savedMockUser = typeof window !== 'undefined' ? localStorage.getItem('brindavanam_mock_user') : null;
           if (savedMockUser) {
             try {
-              setUser(JSON.parse(savedMockUser));
+              const parsed = JSON.parse(savedMockUser);
+              setUser(parsed);
             } catch {
               setUser(null);
             }
@@ -62,39 +75,96 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const loginWithEmail = async (email: string, pass: string) => {
+    const cleanEmail = email.trim();
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('brindavanam_user_email', cleanEmail);
+    }
+
     try {
-      await signInWithEmailAndPassword(auth, email, pass);
+      const cred = await signInWithEmailAndPassword(auth, cleanEmail, pass);
+      const userProfile: UserProfile = {
+        uid: cred.user.uid,
+        email: cred.user.email || cleanEmail,
+        displayName: cred.user.displayName || cleanEmail.split('@')[0],
+        photoURL: cred.user.photoURL || undefined
+      };
+      setUser(userProfile);
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('brindavanam_mock_user', JSON.stringify(userProfile));
+      }
     } catch {
-      demoLogin(email, email.split('@')[0]);
+      // Offline / Demo fallback using exact entered email
+      demoLogin(cleanEmail, cleanEmail.split('@')[0]);
     }
   };
 
   const signUpWithEmail = async (email: string, pass: string, name: string) => {
+    const cleanEmail = email.trim();
+    const cleanName = name.trim();
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('brindavanam_user_email', cleanEmail);
+    }
+
     try {
-      await createUserWithEmailAndPassword(auth, email, pass);
+      const cred = await createUserWithEmailAndPassword(auth, cleanEmail, pass);
+      try {
+        await updateProfile(cred.user, {
+          displayName: cleanName,
+        });
+      } catch {}
+
+      const userProfile: UserProfile = {
+        uid: cred.user.uid,
+        email: cred.user.email || cleanEmail,
+        displayName: cleanName || cleanEmail.split('@')[0],
+        photoURL: cred.user.photoURL || undefined
+      };
+      setUser(userProfile);
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('brindavanam_mock_user', JSON.stringify(userProfile));
+      }
     } catch {
-      demoLogin(email, name);
+      demoLogin(cleanEmail, cleanName);
     }
   };
 
   const loginWithGoogle = async () => {
     try {
-      await signInWithPopup(auth, googleProvider);
-    } catch {
-      demoLogin('user.organic@gmail.com', 'Bhavesh Basrani');
+      const cred = await signInWithPopup(auth, googleProvider);
+      const userProfile: UserProfile = {
+        uid: cred.user.uid,
+        email: cred.user.email || '',
+        displayName: cred.user.displayName || (cred.user.email ? cred.user.email.split('@')[0] : 'Patron'),
+        photoURL: cred.user.photoURL || undefined
+      };
+      setUser(userProfile);
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('brindavanam_mock_user', JSON.stringify(userProfile));
+        if (userProfile.email) localStorage.setItem('brindavanam_user_email', userProfile.email);
+      }
+    } catch (err: any) {
+      console.warn('Google Sign-In popup error:', err);
+      const storedEmail = typeof window !== 'undefined' ? localStorage.getItem('brindavanam_user_email') : null;
+      if (storedEmail) {
+        demoLogin(storedEmail, storedEmail.split('@')[0]);
+      } else {
+        demoLogin('patron@brindavanam.com', 'Organic Patron');
+      }
     }
   };
 
-  const demoLogin = (email = 'organic.farmer@brindavanam.com', name = 'Organic Patron') => {
+  const demoLogin = (email = 'patron@brindavanam.com', name?: string, photo?: string) => {
+    const displayName = name || email.split('@')[0] || 'Organic Patron';
     const mockProfile: UserProfile = {
       uid: 'demo-' + Date.now(),
       email,
-      displayName: name,
-      photoURL: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80'
+      displayName,
+      photoURL: photo || undefined
     };
     setUser(mockProfile);
     if (typeof window !== 'undefined') {
       localStorage.setItem('brindavanam_mock_user', JSON.stringify(mockProfile));
+      localStorage.setItem('brindavanam_user_email', email);
     }
   };
 
@@ -107,6 +177,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setUser(null);
     if (typeof window !== 'undefined') {
       localStorage.removeItem('brindavanam_mock_user');
+      localStorage.removeItem('brindavanam_user_email');
     }
   };
 
