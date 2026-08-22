@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { Product, ProductVariant } from '@/types/store';
-import { ShoppingBag, Eye, Check, Star } from 'lucide-react';
+import { ShoppingBag, Eye, Check, ArrowRight } from 'lucide-react';
 
 interface ProductCardProps {
   product: Product;
@@ -22,15 +22,16 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   const [added, setAdded] = useState(false);
   const [imgSrc, setImgSrc] = useState<string>(product.images[0] || FALLBACK_IMAGE);
 
-  const handleAdd = () => {
+  const handleAdd = (e: React.MouseEvent) => {
+    e.stopPropagation();
     onQuickView(product);
   };
 
   return (
-    <div className="bg-white rounded-3xl border border-stone-200/90 p-4 sm:p-5 flex flex-col justify-between hover:border-[#3A5303] transition-all duration-300 group shadow-xs hover:shadow-md h-full">
-      <div>
+    <div className="clay-card rounded-2xl sm:rounded-3xl p-3.5 sm:p-5 flex flex-col justify-between transition-all duration-300 group relative">
+      <div className="space-y-3">
         {/* Product Image Link to Detail Page */}
-        <div className="relative aspect-[16/11] rounded-2xl overflow-hidden bg-stone-100 mb-3">
+        <div className="relative aspect-4/3 rounded-xl sm:rounded-2xl overflow-hidden bg-[#ECE4D5] border border-[#D9CEBC]">
           <Link href={`/products/${product.id}`} className="block w-full h-full">
             <img
               src={imgSrc}
@@ -42,52 +43,52 @@ export const ProductCard: React.FC<ProductCardProps> = ({
           </Link>
           
           {product.badge && (
-            <span className="absolute top-2.5 left-2.5 bg-[#3A5303] text-white text-[9px] uppercase tracking-wider font-bold px-2.5 py-1 rounded-md shadow-xs">
+            <span className="absolute top-2.5 left-2.5 bg-[#162010]/90 text-[#F5EFE6] text-[9px] sm:text-[10px] uppercase tracking-[0.15em] font-bold px-2 py-0.5 rounded-lg shadow-sm font-mono backdrop-blur-xs">
               {product.badge}
             </span>
           )}
 
           <button
             onClick={() => onQuickView(product)}
-            className="absolute top-2.5 right-2.5 p-2 bg-white/90 hover:bg-white text-stone-800 rounded-full shadow-md transition-all active:scale-90"
-            title="Quick View Details"
+            className="absolute top-2.5 right-2.5 p-1.5 sm:p-2 bg-[#FAF6F0]/90 hover:bg-[#FAF6F0] text-[#162010] rounded-xl border border-[#D9CEBC] shadow-xs transition-all active:scale-90 cursor-pointer backdrop-blur-xs"
+            title="Inspect Produce Details"
+            aria-label="Quick View"
           >
-            <Eye className="w-3.5 h-3.5 text-[#3A5303]" />
+            <Eye className="w-3.5 h-3.5 text-[#162010]" />
           </button>
         </div>
 
         {/* Product Info */}
-        <div className="space-y-1">
-          <div className="flex items-center justify-between text-xs text-stone-500 font-medium mb-1">
-            <span className="text-stone-700 font-bold flex items-center">
-              <Star className="w-3.5 h-3.5 text-amber-500 fill-amber-400 inline mr-1" />
-              <span>{product.rating} ({product.reviewsCount})</span>
+        <div className="space-y-1 text-left">
+          <div className="flex items-center justify-between text-xs text-[#5C6352] font-mono">
+            <span className="uppercase text-[9px] tracking-wider text-[#33441B] font-bold bg-[#FAF6F0] border border-[#D9CEBC] px-2 py-0.5 rounded">
+              {product.category}
             </span>
-            <span className="uppercase text-[10px] tracking-wider text-[#3A5303] font-bold bg-[#3A5303]/10 px-2 py-0.5 rounded">{product.category}</span>
+            <span className="text-[10px] text-[#C25E2E] font-medium">100% Raw</span>
           </div>
 
           <Link
             href={`/products/${product.id}`}
-            className="text-base sm:text-lg font-serif font-bold text-stone-900 group-hover:text-[#3A5303] transition-colors leading-snug block line-clamp-1"
+            className="text-base sm:text-lg font-serif font-bold text-[#162010] group-hover:text-[#C25E2E] transition-colors leading-snug block line-clamp-1"
             title={product.name}
           >
             {product.name}
           </Link>
-          <p className="text-xs text-stone-500 font-light line-clamp-2 leading-relaxed">{product.subtitle}</p>
+          <p className="text-xs text-[#5C6352] font-sans line-clamp-2 leading-relaxed">{product.subtitle}</p>
         </div>
       </div>
 
-      <div className="mt-4 space-y-3">
-        {/* Touch Optimized Variant Pills */}
-        <div className="flex flex-wrap items-center gap-1.5 pt-1">
+      <div className="mt-3.5 pt-3 border-t border-[#D9CEBC] space-y-3">
+        {/* Variant Selection */}
+        <div className="flex flex-wrap items-center gap-1">
           {product.variants.map((v) => (
             <button
               key={v.id}
               onClick={() => setSelectedVariant(v)}
-              className={`px-3 py-1.5 text-xs font-bold tracking-wider uppercase rounded-xl transition-all active:scale-95 cursor-pointer ${
+              className={`px-2 py-0.5 text-[10px] font-mono font-bold tracking-wider uppercase rounded-md transition-all cursor-pointer ${
                 selectedVariant.id === v.id
-                  ? 'bg-[#3A5303] text-white shadow-xs'
-                  : 'bg-[#F7F6F2] text-stone-700 hover:bg-stone-200 border border-stone-200/80'
+                  ? 'bg-[#162010] text-[#F5EFE6] shadow-xs'
+                  : 'bg-[#FAF6F0] text-[#162010] hover:bg-[#ECE4D5] border border-[#D9CEBC]'
               }`}
             >
               {v.weight}
@@ -96,30 +97,30 @@ export const ProductCard: React.FC<ProductCardProps> = ({
         </div>
 
         {/* Price & Add Action */}
-        <div className="flex items-center justify-between pt-3 border-t border-stone-100 gap-2">
+        <div className="flex items-center justify-between gap-2">
           <div>
-            <span className="text-lg sm:text-xl font-bold text-[#3A5303]">₹{selectedVariant.price}</span>
+            <span className="text-lg sm:text-xl font-bold text-[#162010] font-mono">₹{selectedVariant.price}</span>
             {selectedVariant.originalPrice && (
-              <span className="text-xs text-stone-400 line-through ml-1.5">₹{selectedVariant.originalPrice}</span>
+              <span className="text-[11px] text-[#5C6352] line-through ml-1 font-mono">₹{selectedVariant.originalPrice}</span>
             )}
           </div>
 
           <button
             onClick={handleAdd}
-            className={`px-4 sm:px-5 py-2.5 text-xs font-bold uppercase tracking-wider rounded-xl transition-all active:scale-95 shadow-md flex items-center space-x-1.5 cursor-pointer shrink-0 ${
+            className={`px-3.5 py-1.5 text-xs font-mono font-bold uppercase tracking-wider rounded-xl transition-all active:scale-95 flex items-center space-x-1 cursor-pointer shrink-0 border ${
               added
-                ? 'bg-emerald-700 text-white'
-                : 'bg-[#3A5303] hover:bg-[#2b3e02] text-white'
+                ? 'bg-[#33441B] text-white border-[#33441B]'
+                : 'bg-[#162010] hover:bg-[#C25E2E] text-[#F5EFE6] border-[#162010]'
             }`}
           >
             {added ? (
               <>
-                <Check className="w-4 h-4" />
+                <Check className="w-3 h-3" />
                 <span>Added</span>
               </>
             ) : (
               <>
-                <ShoppingBag className="w-3.5 h-3.5 text-[#94C000]" />
+                <ShoppingBag className="w-3 h-3 text-[#D49B28]" />
                 <span>+ Add</span>
               </>
             )}

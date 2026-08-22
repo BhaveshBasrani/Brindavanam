@@ -62,26 +62,26 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-      <div className="bg-white w-full max-w-md rounded-3xl shadow-2xl overflow-hidden relative border border-stone-200 animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 font-sans">
+      <div className="bg-[#F7F4EE] w-full max-w-md rounded-3xl shadow-2xl overflow-hidden relative border border-[#DFDACF] animate-in fade-in duration-200">
         
         {/* Header */}
-        <div className="bg-[#3A5303] text-white p-6 relative">
+        <div className="bg-[#151811] text-[#F7F4EE] p-6 relative border-b border-[#2D3A1A]">
           <button
             onClick={onClose}
-            className="absolute top-4 right-4 text-white/70 hover:text-white p-2 rounded-full hover:bg-white/10"
+            className="absolute top-4 right-4 text-white/70 hover:text-white p-2 rounded-xl hover:bg-white/10 cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
           <div className="space-y-1">
-            <span className="text-xs uppercase tracking-widest text-[#94C000] font-bold">
-              Customer Account
+            <span className="text-[10px] font-mono uppercase tracking-[0.25em] text-[#D4A843]">
+              Patron Authentication
             </span>
-            <h2 className="text-2xl font-serif">
-              {isSignUp ? 'Join Brindavanam' : 'Welcome Back'}
+            <h2 className="text-2xl font-serif text-[#F7F4EE]">
+              {isSignUp ? 'Join Brindavanam Farms' : 'Welcome Back'}
             </h2>
-            <p className="text-xs text-stone-200 font-light">
-              {isSignUp ? 'Create an account to track orders & earn organic rewards' : 'Sign in to access your profile & order history'}
+            <p className="text-xs text-[#EFECE3]/70 font-sans">
+              {isSignUp ? 'Create an account to track deliveries & access farm harvests' : 'Sign in to access your profile & order history'}
             </p>
           </div>
         </div>

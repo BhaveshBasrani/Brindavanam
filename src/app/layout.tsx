@@ -147,7 +147,7 @@ export default function RootLayout({
           strategy="lazyOnload"
         />
       </head>
-      <body className="antialiased selection:bg-[#94C000] selection:text-[#1c260b]">
+      <body className="antialiased selection:bg-[#C4703F] selection:text-white">
         {children}
       </body>
     </html>

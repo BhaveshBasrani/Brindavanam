@@ -270,16 +270,16 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-black/75 backdrop-blur-sm flex items-center justify-center p-3 sm:p-6">
-      <div className="bg-white max-w-2xl w-full rounded-3xl shadow-2xl overflow-hidden relative border border-stone-200 animate-in fade-in duration-200 my-auto">
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-black/75 backdrop-blur-sm flex items-center justify-center p-3 sm:p-6 font-sans">
+      <div className="bg-[#F7F4EE] max-w-2xl w-full rounded-3xl shadow-2xl overflow-hidden relative border border-[#DFDACF] animate-in fade-in duration-200 my-auto">
         
         {/* Header */}
-        <div className="bg-[#3A5303] text-white px-6 py-4 flex justify-between items-center border-b border-[#2b3e02]">
-          <div className="flex items-center space-x-2">
-            <Truck className="w-5 h-5 text-[#94C000]" />
-            <h2 className="text-lg font-serif font-bold tracking-tight">Express Farm Dispatch Desk</h2>
+        <div className="bg-[#151811] text-[#F7F4EE] px-6 py-4 flex justify-between items-center border-b border-[#2D3A1A]">
+          <div className="flex items-center space-x-2.5">
+            <Truck className="w-5 h-5 text-[#D4A843]" />
+            <h2 className="text-base font-display uppercase tracking-tight font-bold">Express Farm Dispatch Desk</h2>
           </div>
-          <button onClick={handleCloseAll} className="text-white/70 hover:text-white p-1 rounded-full hover:bg-white/10 cursor-pointer">
+          <button onClick={handleCloseAll} className="text-white/70 hover:text-white p-1 rounded-xl hover:bg-white/10 cursor-pointer">
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -352,85 +352,85 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
             {/* Address Form Inputs */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs pt-1">
               <div>
-                <label className="block text-[10px] font-bold text-stone-700 uppercase mb-1">Full Name *</label>
+                <label className="block text-[10px] font-mono font-bold text-[#162010] uppercase mb-1">Full Name *</label>
                 <input
                   type="text"
                   required
                   value={address.fullName}
                   onChange={(e) => setAddress({ ...address, fullName: e.target.value })}
-                  className="w-full px-3 py-2 border border-stone-300 rounded-xl bg-white text-stone-900 font-semibold focus:outline-none focus:border-[#3A5303]"
+                  className="w-full px-3 py-2 border border-[#D9CEBC] rounded-xl bg-[#FAF6F0] text-[#162010] font-semibold focus:outline-none focus:border-[#162010]"
                   placeholder="e.g. Bhavesh Basrani"
                 />
               </div>
 
               <div>
-                <label className="block text-[10px] font-bold text-stone-700 uppercase mb-1">Mobile Phone (For Order Tracking SMS) *</label>
+                <label className="block text-[10px] font-mono font-bold text-[#162010] uppercase mb-1">Mobile Phone (Order Tracking) *</label>
                 <input
                   type="tel"
                   required
                   value={address.phone}
                   onChange={(e) => setAddress({ ...address, phone: e.target.value })}
-                  className="w-full px-3 py-2 border border-stone-300 rounded-xl bg-white text-stone-900 font-semibold focus:outline-none focus:border-[#3A5303]"
+                  className="w-full px-3 py-2 border border-[#D9CEBC] rounded-xl bg-[#FAF6F0] text-[#162010] font-semibold focus:outline-none focus:border-[#162010]"
                   placeholder="e.g. 9876543210"
                 />
               </div>
 
               <div>
-                <label className="block text-[10px] font-bold text-stone-700 uppercase mb-1">Email Address (For Wholesome Invoice) *</label>
+                <label className="block text-[10px] font-mono font-bold text-[#162010] uppercase mb-1">Email (Official Invoice) *</label>
                 <input
                   type="email"
                   required
                   value={address.email}
                   onChange={(e) => setAddress({ ...address, email: e.target.value })}
-                  className="w-full px-3 py-2 border border-stone-300 rounded-xl bg-white text-stone-900 font-semibold focus:outline-none focus:border-[#3A5303]"
+                  className="w-full px-3 py-2 border border-[#D9CEBC] rounded-xl bg-[#FAF6F0] text-[#162010] font-semibold focus:outline-none focus:border-[#162010]"
                   placeholder="name@example.com"
                 />
               </div>
 
               <div>
-                <label className="block text-[10px] font-bold text-stone-700 uppercase mb-1">Address Label</label>
+                <label className="block text-[10px] font-mono font-bold text-[#162010] uppercase mb-1">Address Label</label>
                 <input
                   type="text"
                   value={addressLabel}
                   onChange={(e) => setAddressLabel(e.target.value)}
-                  className="w-full px-3 py-2 border border-stone-300 rounded-xl bg-white text-stone-900 font-semibold focus:outline-none focus:border-[#3A5303]"
+                  className="w-full px-3 py-2 border border-[#D9CEBC] rounded-xl bg-[#FAF6F0] text-[#162010] font-semibold focus:outline-none focus:border-[#162010]"
                   placeholder="Home / Office / Farm House"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-[10px] font-bold text-stone-700 uppercase mb-1">Street Address / House No. / Landmark *</label>
+              <label className="block text-[10px] font-mono font-bold text-[#162010] uppercase mb-1">Street Address / Landmark *</label>
               <textarea
                 rows={2}
                 required
                 value={address.addressLine1}
                 onChange={(e) => setAddress({ ...address, addressLine1: e.target.value })}
-                className="w-full px-3 py-2 border border-stone-300 rounded-xl bg-white text-stone-900 font-semibold focus:outline-none focus:border-[#3A5303]"
+                className="w-full px-3 py-2 border border-[#D9CEBC] rounded-xl bg-[#FAF6F0] text-[#162010] font-semibold focus:outline-none focus:border-[#162010]"
                 placeholder="Plot 42, Jubilee Hills Road No. 10..."
               />
             </div>
 
             <div className="grid grid-cols-2 gap-3 text-xs">
               <div>
-                <label className="block text-[10px] font-bold text-stone-700 uppercase mb-1">City *</label>
+                <label className="block text-[10px] font-mono font-bold text-[#162010] uppercase mb-1">City *</label>
                 <input
                   type="text"
                   required
                   value={address.city}
                   onChange={(e) => setAddress({ ...address, city: e.target.value })}
-                  className="w-full px-3 py-2 border border-stone-300 rounded-xl bg-white text-stone-900 font-semibold focus:outline-none focus:border-[#3A5303]"
+                  className="w-full px-3 py-2 border border-[#D9CEBC] rounded-xl bg-[#FAF6F0] text-[#162010] font-semibold focus:outline-none focus:border-[#162010]"
                 />
               </div>
 
               <div>
-                <label className="block text-[10px] font-bold text-stone-700 uppercase mb-1">Pincode *</label>
+                <label className="block text-[10px] font-mono font-bold text-[#162010] uppercase mb-1">Pincode *</label>
                 <input
                   type="text"
                   required
                   value={address.pincode}
                   onChange={(e) => setAddress({ ...address, pincode: e.target.value })}
-                  className="w-full px-3 py-2 border border-stone-300 rounded-xl bg-white text-stone-900 font-semibold focus:outline-none focus:border-[#3A5303]"
+                  className="w-full px-3 py-2 border border-[#D9CEBC] rounded-xl bg-[#FAF6F0] text-[#162010] font-semibold focus:outline-none focus:border-[#162010]"
                   placeholder="500033"
                 />
               </div>
@@ -439,7 +439,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
             <div className="pt-2 flex justify-end">
               <button
                 type="submit"
-                className="w-full sm:w-auto px-6 py-3 bg-[#3A5303] hover:bg-[#2b3e02] text-white font-bold text-xs uppercase tracking-wider rounded-xl shadow-md transition-all cursor-pointer flex items-center justify-center space-x-2"
+                className="w-full sm:w-auto px-6 py-3 bg-[#162010] hover:bg-[#C25E2E] text-[#F5EFE6] font-mono font-bold text-xs uppercase tracking-wider rounded-xl shadow-md transition-all cursor-pointer flex items-center justify-center space-x-2"
               >
                 <span>Review Order Summary</span>
                 <ArrowRight className="w-4 h-4" />
@@ -448,18 +448,18 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
           </form>
         )}
 
-        {/* STEP 2: Order Review & Razorpay / Test Bypass Gateway */}
+        {/* STEP 2: Order Review & Razorpay Gateway */}
         {step === 'review' && (
           <div className="p-6 space-y-5 max-h-[80vh] overflow-y-auto">
-            <div className="flex items-center justify-between border-b border-stone-200 pb-3">
+            <div className="flex items-center justify-between border-b border-[#D9CEBC] pb-3">
               <div>
-                <h3 className="font-serif font-bold text-stone-900 text-base">Order Breakdown & Final Payment</h3>
-                <p className="text-xs text-stone-500">100% Tax Inclusive • Free Pan-India Express Shipping</p>
+                <h3 className="font-serif font-bold text-[#162010] text-base">Order Breakdown & Final Payment</h3>
+                <p className="text-xs text-[#5C6352]">100% Tax Inclusive • Free Pan-India Express Shipping</p>
               </div>
               <button
                 type="button"
                 onClick={() => setStep('address')}
-                className="text-xs font-bold text-[#3A5303] hover:underline flex items-center space-x-1"
+                className="text-xs font-mono font-bold text-[#C25E2E] hover:underline flex items-center space-x-1 cursor-pointer"
               >
                 <ArrowLeft className="w-3.5 h-3.5" />
                 <span>Edit Address</span>
@@ -474,60 +474,60 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
 
             {/* Test Bypass Banner Notice */}
             {isTestBypass && (
-              <div className="bg-emerald-50 border border-emerald-300 p-3 rounded-2xl flex items-center space-x-2 text-emerald-900 text-xs font-bold">
+              <div className="bg-emerald-50 border border-emerald-300 p-3 rounded-2xl flex items-center space-x-2 text-emerald-900 text-xs font-bold font-mono">
                 <Zap className="w-4 h-4 text-emerald-600 shrink-0" />
                 <span>Master Developer Test Code (TEST@RENDERVOID) Active: ₹0 Free Test Order!</span>
               </div>
             )}
 
             {/* Address Review Box */}
-            <div className="bg-[#F7F6F2] p-3.5 rounded-2xl border border-stone-200 text-xs space-y-1">
-              <div className="flex justify-between font-bold text-stone-900">
+            <div className="bg-[#ECE4D5]/70 p-3.5 rounded-2xl border border-[#D9CEBC] text-xs space-y-1">
+              <div className="flex justify-between font-bold text-[#162010]">
                 <span>Deliver To: {address.fullName}</span>
-                <span className="text-[#3A5303] font-mono">{address.phone}</span>
+                <span className="text-[#33441B] font-mono">{address.phone}</span>
               </div>
-              <p className="text-stone-600">{address.addressLine1}, {address.city} - {address.pincode}</p>
-              <p className="text-stone-400 text-[10px]">{address.email}</p>
+              <p className="text-[#5C6352]">{address.addressLine1}, {address.city} - {address.pincode}</p>
+              <p className="text-[#5C6352] text-[10px] font-mono">{address.email}</p>
             </div>
 
             {/* Items Summary */}
             <div className="space-y-2">
-              <p className="text-[10px] font-bold text-stone-700 uppercase">Items in Cart</p>
-              <div className="divide-y divide-stone-100 max-h-36 overflow-y-auto">
+              <p className="text-[10px] font-mono font-bold text-[#162010] uppercase">Items in Cart</p>
+              <div className="divide-y divide-[#D9CEBC]/60 max-h-36 overflow-y-auto">
                 {items.map((item, idx) => (
                   <div key={idx} className="py-2 flex justify-between items-center text-xs">
                     <div>
-                      <p className="font-bold text-stone-900">{item.product.name}</p>
-                      <p className="text-[10px] text-stone-500">{item.selectedVariant.weight} x{item.quantity}</p>
+                      <p className="font-bold text-[#162010] font-serif">{item.product.name}</p>
+                      <p className="text-[10px] text-[#5C6352] font-mono">{item.selectedVariant.weight} x{item.quantity}</p>
                     </div>
-                    <p className="font-bold text-[#3A5303]">₹{item.selectedVariant.price * item.quantity}</p>
+                    <p className="font-bold text-[#162010] font-mono">₹{item.selectedVariant.price * item.quantity}</p>
                   </div>
                 ))}
               </div>
             </div>
 
             {/* Price Calculations */}
-            <div className="bg-[#F7F6F2] p-4 rounded-2xl border border-stone-200 space-y-1.5 text-xs">
-              <div className="flex justify-between text-stone-600">
+            <div className="bg-[#ECE4D5]/70 p-4 rounded-2xl border border-[#D9CEBC] space-y-1.5 text-xs font-mono">
+              <div className="flex justify-between text-[#5C6352]">
                 <span>Items Subtotal:</span>
                 <span>₹{rawSubtotal}</span>
               </div>
 
               {discountAmount > 0 && (
-                <div className="flex justify-between text-emerald-700 font-semibold">
+                <div className="flex justify-between text-[#33441B] font-semibold">
                   <span>Coupon Discount ({promoCode || 'TEST@RENDERVOID'}):</span>
                   <span>-₹{discountAmount}</span>
                 </div>
               )}
 
-              <div className="flex justify-between text-stone-600">
+              <div className="flex justify-between text-[#5C6352]">
                 <span>Express Pan-India Shipping:</span>
-                <span className="text-[#3A5303] font-bold">FREE</span>
+                <span className="text-[#33441B] font-bold">FREE</span>
               </div>
 
-              <div className="flex justify-between font-bold text-stone-900 text-sm pt-2 border-t border-stone-300">
+              <div className="flex justify-between font-bold text-[#162010] text-sm pt-2 border-t border-[#D9CEBC]">
                 <span>Grand Total To Pay:</span>
-                <span className="text-[#3A5303] text-base font-serif">₹{totalAmount}</span>
+                <span className="text-lg font-mono">₹{totalAmount}</span>
               </div>
             </div>
 
@@ -543,7 +543,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
               <button
                 type="button"
                 onClick={() => setStep('address')}
-                className="px-4 py-2.5 border border-stone-300 rounded-xl text-stone-700 font-bold text-xs cursor-pointer"
+                className="px-4 py-2.5 border border-[#D9CEBC] rounded-xl text-[#162010] font-mono font-bold text-xs cursor-pointer hover:bg-[#ECE4D5]"
               >
                 Back
               </button>
@@ -551,10 +551,10 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
               <button
                 type="button"
                 onClick={handleInitiatePayment}
-                className="px-6 py-3 bg-[#3A5303] hover:bg-[#2b3e02] text-white font-bold text-xs uppercase tracking-wider rounded-xl shadow-lg transition-all cursor-pointer flex items-center space-x-2"
+                className="px-6 py-3.5 bg-[#C25E2E] hover:bg-[#9E451A] text-white font-mono font-bold text-xs uppercase tracking-wider rounded-xl shadow-lg transition-all cursor-pointer flex items-center space-x-2"
               >
-                <CreditCard className="w-4 h-4 text-[#94C000]" />
-                <span>{isTestBypass || totalAmount === 0 ? 'Place Free Test Order' : `Pay ₹${totalAmount} via Secure Payment`}</span>
+                <CreditCard className="w-4 h-4 text-white" />
+                <span>{isTestBypass || totalAmount === 0 ? 'Place Free Test Order' : `Pay ₹${totalAmount} via Secure Gateway`}</span>
               </button>
             </div>
           </div>

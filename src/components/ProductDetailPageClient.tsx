@@ -9,6 +9,7 @@ import { PRODUCTS } from '@/data/products';
 import { Product, ProductVariant } from '@/types/store';
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
+import { CartDrawer } from '@/components/CartDrawer';
 import { CheckoutModal } from '@/components/CheckoutModal';
 import { AuthModal } from '@/components/AuthModal';
 import { UserOrdersModal } from '@/components/UserOrdersModal';
@@ -23,6 +24,8 @@ function ProductDetailPageContent({ id }: { id: string }) {
     cartItems,
     userOrders,
     addToCart,
+    updateQuantity,
+    removeCartItem,
     triggerCheckout,
     appliedDiscount,
     appliedPromoCode,
@@ -36,6 +39,8 @@ function ProductDetailPageContent({ id }: { id: string }) {
     setIsAdminOpen,
     onOrderSuccess,
   } = useStore();
+
+  const [isCartOpen, setIsCartOpen] = useState(false);
 
   const rawDecoded = decodeURIComponent(id || '').trim();
   const cleanId = rawDecoded.toLowerCase();
@@ -88,21 +93,22 @@ function ProductDetailPageContent({ id }: { id: string }) {
     addToCart(product, selectedVariant, quantity);
     setAdded(true);
     setTimeout(() => setAdded(false), 1500);
+    setIsCartOpen(true);
   };
 
   const handleBuyNow = () => {
     addToCart(product, selectedVariant, quantity);
-    triggerCheckout(appliedDiscount, appliedPromoCode);
+    setIsCheckoutOpen(true);
   };
 
   const cartTotalCount = cartItems.reduce((acc, item) => acc + item.quantity, 0);
   const relatedProducts = PRODUCTS.filter((p) => p.id !== product.id).slice(0, 3);
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#F7F6F2]">
+    <div className="min-h-screen flex flex-col bg-[#F5EFE6] pb-mobile-nav font-sans">
       <Navbar
         cartCount={cartTotalCount}
-        onOpenCart={() => {}}
+        onOpenCart={() => setIsCartOpen(true)}
         onOpenAuth={() => setIsAuthOpen(true)}
         onOpenOrders={() => setIsOrdersOpen(true)}
         onOpenAdmin={() => setIsAdminOpen(true)}
@@ -112,30 +118,30 @@ function ProductDetailPageContent({ id }: { id: string }) {
         setSelectedCategory={() => {}}
       />
 
-      <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 sm:pt-28 pb-12 w-full">
+      <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 sm:pt-32 pb-16 w-full">
         {/* Breadcrumb Header */}
-        <div className="mb-4">
+        <div className="mb-6">
           <Link
             href="/"
-            className="inline-flex items-center text-xs text-stone-500 hover:text-[#3A5303] transition-colors font-bold uppercase tracking-wider bg-white px-3 py-1.5 rounded-full border border-stone-200 shadow-xs"
+            className="inline-flex items-center text-xs text-[#162010] hover:text-[#C25E2E] transition-colors font-mono font-bold uppercase tracking-wider bg-[#FAF6F0] px-4 py-2.5 rounded-xl border border-[#D9CEBC]"
           >
-            <ArrowLeft className="w-3.5 h-3.5 mr-1.5 text-[#3A5303]" /> Back to Storefront
+            <ArrowLeft className="w-3.5 h-3.5 mr-1.5 text-[#162010]" /> Back to Catalog
           </Link>
         </div>
 
         {/* Product Details Section */}
-        <div className="bg-white rounded-2xl border border-stone-200/80 p-6 sm:p-10 grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
+        <div className="clay-card rounded-3xl p-6 sm:p-12 grid grid-cols-1 lg:grid-cols-12 gap-10 sm:gap-14 items-start">
           
           {/* Left: Gallery */}
           <div className="lg:col-span-6 space-y-4">
-            <div className="aspect-square rounded-xl overflow-hidden bg-stone-100 border border-stone-200 relative">
+            <div className="aspect-square rounded-2xl overflow-hidden bg-[#F7F4EE] border border-[#DFDACF] relative">
               <img
                 src={activeImage || product.images[0]}
                 alt={product.name}
                 className="w-full h-full object-cover"
               />
               {product.badge && (
-                <span className="absolute top-4 left-4 bg-[#3A5303] text-white text-[10px] uppercase tracking-wider font-semibold px-3 py-1 rounded">
+                <span className="absolute top-4 left-4 bg-[#151811] text-[#F7F4EE] text-[9px] uppercase tracking-[0.2em] font-mono font-bold px-3 py-1 rounded">
                   {product.badge}
                 </span>
               )}
@@ -147,10 +153,10 @@ function ProductDetailPageContent({ id }: { id: string }) {
                   <button
                     key={idx}
                     onClick={() => setActiveImage(img)}
-                    className={`w-20 h-20 rounded-lg overflow-hidden border transition-all ${
+                    className={`w-20 h-20 rounded-xl overflow-hidden border-2 transition-all cursor-pointer ${
                       (activeImage || product.images[0]) === img
-                        ? 'border-[#3A5303] ring-1 ring-[#3A5303]'
-                        : 'border-stone-200 opacity-60 hover:opacity-100'
+                        ? 'border-[#151811] ring-1 ring-[#151811]'
+                        : 'border-[#DFDACF] opacity-60 hover:opacity-100'
                     }`}
                   >
                     <img src={img} alt="" className="w-full h-full object-cover" />
@@ -162,121 +168,112 @@ function ProductDetailPageContent({ id }: { id: string }) {
 
           {/* Right: Details & Actions */}
           <div className="lg:col-span-6 space-y-6">
-            <div className="space-y-3">
-              <div className="flex items-center space-x-2 text-amber-500 text-xs">
-                <div className="flex">
-                  {[...Array(5)].map((_, i) => (
-                    <Star
-                      key={i}
-                      className={`w-3.5 h-3.5 ${
-                        i < Math.floor(product.rating) ? 'fill-current' : 'text-stone-300'
-                      }`}
-                    />
-                  ))}
-                </div>
-                <span className="font-semibold text-stone-900">{product.rating}</span>
-                <span className="text-stone-400">({product.reviewsCount} verified reviews)</span>
-              </div>
+            <div className="space-y-4">
+              <span className="text-[10px] font-mono uppercase tracking-[0.25em] text-[#C4703F] font-bold block">
+                {product.category} · 100% Vedic Standard
+              </span>
 
-              <h1 className="text-3xl sm:text-4xl font-serif text-stone-900 font-normal leading-tight">
+              <h1 className="text-3xl sm:text-5xl font-serif text-[#151811] font-normal leading-tight">
                 {product.name}
               </h1>
-              <p className="text-xs uppercase tracking-wider font-bold text-[#3A5303]">
+              <p className="text-xs font-mono uppercase tracking-wider text-[#3A4B20]">
                 {product.subtitle}
               </p>
-              <p className="text-stone-600 text-xs sm:text-sm font-light leading-relaxed">
+              <p className="text-[#6B6D62] text-xs sm:text-sm font-sans leading-relaxed">
                 {product.description}
               </p>
 
               {/* Process Info Box */}
-              <div className="bg-[#F7F6F2] p-4 rounded-xl border border-stone-200 text-xs text-stone-700 font-light">
-                <span className="font-semibold text-[#3A5303] block mb-0.5">Extraction Technique:</span>
+              <div className="bg-[#F7F4EE] p-4 rounded-xl border border-[#DFDACF] text-xs text-[#6B6D62] font-sans">
+                <span className="font-mono font-bold text-[#151811] uppercase tracking-wider block mb-1">Traditional Method:</span>
                 {product.extractionMethod}
               </div>
 
               {/* Variant Selector */}
               <div className="pt-2">
-                <label className="block text-xs font-bold text-stone-900 uppercase tracking-wider mb-2">
-                  Select Packaging Size:
+                <label className="block text-xs font-mono font-bold text-[#162010] uppercase tracking-wider mb-2">
+                  Select Pack Size:
                 </label>
                 <div className="flex flex-wrap gap-2">
                   {product.variants.map((v) => (
                     <button
                       key={v.id}
                       onClick={() => setSelectedVariant(v)}
-                      className={`px-4 py-2 text-xs font-semibold uppercase tracking-wider rounded border transition-colors ${
+                      className={`px-4 py-2 text-xs font-mono font-bold uppercase tracking-wider rounded-xl border transition-colors cursor-pointer ${
                         selectedVariant.id === v.id
-                          ? 'border-[#3A5303] bg-[#3A5303] text-white'
-                          : 'border-stone-300 bg-white text-stone-700 hover:bg-stone-100'
+                          ? 'border-[#162010] bg-[#162010] text-[#F5EFE6]'
+                          : 'border-[#D9CEBC] bg-[#FAF6F0] text-[#162010] hover:bg-[#ECE4D5]'
                       }`}
                     >
-                      {v.weight} - ₹{v.price}
+                      {v.weight} · ₹{v.price}
                     </button>
                   ))}
                 </div>
               </div>
 
-              {/* Quantity selector */}
-              <div className="flex items-center space-x-4 pt-2">
-                <span className="text-xs font-bold text-stone-900 uppercase tracking-wider">Quantity:</span>
-                <div className="flex items-center border border-stone-300 rounded overflow-hidden bg-[#F7F6F2]">
-                  <button
-                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                    className="px-3 py-1.5 text-stone-600 hover:bg-stone-200 font-bold"
-                  >
-                    -
-                  </button>
-                  <span className="px-4 py-1.5 font-bold text-xs text-stone-900 bg-white">{quantity}</span>
-                  <button
-                    onClick={() => setQuantity(quantity + 1)}
-                    className="px-3 py-1.5 text-stone-600 hover:bg-stone-200 font-bold"
-                  >
-                    +
-                  </button>
+              {/* Quantity Selector & Live Price */}
+              <div className="pt-4 border-t border-[#D9CEBC] flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <span className="text-xs font-mono font-bold text-[#162010] uppercase">Quantity:</span>
+                  <div className="flex items-center border border-[#D9CEBC] rounded-xl bg-[#FAF6F0] overflow-hidden">
+                    <button
+                      onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                      className="px-3.5 py-1 text-[#162010] hover:bg-[#ECE4D5] font-bold text-xs cursor-pointer"
+                    >
+                      -
+                    </button>
+                    <span className="px-3 py-1 text-xs font-mono font-bold text-[#162010]">{quantity}</span>
+                    <button
+                      onClick={() => setQuantity(quantity + 1)}
+                      className="px-3.5 py-1 text-[#162010] hover:bg-[#ECE4D5] font-bold text-xs cursor-pointer"
+                    >
+                      +
+                    </button>
+                  </div>
+                </div>
+
+                <div>
+                  <span className="text-2xl sm:text-3xl font-mono font-bold text-[#162010]">
+                    ₹{selectedVariant.price * quantity}
+                  </span>
+                  {selectedVariant.originalPrice && (
+                    <span className="text-xs text-[#5C6352] line-through ml-2 font-mono">
+                      ₹{selectedVariant.originalPrice * quantity}
+                    </span>
+                  )}
                 </div>
               </div>
 
-              {/* Price Calculation */}
-              <div className="flex items-baseline space-x-3 pt-2">
-                <span className="text-3xl font-serif text-[#3A5303]">
-                  ₹{selectedVariant.price * quantity}
-                </span>
-                {selectedVariant.originalPrice && (
-                  <span className="text-sm text-stone-400 line-through">
-                    ₹{selectedVariant.originalPrice * quantity}
-                  </span>
-                )}
-              </div>
-            </div>
+              {/* Action Buttons */}
+              <div className="space-y-3 pt-4 border-t border-[#D9CEBC]">
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    onClick={handleAdd}
+                    className={`py-3.5 px-4 rounded-xl font-mono font-bold text-xs uppercase tracking-wider border transition-colors flex items-center justify-center space-x-2 cursor-pointer ${
+                      added
+                        ? 'bg-[#33441B] text-white border-[#33441B]'
+                        : 'border-[#162010] text-[#162010] hover:bg-[#162010] hover:text-[#F5EFE6]'
+                    }`}
+                  >
+                    <ShoppingBag className="w-4 h-4 text-[#D49B28]" />
+                    <span>{added ? 'Added to Cart' : '+ Add to Bag'}</span>
+                  </button>
 
-            {/* Action Buttons */}
-            <div className="space-y-3 pt-4 border-t border-stone-200">
-              <div className="grid grid-cols-2 gap-3">
-                <button
-                  onClick={handleAdd}
-                  className={`py-3.5 px-4 rounded font-semibold text-xs uppercase tracking-wider border transition-colors flex items-center justify-center space-x-2 ${
-                    added
-                      ? 'bg-emerald-700 text-white border-emerald-700'
-                      : 'border-[#3A5303] text-[#3A5303] hover:bg-[#F7F6F2]'
-                  }`}
-                >
-                  <ShoppingBag className="w-4 h-4" />
-                  <span>{added ? 'Added to Bag' : 'Add to Bag'}</span>
-                </button>
+                  <button
+                    onClick={handleBuyNow}
+                    className="py-3.5 px-4 rounded-xl bg-[#C25E2E] hover:bg-[#9E451A] text-white font-mono font-bold text-xs uppercase tracking-wider flex items-center justify-center space-x-2 transition-transform active:scale-98 shadow-md cursor-pointer"
+                  >
+                    <Zap className="w-4 h-4 text-white" />
+                    <span>Buy Now (Express)</span>
+                  </button>
+                </div>
 
-                <button
-                  onClick={handleBuyNow}
-                  className="py-3.5 px-4 rounded bg-[#3A5303] hover:bg-[#2b3e02] text-white font-semibold text-xs uppercase tracking-wider flex items-center justify-center space-x-2 transition-colors shadow-xs"
-                >
-                  <Zap className="w-4 h-4 text-[#94C000]" />
-                  <span>Buy Now (Express Checkout)</span>
-                </button>
+                <div className="flex items-center justify-between text-[10px] font-mono text-[#5C6352] pt-2">
+                  <span className="flex items-center"><ShieldCheck className="w-3.5 h-3.5 mr-1 text-[#33441B]" /> 100% Raw Vedic Standard</span>
+                  <span className="flex items-center"><Truck className="w-3.5 h-3.5 mr-1 text-[#C25E2E]" /> Sunrise Farm Dispatch</span>
+                </div>
               </div>
 
-              <div className="flex items-center justify-between text-[10px] text-stone-500 pt-2">
-                <span className="flex items-center"><ShieldCheck className="w-3.5 h-3.5 mr-1 text-[#3A5303]" /> 100% Lab Certified</span>
-                <span className="flex items-center"><Truck className="w-3.5 h-3.5 mr-1 text-[#4E90F5]" /> Ships in 24 Hours</span>
-              </div>
             </div>
 
           </div>
@@ -284,60 +281,60 @@ function ProductDetailPageContent({ id }: { id: string }) {
         </div>
 
         {/* Tabbed Info Section: Benefits, Nutrition, Reviews */}
-        <div className="mt-12 bg-white rounded-2xl border border-stone-200/80 p-6 sm:p-8">
-          <div className="flex space-x-8 border-b border-stone-200 pb-3 text-xs uppercase tracking-wider font-semibold">
+        <div className="mt-12 bg-[#FAF6F0] rounded-3xl border border-[#D9CEBC] p-6 sm:p-10">
+          <div className="flex space-x-8 border-b border-[#D9CEBC] pb-3 text-xs font-mono uppercase tracking-wider font-bold">
             <button
               onClick={() => setActiveTab('benefits')}
-              className={`pb-1 transition-all ${
+              className={`pb-1 transition-all cursor-pointer ${
                 activeTab === 'benefits'
-                  ? 'text-[#3A5303] border-b-2 border-[#3A5303]'
-                  : 'text-stone-400 hover:text-stone-800'
+                  ? 'text-[#162010] border-b-2 border-[#162010]'
+                  : 'text-[#5C6352] hover:text-[#162010]'
               }`}
             >
-              Health Benefits
+              Vedic Health Benefits
             </button>
             <button
               onClick={() => setActiveTab('nutrition')}
-              className={`pb-1 transition-all ${
+              className={`pb-1 transition-all cursor-pointer ${
                 activeTab === 'nutrition'
-                  ? 'text-[#3A5303] border-b-2 border-[#3A5303]'
-                  : 'text-stone-400 hover:text-stone-800'
+                  ? 'text-[#162010] border-b-2 border-[#162010]'
+                  : 'text-[#5C6352] hover:text-[#162010]'
               }`}
             >
-              Nutritional Facts
+              Nutritional Profile
             </button>
             <button
               onClick={() => setActiveTab('reviews')}
-              className={`pb-1 transition-all ${
+              className={`pb-1 transition-all cursor-pointer ${
                 activeTab === 'reviews'
-                  ? 'text-[#3A5303] border-b-2 border-[#3A5303]'
-                  : 'text-stone-400 hover:text-stone-800'
+                  ? 'text-[#162010] border-b-2 border-[#162010]'
+                  : 'text-[#5C6352] hover:text-[#162010]'
               }`}
             >
               Patron Reviews ({product.reviewsCount})
             </button>
           </div>
 
-          <div className="pt-6 text-xs text-stone-700 font-light">
+          <div className="pt-6 text-xs text-[#5C6352] font-sans">
             {activeTab === 'benefits' && (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {product.healthBenefits.map((b, i) => (
-                  <div key={i} className="flex items-start space-x-3 bg-[#F7F6F2] p-4 rounded-xl border border-stone-200">
-                    <CheckCircle className="w-4 h-4 text-[#3A5303] shrink-0 mt-0.5" />
-                    <span>{b}</span>
+                  <div key={i} className="flex items-start space-x-3 bg-[#F5EFE6] p-4 rounded-xl border border-[#D9CEBC]">
+                    <span className="text-[#C25E2E] font-mono font-bold text-sm">✓</span>
+                    <span className="text-[#162010]">{b}</span>
                   </div>
                 ))}
               </div>
             )}
 
             {activeTab === 'nutrition' && (
-              <div className="bg-[#F7F6F2] rounded-xl border border-stone-200 overflow-hidden max-w-md">
-                <table className="w-full text-left text-xs">
-                  <tbody className="divide-y divide-stone-200">
+              <div className="bg-[#F5EFE6] rounded-xl border border-[#D9CEBC] overflow-hidden max-w-md">
+                <table className="w-full text-left text-xs font-mono">
+                  <tbody className="divide-y divide-[#D9CEBC]">
                     {product.nutritionalInfo.map((n, i) => (
-                      <tr key={i} className={i % 2 === 0 ? 'bg-white' : 'bg-[#F7F6F2]'}>
-                        <td className="px-4 py-2.5 font-medium text-stone-600">{n.label}</td>
-                        <td className="px-4 py-2.5 font-bold text-stone-900">{n.value}</td>
+                      <tr key={i} className={i % 2 === 0 ? 'bg-[#F5EFE6]' : 'bg-[#FAF6F0]'}>
+                        <td className="px-4 py-2.5 font-medium text-[#5C6352]">{n.label}</td>
+                        <td className="px-4 py-2.5 font-bold text-[#162010]">{n.value}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -351,30 +348,30 @@ function ProductDetailPageContent({ id }: { id: string }) {
                 {product.reviews && product.reviews.length > 0 ? (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {product.reviews.map((r) => (
-                      <div key={r.id} className="bg-[#F7F6F2] p-4 rounded-2xl border border-stone-200 space-y-2">
+                      <div key={r.id} className="bg-[#F5EFE6] p-4 rounded-xl border border-[#D9CEBC] space-y-2">
                         <div className="flex items-center justify-between">
-                          <span className="font-bold text-stone-900 flex items-center space-x-2">
+                          <span className="font-bold text-[#162010] font-mono flex items-center space-x-2">
                             <span>{r.author}</span>
                             {r.verifiedPurchase && (
-                              <span className="text-[9px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-full">Verified Patron</span>
+                              <span className="text-[9px] bg-[#FAF6F0] text-[#33441B] font-bold px-2 py-0.5 rounded border border-[#D9CEBC]">Verified Patron</span>
                             )}
                           </span>
-                          <span className="text-[10px] text-stone-400">{r.date}</span>
+                          <span className="text-[10px] text-[#5C6352] font-mono">{r.date}</span>
                         </div>
                         <div className="flex items-center space-x-1">
                           {[...Array(r.rating)].map((_, sIdx) => (
-                            <Star key={sIdx} className="w-3.5 h-3.5 text-amber-500 fill-amber-400" />
+                            <Star key={sIdx} className="w-3.5 h-3.5 text-[#D49B28] fill-[#D49B28]" />
                           ))}
-                          <span className="text-stone-700 font-bold text-xs ml-1">{r.rating}.0</span>
+                          <span className="text-[#162010] font-bold text-xs ml-1 font-mono">{r.rating}.0</span>
                         </div>
-                        <p className="text-stone-600 text-xs font-light leading-relaxed">{r.comment}</p>
+                        <p className="text-[#162010] text-xs font-normal leading-relaxed">{r.comment}</p>
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <div className="text-center py-8 bg-[#F7F6F2] rounded-2xl border border-stone-200 space-y-2">
-                    <p className="text-stone-500 font-medium text-xs">No patron reviews yet for this farm produce.</p>
-                    <p className="text-stone-400 text-[11px]">Be the first patron to share your experience after ordering!</p>
+                  <div className="text-center py-8 bg-[#F5EFE6] rounded-2xl border border-[#D9CEBC] space-y-2">
+                    <p className="text-[#162010] font-medium text-xs font-serif">No patron reviews yet for this farm produce.</p>
+                    <p className="text-[#5C6352] text-[11px]">Be the first patron to share your experience after ordering!</p>
                   </div>
                 )}
               </div>
@@ -401,6 +398,19 @@ function ProductDetailPageContent({ id }: { id: string }) {
 
       <Footer />
 
+      {/* Cart Drawer */}
+      <CartDrawer
+        isOpen={isCartOpen}
+        onClose={() => setIsCartOpen(false)}
+        items={cartItems}
+        onUpdateQuantity={updateQuantity}
+        onRemoveItem={removeCartItem}
+        onCheckout={() => {
+          setIsCartOpen(false);
+          setIsCheckoutOpen(true);
+        }}
+      />
+
       {/* Modals */}
       <ProductDetailModal
         product={quickViewProduct}
@@ -408,7 +418,7 @@ function ProductDetailPageContent({ id }: { id: string }) {
         onAddToCart={addToCart}
         onBuyNow={(prod, v, q) => {
           addToCart(prod, v, q);
-          triggerCheckout(appliedDiscount, appliedPromoCode);
+          setIsCheckoutOpen(true);
         }}
       />
 

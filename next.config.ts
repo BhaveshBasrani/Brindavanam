@@ -14,8 +14,12 @@ const nextConfig: NextConfig = {
   assetPrefix: basePath ? `${basePath}/` : undefined,
   trailingSlash: true,
   allowedDevOrigins: [
+    '192.168.88.5',
     '192.168.88.4',
+    'localhost',
+    '127.0.0.1',
   ],
+  devIndicators: false,
 };
 
 export default nextConfig;

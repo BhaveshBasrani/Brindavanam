@@ -72,60 +72,60 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
   const progressToFreeShipping = Math.min(100, Math.round((rawSubtotal / freeShippingThreshold) * 100));
 
   return (
-    <div className="fixed inset-0 z-50 overflow-hidden">
+    <div className="fixed inset-0 z-50 overflow-hidden font-sans">
       <div
-        className="absolute inset-0 bg-black/50 backdrop-blur-xs transition-opacity"
+        className="absolute inset-0 bg-black/60 backdrop-blur-xs transition-opacity"
         onClick={onClose}
       />
 
       <div className="fixed inset-y-0 right-0 max-w-full flex pl-10">
-        <div className="w-screen max-w-md bg-white shadow-2xl flex flex-col justify-between border-l border-stone-200 animate-in slide-in-from-right duration-300">
+        <div className="w-screen max-w-md bg-[#FAF6F0] shadow-2xl flex flex-col justify-between border-l border-[#D9CEBC] animate-in slide-in-from-right duration-300">
           
           {/* Drawer Header */}
-          <div className="p-6 border-b border-stone-200 bg-[#F3F6F3]">
+          <div className="p-6 border-b border-[#D9CEBC] bg-[#ECE4D5]/80">
             <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2">
-                <div className="w-8 h-8 rounded-lg bg-[#3A5303] text-white flex items-center justify-center">
-                  <ShoppingBag className="w-4 h-4" />
+              <div className="flex items-center space-x-2.5">
+                <div className="w-8 h-8 rounded-xl bg-[#162010] text-[#F5EFE6] flex items-center justify-center">
+                  <ShoppingBag className="w-4 h-4 text-[#D49B28]" />
                 </div>
-                <h2 className="text-lg font-bold font-serif text-stone-900">Your Organic Cart</h2>
-                <span className="bg-[#94C000] text-[#1c260b] text-xs font-bold px-2 py-0.5 rounded-full">
-                  {items.length} items
+                <h2 className="text-lg font-bold font-display uppercase tracking-tight text-[#162010]">Your Harvest Cart</h2>
+                <span className="bg-[#162010] text-[#F5EFE6] text-[10px] font-mono font-bold px-2 py-0.5 rounded">
+                  {items.length}
                 </span>
               </div>
               <button
                 onClick={onClose}
-                className="p-2 text-stone-400 hover:text-stone-700 rounded-full hover:bg-stone-200 transition-colors"
+                className="p-2 text-[#162010] hover:text-[#C25E2E] rounded-xl hover:bg-[#D9CEBC] transition-colors cursor-pointer"
               >
-                <X className="w-5 h-5" />
+                <X className="w-4 h-4" />
               </button>
             </div>
 
             {/* Free Shipping Progress Indicator (₹2000 Min) */}
-            <div className="mt-4 bg-white p-3 rounded-xl border border-stone-200 text-xs">
+            <div className="mt-4 bg-[#FAF6F0] p-3.5 rounded-2xl border border-[#D9CEBC] text-xs">
               {rawSubtotal >= freeShippingThreshold ? (
                 <div>
-                  <p className="text-emerald-700 font-bold flex items-center">
-                    <Truck className="w-4 h-4 mr-1.5 text-[#3A5303] shrink-0" />
-                    <span>You qualify for FREE Farm Express Delivery</span>
+                  <p className="text-[#33441B] font-mono font-bold flex items-center">
+                    <Truck className="w-4 h-4 mr-1.5 text-[#33441B] shrink-0" />
+                    <span>Qualified for FREE Express Dispatch</span>
                   </p>
-                  <p className="text-[11px] text-stone-600 font-medium mt-1 leading-snug">
-                    Orders exceeding ₹5,000 automatically receive an additional 10% bulk discount.
+                  <p className="text-[11px] text-[#5C6352] font-sans mt-1 leading-snug">
+                    Orders exceeding ₹5,000 automatically receive an additional 10% bulk harvest discount.
                   </p>
                 </div>
               ) : (
                 <div>
-                  <p className="text-stone-600 font-medium">
-                    Add <span className="font-bold text-[#3A5303]">₹{freeShippingThreshold - rawSubtotal}</span> more for <span className="font-bold text-emerald-700">FREE Shipping (₹2000 Min)</span>
+                  <p className="text-[#5C6352] font-sans">
+                    Add <span className="font-mono font-bold text-[#162010]">₹{freeShippingThreshold - rawSubtotal}</span> more for <span className="font-mono font-bold text-[#C25E2E]">FREE Delivery (₹2000 Min)</span>
                   </p>
-                  <p className="text-[11px] text-stone-500 font-normal mt-0.5 leading-snug">
-                    Orders exceeding ₹5,000 automatically receive an additional 10% bulk discount.
+                  <p className="text-[11px] text-[#5C6352] font-sans mt-0.5 leading-snug">
+                    Orders exceeding ₹5,000 automatically receive an additional 10% bulk harvest discount.
                   </p>
                 </div>
               )}
-              <div className="w-full bg-stone-200 h-2 rounded-full mt-2 overflow-hidden">
+              <div className="w-full bg-[#D9CEBC] h-1.5 rounded-full mt-2.5 overflow-hidden">
                 <div
-                  className="bg-gradient-to-r from-[#94C000] to-[#3A5303] h-full transition-all duration-500 rounded-full"
+                  className="bg-[#C25E2E] h-full transition-all duration-500 rounded-full"
                   style={{ width: `${progressToFreeShipping}%` }}
                 />
               </div>
@@ -133,9 +133,9 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
 
             {/* Automatic 10% Bulk Discount Banner */}
             {rawSubtotal >= 5000 && (
-              <div className="mt-2 bg-emerald-50 p-2.5 rounded-xl border border-emerald-200 text-xs text-emerald-900 flex items-center space-x-1.5 font-bold">
-                <Sparkles className="w-4 h-4 text-emerald-700 shrink-0" />
-                <span>Bulk Farm Order Above ₹5000! Automatic 10% Discount (₹{bulkDiscount}) Applied.</span>
+              <div className="mt-2.5 bg-[#ECE4D5] p-2.5 rounded-xl border border-[#D9CEBC] text-xs text-[#162010] flex items-center space-x-1.5 font-mono font-bold">
+                <Sparkles className="w-4 h-4 text-[#D49B28] shrink-0" />
+                <span>Bulk Farm Order ₹5000+! 10% Discount (₹{bulkDiscount}) Applied.</span>
               </div>
             )}
           </div>
@@ -144,55 +144,55 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
           <div className="flex-1 overflow-y-auto p-6 space-y-4">
             {items.length === 0 ? (
               <div className="text-center py-16 space-y-4">
-                <div className="w-16 h-16 bg-[#F3F6F3] rounded-full flex items-center justify-center mx-auto text-stone-400">
-                  <ShoppingBag className="w-8 h-8" />
+                <div className="w-16 h-16 bg-[#ECE4D5] rounded-2xl flex items-center justify-center mx-auto text-[#5C6352]">
+                  <ShoppingBag className="w-7 h-7" />
                 </div>
-                <h3 className="text-base font-bold text-stone-700 font-serif">Your cart is empty</h3>
-                <p className="text-xs text-stone-500 max-w-xs mx-auto">
-                  Add some farm-fresh A2 Desi Ghee or Wood-Pressed Oils to get started!
+                <h3 className="text-xl font-serif text-[#162010]">Your cart is empty</h3>
+                <p className="text-xs text-[#5C6352] font-sans max-w-xs mx-auto">
+                  Add some farm-fresh A2 Desi Cow Ghee or Wood-Pressed Oils to get started!
                 </p>
                 <button
                   onClick={onClose}
-                  className="mt-2 px-6 py-2.5 bg-[#3A5303] text-white font-bold text-xs rounded-full shadow-md hover:bg-[#2b3e02]"
+                  className="mt-2 px-6 py-2.5 bg-[#162010] text-[#F5EFE6] font-mono text-xs font-bold uppercase tracking-wider rounded-xl hover:bg-[#33441B] transition-colors cursor-pointer"
                 >
-                  Start Shopping
+                  Explore Catalog
                 </button>
               </div>
             ) : (
               items.map((item, idx) => (
                 <div
                   key={idx}
-                  className="flex items-center space-x-4 p-3 bg-[#F3F6F3] rounded-2xl border border-stone-200"
+                  className="flex items-center space-x-4 p-3.5 bg-[#ECE4D5]/70 rounded-2xl border border-[#D9CEBC]"
                 >
                   <img
                     src={item.product.images[0]}
                     alt={item.product.name}
-                    className="w-16 h-16 rounded-xl object-cover border border-stone-300 bg-white"
+                    className="w-16 h-16 rounded-xl object-cover border border-[#D9CEBC] bg-[#FAF6F0]"
                   />
                   <div className="flex-1 min-w-0">
-                    <h4 className="text-xs font-bold font-serif text-stone-900 truncate">
+                    <h4 className="text-sm font-serif font-bold text-[#162010] truncate">
                       {item.product.name}
                     </h4>
-                    <p className="text-[11px] text-stone-500">{item.selectedVariant.weight}</p>
+                    <p className="text-[11px] font-mono text-[#5C6352]">{item.selectedVariant.weight}</p>
                     <div className="flex items-center justify-between mt-2">
-                      <span className="text-xs font-bold text-[#3A5303]">
+                      <span className="text-xs font-mono font-bold text-[#162010]">
                         ₹{item.selectedVariant.price * item.quantity}
                       </span>
                       
                       {/* Quantity Incrementor */}
-                      <div className="flex items-center border border-stone-300 rounded-lg overflow-hidden bg-white">
+                      <div className="flex items-center border border-[#D9CEBC] rounded-lg overflow-hidden bg-[#FAF6F0]">
                         <button
                           onClick={() => onUpdateQuantity(idx, item.quantity - 1)}
-                          className="px-2 py-0.5 text-stone-600 hover:bg-stone-100 font-bold text-xs"
+                          className="px-2.5 py-0.5 text-[#162010] hover:bg-[#D9CEBC] font-bold text-xs cursor-pointer"
                         >
                           -
                         </button>
-                        <span className="px-2.5 py-0.5 text-xs font-bold text-stone-800">
+                        <span className="px-2 py-0.5 text-xs font-mono font-bold text-[#162010]">
                           {item.quantity}
                         </span>
                         <button
                           onClick={() => onUpdateQuantity(idx, item.quantity + 1)}
-                          className="px-2 py-0.5 text-stone-600 hover:bg-stone-100 font-bold text-xs"
+                          className="px-2.5 py-0.5 text-[#162010] hover:bg-[#D9CEBC] font-bold text-xs cursor-pointer"
                         >
                           +
                         </button>
@@ -201,7 +201,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                   </div>
                   <button
                     onClick={() => onRemoveItem(idx)}
-                    className="p-1.5 text-stone-400 hover:text-red-600 transition-colors"
+                    className="p-2 text-[#5C6352] hover:text-[#C25E2E] transition-colors cursor-pointer"
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>
@@ -212,7 +212,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
 
           {/* Drawer Footer & Checkout Controls */}
           {items.length > 0 && (
-            <div className="p-6 border-t border-stone-200 bg-stone-50 space-y-4">
+            <div className="p-6 border-t border-[#D9CEBC] bg-[#ECE4D5]/50 space-y-4">
               {/* Promo Code Input */}
               <div>
                 <div className="flex space-x-2">
@@ -222,45 +222,45 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                       placeholder="Promo Code (e.g. ORGANIC10)"
                       value={promoCode}
                       onChange={(e) => setPromoCode(e.target.value)}
-                      className="w-full pl-8 pr-3 py-2 text-xs border border-stone-300 rounded-xl uppercase bg-white focus:outline-none focus:ring-1 focus:ring-[#3A5303]"
+                      className="w-full pl-8 pr-3 py-2 text-xs border border-[#D9CEBC] rounded-xl uppercase bg-[#FAF6F0] font-mono focus:outline-none focus:border-[#162010]"
                     />
-                    <Tag className="w-3.5 h-3.5 text-stone-400 absolute left-2.5 top-2.5" />
+                    <Tag className="w-3.5 h-3.5 text-[#5C6352] absolute left-2.5 top-2.5" />
                   </div>
                   <button
                     onClick={handleApplyPromo}
                     disabled={applying}
-                    className="px-4 py-2 bg-[#3A5303] text-white text-xs font-bold rounded-xl hover:bg-[#2b3e02]"
+                    className="px-4 py-2 bg-[#162010] text-[#F5EFE6] text-xs font-mono font-bold uppercase rounded-xl hover:bg-[#33441B] transition-colors cursor-pointer"
                   >
-                    {applying ? 'Checking...' : 'Apply'}
+                    {applying ? '...' : 'Apply'}
                   </button>
                 </div>
                 {appliedCode && (
-                  <p className="text-[11px] text-emerald-700 font-semibold mt-1 flex items-center">
-                    <Sparkles className="w-3 h-3 mr-1 text-[#94C000]" /> {promoMessage || `Coupon ${appliedCode} applied`}
+                  <p className="text-[11px] text-[#33441B] font-mono font-semibold mt-1 flex items-center">
+                    <Sparkles className="w-3 h-3 mr-1 text-[#D49B28]" /> {promoMessage || `Coupon ${appliedCode} applied`}
                   </p>
                 )}
-                {promoError && <p className="text-[11px] text-red-600 mt-1">{promoError}</p>}
+                {promoError && <p className="text-[11px] font-mono text-[#C25E2E] mt-1">{promoError}</p>}
               </div>
 
               {/* Price Breakdown */}
-              <div className="space-y-1.5 text-xs text-stone-600">
+              <div className="space-y-1.5 text-xs text-[#5C6352] font-mono">
                 <div className="flex justify-between">
                   <span>Subtotal</span>
-                  <span>₹{rawSubtotal}</span>
+                  <span className="text-[#162010] font-bold">₹{rawSubtotal}</span>
                 </div>
                 {effectiveDiscount > 0 && (
-                  <div className="flex justify-between text-emerald-700 font-semibold">
+                  <div className="flex justify-between text-[#33441B] font-semibold">
                     <span>Discount ({effectivePromoLabel || 'Special Discount'})</span>
                     <span>-₹{effectiveDiscount}</span>
                   </div>
                 )}
                 <div className="flex justify-between">
-                  <span>Delivery Charges</span>
-                  <span>{deliveryFee === 0 ? <span className="text-emerald-700 font-bold">FREE</span> : `₹${deliveryFee}`}</span>
+                  <span>Delivery Fee</span>
+                  <span>{deliveryFee === 0 ? <span className="text-[#33441B] font-bold">FREE</span> : `₹${deliveryFee}`}</span>
                 </div>
-                <div className="flex justify-between text-sm font-bold text-stone-900 pt-2 border-t border-stone-200">
-                  <span>Total Amount</span>
-                  <span className="text-[#3A5303] text-base font-serif">₹{finalTotal}</span>
+                <div className="flex justify-between text-sm font-bold text-[#162010] pt-2 border-t border-[#D9CEBC]">
+                  <span className="font-display uppercase tracking-wider">Total Amount</span>
+                  <span className="text-xl font-mono">₹{finalTotal}</span>
                 </div>
               </div>
 
@@ -270,15 +270,15 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                   onCheckout(effectiveDiscount, effectivePromoLabel || '');
                   onClose();
                 }}
-                className="w-full py-4 bg-[#3A5303] hover:bg-[#2b3e02] text-white font-bold text-sm rounded-xl shadow-xl flex items-center justify-center space-x-2 transition-transform active:scale-98"
+                className="w-full py-3.5 bg-[#C25E2E] hover:bg-[#9E451A] text-white font-mono font-bold text-xs uppercase tracking-[0.2em] rounded-xl shadow-lg flex items-center justify-center space-x-2 transition-transform active:scale-98 cursor-pointer"
               >
                 <span>Proceed to Checkout</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
 
-              <div className="flex items-center justify-center space-x-2 text-[10px] text-stone-400">
-                <ShieldCheck className="w-3.5 h-3.5 text-[#3A5303]" />
-                <span>Protected by Google reCAPTCHA & SSL Encryption</span>
+              <div className="flex items-center justify-center space-x-2 text-[10px] font-mono text-[#5C6352]">
+                <ShieldCheck className="w-3.5 h-3.5 text-[#33441B]" />
+                <span>Protected by SSL Encryption & Razorpay</span>
               </div>
             </div>
           )}
