@@ -534,7 +534,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
             {/* Security Captcha (Only needed for real online payments) */}
             {!isTestBypass && totalAmount > 0 && (
               <div className="flex flex-col items-center justify-center py-1 scale-90">
-                <SafeRecaptcha siteKey={process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || '6Lfpvm4tAAAAAC_wsr8Cg2-OCEyhOwzqPb5gtfmr'} onVerify={setRecaptchaToken} />
+                <SafeRecaptcha siteKey={process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || '6Lfpvm4tAAAAAC_wsr8Cg2-OCEyh0wzqPb5gtfmr'} onVerify={setRecaptchaToken} />
               </div>
             )}
 

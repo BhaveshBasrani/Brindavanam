@@ -13,7 +13,7 @@ export const SafeRecaptcha: React.FC<SafeRecaptchaProps> = ({ siteKey, onVerify 
   const [hasError, setHasError] = useState(false);
   const [fallbackChecked, setFallbackChecked] = useState(false);
 
-  const effectiveSiteKey = siteKey || '6Lfpvm4tAAAAAC_wsr8Cg2-OCEyhOwzqPb5gtfmr';
+  const effectiveSiteKey = siteKey || '6Lfpvm4tAAAAAC_wsr8Cg2-OCEyh0wzqPb5gtfmr';
 
   useEffect(() => {
     setHasError(false);
